@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "Running Typescript checker"
+
+# Run TypeScript compiler check
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "TypeScript errors detected. Aborting commit."
+  exit 1
+fi
+
+# Optional: Run ESLint
+# npx eslint .
+# if [ $? -ne 0 ]; then
+#   echo "ESLint errors detected. Aborting commit."
+#   exit 1
+# fi
