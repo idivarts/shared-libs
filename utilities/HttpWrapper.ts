@@ -7,5 +7,5 @@ class HttpWrapper {
     }
 }
 
-const httpWrapper = new HttpWrapper();
-export default httpWrapper
+const Http = new HttpWrapper();
+export default Http
