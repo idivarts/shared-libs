@@ -12,30 +12,18 @@ export interface IUser {
 class UserAPIClass {
 
     getUsers = async (): Promise<IUser[]> => {
-        try {
-            const response = await crowdyAxios.get<IUser[]>('/users');
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await crowdyAxios.get<IUser[]>('/users');
+        return response.data;
     };
 
     createUser = async (userData: Partial<IUser>): Promise<IUser> => {
-        try {
-            const response = await crowdyAxios.post<IUser>('/users', userData);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await crowdyAxios.post<IUser>('/users', userData);
+        return response.data;
     };
 
     updateUser = async (userId: string, userData: Partial<IUser>): Promise<IUser> => {
-        try {
-            const response = await crowdyAxios.put<IUser>(`/users/${userId}`, userData);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await crowdyAxios.put<IUser>(`/users/${userId}`, userData);
+        return response.data;
     };
 
 }
