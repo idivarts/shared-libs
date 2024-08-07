@@ -1,36 +1,44 @@
+import axios from 'axios';
 import crowdyAxios from '../crowdyAxios';
 
 // Define interfaces for User data
-interface User {
+export interface IUser {
     id: string;
     name: string;
     email: string;
     // Add other fields as needed
 }
 
-export const getUsers = async (): Promise<User[]> => {
-    try {
-        const response = await crowdyAxios.get<User[]>('/users');
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};
+class UserAPIClass {
 
-export const createUser = async (userData: Partial<User>): Promise<User> => {
-    try {
-        const response = await crowdyAxios.post<User>('/users', userData);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};
+    getUsers = async (): Promise<IUser[]> => {
+        try {
+            const response = await crowdyAxios.get<IUser[]>('/users');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    };
 
-export const updateUser = async (userId: string, userData: Partial<User>): Promise<User> => {
-    try {
-        const response = await crowdyAxios.put<User>(`/users/${userId}`, userData);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};
+    createUser = async (userData: Partial<IUser>): Promise<IUser> => {
+        try {
+            const response = await crowdyAxios.post<IUser>('/users', userData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    updateUser = async (userId: string, userData: Partial<IUser>): Promise<IUser> => {
+        try {
+            const response = await crowdyAxios.put<IUser>(`/users/${userId}`, userData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+}
+
+const UserAPI = new UserAPIClass()
+export default UserAPI
