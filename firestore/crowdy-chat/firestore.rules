@@ -3,17 +3,68 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2024, 9, 22);
+      allow read, write: if false;
     }
+    // Rule for users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.data.keys().hasAll(['name', 'email', 'organizations']) &&
+                               request.resource.data.name is string &&
+                               request.resource.data.email is string;
+    }
+
+    // Rule for organizations collection
+    match /organizations/{organizationId} {
+      allow read: if isAuthenticated();
+      allow write: if isOrgOwnerOrAdmin(organizationId);
+
+      // Rule for organizationUsers subcollection
+      match /organizationUsers/{userId} {
+        allow read: if isOrgMember(organizationId);
+        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['role']) &&
+                                  request.resource.data.role is string;
+      }
+
+      // Rule for campaigns subcollection
+      match /campaigns/{campaignId} {
+        allow read: if isOrgMember(organizationId);
+        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'status']) &&
+                                  request.resource.data.name is string &&
+                                  request.resource.data.status is string;
+      }
+
+      // Rule for leads subcollection
+      match /leads/{leadId} {
+        allow read: if isOrgMember(organizationId);
+        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'email', 'status']) &&
+                                  request.resource.data.name is string &&
+                                  request.resource.data.email is string &&
+                                  request.resource.data.status is string;
+      }
+
+      // Rule for sources subcollection
+      match /sources/{sourceId} {
+        allow read: if isOrgMember(organizationId);
+        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'type']) &&
+                                  request.resource.data.name is string &&
+                                  request.resource.data.type is string;
+      }
+    }
+  }
+
+  // Function to check if the user is authenticated
+  function isAuthenticated() {
+    return request.auth != null;
+  }
+
+  // Function to check if the user is the owner or admin of the organization
+  function isOrgOwnerOrAdmin(organizationId) {
+    return get(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid)).data.role in ['owner', 'admin'];
+  }
+
+  // Function to check if the user is a member of the organization
+  function isOrgMember(organizationId) {
+    return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid));
   }
 }
