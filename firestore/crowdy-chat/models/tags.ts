@@ -1,4 +1,4 @@
-export const getTagPath = (orgId, tagId?) => `/organizations/${orgId}/tags/${tagId}`
+export const getTagPath = (orgId: string, tagId?: string) => `/organizations/${orgId}/tags/${tagId}`
 
 export interface ITags {
     name: string

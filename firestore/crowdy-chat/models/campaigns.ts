@@ -1,4 +1,4 @@
-export const getCampaignPath = (orgId, campaignId?) => `/organizations/${orgId}/campaigns/${campaignId}`
+export const getCampaignPath = (orgId: string, campaignId?: string) => `/organizations/${orgId}/campaigns/${campaignId}`
 
 export interface ICampaigns {
     name: string

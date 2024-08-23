@@ -1,4 +1,4 @@
-export const getConversationPath = (orgId, campaignId, conversationId?) => `/organizations/${orgId}/campaigns/${campaignId}/conversations/${conversationId}`
+export const getConversationPath = (orgId: string, campaignId: string, conversationId?: string) => `/organizations/${orgId}/campaigns/${campaignId}/conversations/${conversationId}`
 
 export interface IConversation {
     // igsid: string; - This is no longer needed as this is stored in the leads table

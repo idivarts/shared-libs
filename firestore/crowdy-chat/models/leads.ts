@@ -1,4 +1,4 @@
-export const getLeadPath = (orgId, leadId?) => `/organizations/${orgId}/leads/${leadId}`
+export const getLeadPath = (orgId: string, leadId?: string) => `/organizations/${orgId}/leads/${leadId}`
 
 export interface ILeads {
     igsid?: string

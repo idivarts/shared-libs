@@ -6,7 +6,7 @@ import { ILeads } from "./leads"
 import { IMembers } from "./members"
 import { ISources } from "./sources"
 
-export const getOrganizationPath = (orgId) => `/organizations/${orgId}`
+export const getOrganizationPath = (orgId: string) => `/organizations/${orgId}`
 
 export interface IOrganizations {
     name: string
