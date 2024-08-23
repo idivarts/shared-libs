@@ -1,5 +1,5 @@
-import { FirestoreDB } from "../../../utilities/firestore";
 import { collection, getDocs } from "firebase/firestore";
+import { FirestoreDB } from "../../../utilities/firestore";
 
 test('Fetching Users', async () => {
     const querySnapshot = await getDocs(collection(FirestoreDB, "users"));
