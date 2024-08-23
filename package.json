@@ -1,9 +1,17 @@
 {
     "name": "shared-libs",
     "version": "1.0.0",
+    "scripts": {
+        "test": "jest --detectOpenHandles"
+    },
     "dependencies": {
         "axios": "^1.7.2",
         "firebase": "^10.13.0",
         "moment": "^2.29.1"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.12",
+        "jest": "^29.7.0",
+        "ts-jest": "^29.2.5"
     }
 }
