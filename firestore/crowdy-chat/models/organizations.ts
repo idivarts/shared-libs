@@ -14,6 +14,7 @@ export interface IOrganizations {
     description?: string
     industry?: string
     website?: string
+    createdAt: number
 
     // This field will be used to store the openAI key
     openAIKey?: string,
