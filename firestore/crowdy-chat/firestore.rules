@@ -8,16 +8,55 @@ service cloud.firestore {
     }
     // Rule for users collection
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.resource.data.keys().hasAll(['name', 'email', 'organizations']) &&
-                               request.resource.data.name is string &&
-                               request.resource.data.email is string;
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow create, update: if isAuthenticated() && request.auth.uid == userId &&
+                            // Mandatory field: email must be a string
+                            (request.resource.data.email is string) &&
+                            
+                            // Optional fields: validate only if they exist
+                            (!('username' in request.resource.data) || (request.resource.data.username is string)) &&
+                            (!('name' in request.resource.data) || (request.resource.data.name is string)) &&
+                            (!('image' in request.resource.data) || (request.resource.data.image is string)) &&
+                            
+                            // Optional array: organizations must be an array of objects with specified structure if present
+                            // (!('organizations' in request.resource.data) || (
+                            //   request.resource.data.organizations is list &&
+                            //   request.resource.data.organizations.size() > 0 &&
+                            //   request.resource.data.organizations
+                            //     .map(org => org.organizationId is string && org.status is number)
+                            //     .reduce((acc, curr) => acc && curr, true)
+                            // )) &&
+                            
+                            // Ensure only allowed fields are present
+                            request.resource.data.keys().hasOnly(['email', 'username', 'name', 'image', 'organizations']);
     }
 
     // Rule for organizations collection
     match /organizations/{organizationId} {
       allow read: if isAuthenticated();
-      allow write: if isOrgOwnerOrAdmin(organizationId);
+      allow create, update: if isAuthenticated() &&
+                    // Mandatory fields
+                    (request.resource.data.name is string) &&
+                    (request.resource.data.createdAt is number) &&
+
+                    // Optional fields: validate only if they exist
+                    (!('image' in request.resource.data) || (request.resource.data.image is string)) &&
+                    (!('description' in request.resource.data) || (request.resource.data.description is string)) &&
+                    (!('industry' in request.resource.data) || (request.resource.data.industry is string)) &&
+                    (!('website' in request.resource.data) || (request.resource.data.website is string)) &&
+                    (!('openAIKey' in request.resource.data) || (request.resource.data.openAIKey is string)) &&
+
+                    // // Ensure subcollections exist where specified
+                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/campaigns).exists()) &&
+                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/leads).exists()) &&
+                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/sources).exists()) &&
+                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/members).exists()) &&
+
+                    // Ensure only allowed fields are present
+                    request.resource.data.keys().hasOnly([
+                      'name', 'image', 'description', 'industry', 'website',
+                      'createdAt', 'openAIKey', 'campaigns', 'leads', 'sources', 'members'
+                    ]);
 
       // Rule for organizationUsers subcollection
       match /organizationUsers/{userId} {
