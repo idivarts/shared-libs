@@ -1,74 +1,95 @@
 rules_version = '2';
 
 service cloud.firestore {
-  match /databases/{database}/documents {
+	match /databases/{database}/documents {
 
-	match /{document=**} {
-	  allow read, write: if false;
-	}
-	// Rule for users collection
-	match /users/{userId} {
-		allow read: if isAuthenticated();
-		allow create: if isAuthenticated() &&
-			validateUserFields();
-		allow update: if isAuthenticated() &&
-			request.auth.uid == userId &&
-			validateUserFields();
-	}
-
-	// Rule for organizations collection
-	match /organizations/{organizationId} {
-		allow read: if isAuthenticated();
-		allow create: if isAuthenticated() &&
-			request.resource.data.createdBy == request.auth.uid && validateOrgObject();
-
-		allow update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-			request.resource.data.createdBy == resource.data.createdBy && validateOrgObject();
-
-		// Rule for organizationUsers subcollection
-		match /organizationMembers/{userId} {
-			allow read: if isOrgMember(organizationId);
-			allow write: if isOrgOwnerOrAdmin(organizationId) &&
-				validateOrgMembers(organizationId);
+		match /{document=**} {
+		allow read, write: if false;
+		}
+		// Rule for users collection
+		match /users/{userId} {
+			allow read: if isAuthenticated();
+			allow create: if isAuthenticated() &&
+				validateUserFields();
+			allow update: if isAuthenticated() &&
+				request.auth.uid == userId &&
+				validateUserFields();
 		}
 
-		// Rule for campaigns subcollection
-		match /campaigns/{campaignId} {
-			allow read: if isOrgMember(organizationId);
-			allow create, update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-				validateCampaigns();
+		// Rule for organizations collection
+		match /organizations/{organizationId} {
+			allow read: if isAuthenticated();
+			allow create: if isAuthenticated() &&
+				request.resource.data.createdBy == request.auth.uid && validateOrgObject();
 
-			match /leadStages/{i1} {
-				allow read: if isAuthenticated() && isOrgMember(organizationId);
-				allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-						validateLeadStages();
-				
-				match /collectibles/{i2} {
+			allow update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+				request.resource.data.createdBy == resource.data.createdBy && validateOrgObject();
+
+			// Rule for organizationUsers subcollection
+			match /members/{userId} {
+				allow read: if isOrgMember(organizationId);
+				allow write: if isOrgOwnerOrAdmin(organizationId) &&
+					validateOrgMembers(organizationId);
+			}
+
+			// Rule for campaigns subcollection
+			match /campaigns/{campaignId} {
+				allow read: if isOrgMember(organizationId);
+				allow create, update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+					validateCampaigns();
+
+				match /leadStages/{i1} {
 					allow read: if isAuthenticated() && isOrgMember(organizationId);
 					allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-						validateCollectibles();
+							validateLeadStages();
+					
+					match /collectibles/{i2} {
+						allow read: if isAuthenticated() && isOrgMember(organizationId);
+						allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+							validateCollectibles();
+					}
 				}
 			}
-		}
 
-		// Rule for leads subcollection
-		match /leads/{leadId} {
-			allow read: if isOrgMember(organizationId);
-			allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'email', 'status']) &&
-									request.resource.data.name is string &&
-									request.resource.data.email is string &&
-									request.resource.data.status is string;
-		}
+			// Rule for leads subcollection
+			match /leads/{leadId} {
+				allow read: if isOrgMember(organizationId);
+				allow write: if isOrgOwnerOrAdmin(organizationId) &&
+					validateLeads();
+			}
 
-		// Rule for sources subcollection
-		match /sources/{sourceId} {
-			allow read: if isOrgMember(organizationId);
-			allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'type']) &&
-									request.resource.data.name is string &&
-									request.resource.data.type is string;
+			// Rule for sources subcollection
+			match /sources/{sourceId} {
+				allow read: if isAuthenticated() && isOrgMember(organizationId);
+				allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+					validateSources();
+			}
+
+			match /tags/{tagId} {
+				allow read: if isAuthenticated();
+				allow write: if isOrgOwnerOrAdmin() &&
+					validateTags();
+			}
 		}
-		}
-  }
+	}
+	function isOrgOwner(organizationId){
+		return true;
+		// return get(/databases/$(database)/documents/organizations/$(organizationId)).data.createdBy == request.auth.uid
+	}
+	function isOrgAdmin(organizationId){
+		return true;
+		// return get(/databases/$(database)/documents/organizations/$(organizationId)/organizationMembers/$(request.auth.uid)).data.role in ['owner', 'admin'];
+	}
+	// Function to check if the user is the owner or admin of the organization
+	function isOrgOwnerOrAdmin(organizationId) {
+		return isOrgOwner(organizationId) || isOrgAdmin(organizationId);
+	}
+
+	// Function to check if the user is a member of the organization
+	function isOrgMember(organizationId) {
+		// return true;
+		return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationMembers/$(request.auth.uid));
+	}
 
 	function validateUserFields(){
 		return (request.resource.data.email is string) &&
@@ -132,29 +153,38 @@ service cloud.firestore {
 	}
 
 	function validateOrgMembers(organizationId){
-		return request.resource.data.keys().hasAll(['userId', "permissions", "organizationId"]) &&
-			request.resource.data.userId is string &&
-			request.resource.data.organizationId is string &&
+		return 
+			// Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.userId is string) &&
+			(request.resource.data.organizationId is string) &&
 			request.resource.data.organizationId == organizationId &&
-			request.resource.data.permissions is list;
+
+			// Validate the permissions object
+			(request.resource.data.permissions is map) &&
+			request.resource.data.permissions.keys().size() >= 1 &&
+			(!('read' in request.resource.data.permissions) || (request.resource.data.permissions.read is bool)) &&
+			(!('write' in request.resource.data.permissions) || (request.resource.data.permissions.write is bool)) &&
+			(!('admin' in request.resource.data.permissions) || (request.resource.data.permissions.admin is bool)) &&
+
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasAll(['userId', 'organizationId', 'permissions']);
 	}
 
 	function validateLeadStages(){
 		return // Mandatory fields: ensure they are present and of the correct type
 			(request.resource.data.name is string) &&
-			(request.resource.data.purpose is string) &&
-			(request.resource.data.exampleConversations is string) &&
+			(!('purpose' in request.resource.data) || (request.resource.data.purpose is string)) &&
+			(!('exampleConversations' in request.resource.data) || (request.resource.data.exampleConversations is string)) &&
 			(request.resource.data.stopConversation is bool) &&
 			(request.resource.data.leadConversion is bool) &&
 
-			// Validate the collectibles array
-			(request.resource.data.collectibles is list) &&
-			
 			// Validate the reminders object
 			(request.resource.data.reminders is map) &&
 			(request.resource.data.reminders.state is bool) &&
 			(request.resource.data.reminders.reminderCount is number) &&
-			(request.resource.data.reminders.reminderExamples is string);
+			(request.resource.data.reminders.reminderExamples is string) &&
+			request.resource.data.keys().hasOnly(['name', 'purpose', 'exampleConversations',
+				'stopConversation', 'leadConversion', 'reminders']);
 	}
 
 	function validateCollectibles(){
@@ -162,29 +192,77 @@ service cloud.firestore {
 			(request.resource.data.name is string) &&
 			(request.resource.data.type is string) &&
 			(request.resource.data.description is string) &&
-			(request.resource.data.mandatory is bool); 
+			(request.resource.data.mandatory is bool) &&
+			request.resource.data.keys().hasOnly(['name', 'type', 'description',
+				'mandatory']);
 	}
 	// Function to check if the user is authenticated
 	function isAuthenticated() {
 		return request.auth != null;
 	}
 
-	function isOrgOwner(organizationId){
-		return true;
-		// return get(/databases/$(database)/documents/organizations/$(organizationId)).data.createdBy == request.auth.uid
-	}
-	function isOrgAdmin(organizationId){
-		return true;
-		// return get(/databases/$(database)/documents/organizations/$(organizationId)/organizationMembers/$(request.auth.uid)).data.role in ['owner', 'admin'];
-	}
-	// Function to check if the user is the owner or admin of the organization
-	function isOrgOwnerOrAdmin(organizationId) {
-		return isOrgOwner() || isOrgAdmin();
+	function validateSources(){
+		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.pageId is string) &&
+			(request.resource.data.name is string) &&
+			(request.resource.data.userId is string) &&
+			(request.resource.data.ownerName is string) &&
+			(request.resource.data.isWebhookConnected is bool) &&
+			(request.resource.data.status is number) &&
+			(request.resource.data.sourceType in ['facebook', 'instagram', 'youtube', 'email']) &&
+
+			// Optional fields: validate only if they exist
+			(!('userName' in request.resource.data) || (request.resource.data.userName is string)) &&
+			(!('bio' in request.resource.data) || (request.resource.data.bio is string)) &&
+			(!('connectedId' in request.resource.data) || (request.resource.data.connectedId is string)) &&
+			(!('accessToken' in request.resource.data) || (request.resource.data.accessToken is string)) &&
+
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasOnly([
+			'pageId', 'name', 'userId', 'ownerName', 'isWebhookConnected', 'status', 'userName', 
+			'bio', 'sourceType', 'connectedId', 'accessToken'
+			]);
 	}
 
-	// Function to check if the user is a member of the organization
-	function isOrgMember(organizationId) {
-		return true;
-		// return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid));
+	function validateLeads(){
+		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.sourceType in ['facebook', 'instagram', 'youtube', 'email']) &&
+			(request.resource.data.sourceId is string) &&
+			(request.resource.data.status is number) &&
+			(request.resource.data.createdAt is number) &&
+			(request.resource.data.updatedAt is number) &&
+
+			// Optional fields: validate only if they exist
+			(!('igsid' in request.resource.data) || (request.resource.data.igsid is string)) &&
+			(!('fbid' in request.resource.data) || (request.resource.data.fbid is string)) &&
+			(!('email' in request.resource.data) || (request.resource.data.email is string)) &&
+			(!('name' in request.resource.data) || (request.resource.data.name is string)) &&
+			(!('tagId' in request.resource.data) || (request.resource.data.tagId is string)) &&
+			(!('campaignId' in request.resource.data) || (request.resource.data.campaignId is string)) &&
+
+			// Optional nested object: validate userProfile only if it exists
+			(!('userProfile' in request.resource.data) || (
+			(request.resource.data.userProfile is map) &&
+			(request.resource.data.userProfile.name is string) &&
+			(request.resource.data.userProfile.username is string) &&
+			(request.resource.data.userProfile.profile_pic is string) &&
+			(request.resource.data.userProfile.follower_count is number) &&
+			(request.resource.data.userProfile.is_user_follow_business is bool) &&
+			(request.resource.data.userProfile.is_business_follow_user is bool)
+			)) &&
+
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasOnly([
+			'igsid', 'fbid', 'email', 'name', 'sourceType', 'sourceId', 'userProfile', 'tagId',
+			'campaignId', 'status', 'createdAt', 'updatedAt'
+			]);
+	}
+
+	function validateTags(){
+		return // Mandatory field: ensure it is present and of the correct type
+			(request.resource.data.name is string) &&
+
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasOnly(['name']);
 	}
 }

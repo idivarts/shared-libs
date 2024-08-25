@@ -1,10 +1,11 @@
 export const getMemberPath = (orgId: string, memberId?: string) => `/organizations/${orgId}/members/${memberId}`
 
 export interface IMembers {
-    role: "admin" | "write" | "read"
+    userId: string,
+    organizationId: string,
     permissions: {
-        "createCampaigns": boolean,
-        "manageLeads": boolean
+        read?: boolean,
+        write?: boolean,
+        admin?: boolean
     }
-    createdAt: number
 }

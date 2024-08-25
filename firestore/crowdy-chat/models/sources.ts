@@ -2,14 +2,16 @@ export const getSourcesPath = (orgId: string, sourceId?: string) => `/organizati
 
 export interface ISources {
     pageId: string;
-    connectedId: string;
+    name: string;
     userId: string;
     ownerName: string;
-    name: string;
-    userName: string;
-    bio: string;
-    isInstagram: boolean;
-    accessToken: string;
     isWebhookConnected: boolean;
     status: number;
+
+    userName?: string;
+    bio?: string;
+    sourceType: "facebook" | "instagram" | "youtube" | "email";
+    // isInstagram: boolean;
+    connectedId?: string;
+    accessToken?: string;
 }

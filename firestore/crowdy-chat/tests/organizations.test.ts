@@ -1,7 +1,8 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { addDoc, collection, doc, Firestore, setDoc } from 'firebase/firestore';
 import fs from 'fs';
-import { IOrganizationMembers, IOrganizations } from '../models/organizations';
+import { IMembers } from '../models/members';
+import { IOrganizations } from '../models/organizations';
 
 // Load Firestore rules
 const rules = fs.readFileSync('firestore/crowdy-chat/firestore.rules', 'utf8');
@@ -45,11 +46,13 @@ describe('Firestore Rules - Organizations', () => {
             createdAt: Date.now(),
             createdBy: "alice"
         }));
-        
-        const docRef = doc(aliceFirestore, 'organizations', data.id, "organizationMembers", "alice");
-        let member = await assertSucceeds(setDoc(docRef, <IOrganizationMembers>{
-            userId:"alice",
-            permissions:["admin"],
+
+        const docRef = doc(aliceFirestore, 'organizations', data.id, "members", "alice");
+        let member = await assertSucceeds(setDoc(docRef, <IMembers>{
+            userId: "alice",
+            permissions: {
+                admin: true
+            },
             organizationId: data.id
         }));
     });
