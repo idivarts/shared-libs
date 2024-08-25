@@ -74,7 +74,8 @@ service cloud.firestore {
 	}
 	// Function to check if the user is authenticated
 	function isAuthenticated() {
-		return request.auth != null;
+		return request.auth != null 
+		// && exists(/databases/$(database)/documents/users/$(request.auth.uid));
 	}
 	function isOrgOwner(organizationId){
 		return true;
