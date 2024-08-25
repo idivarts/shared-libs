@@ -283,7 +283,7 @@ service cloud.firestore {
 			(request.resource.data.lastMid is string) &&
 			(request.resource.data.lastBotMessageTime is number) &&
 			(request.resource.data.botMessageCount is number) &&
-			(request.resource.data.isProfileFetched is boolean) &&
+			(request.resource.data.isProfileFetched is bool) &&
 			(request.resource.data.phases is list) &&
 			(request.resource.data.phases.size() > 0) &&
 			(request.resource.data.currentPhase is number) &&
