@@ -1,4 +1,6 @@
-export const getLeadPath = (orgId: string, leadId?: string) => `/organizations/${orgId}/leads/${leadId}`
+import { SourceType } from "./sources"
+
+export const getLeadPath = (orgId: string, leadId?: string) => `/organizations/${orgId}/leads/${leadId || ''}`
 
 export interface ILeads {
     igsid?: string
@@ -7,7 +9,7 @@ export interface ILeads {
 
     name?: string
 
-    sourceType: "facebook" | "instagram" | "youtube" | "email"
+    sourceType: SourceType
     sourceId: string
 
     userProfile?: UserProfile
