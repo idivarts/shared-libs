@@ -1,5 +1,5 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment, RulesTestEnvironment } from '@firebase/rules-unit-testing';
-import { addDoc, collection, Firestore } from 'firebase/firestore';
+import { addDoc, collection, doc, Firestore, setDoc } from 'firebase/firestore';
 import fs from 'fs';
 import { IOrganizationMembers, IOrganizations } from '../models/organizations';
 
@@ -45,9 +45,9 @@ describe('Firestore Rules - Organizations', () => {
             createdAt: Date.now(),
             createdBy: "alice"
         }));
-        const collectionRef2 = collection(aliceFirestore, 'organizations', data.id, "organizationMembers");
-
-        let member = await assertSucceeds(addDoc(collectionRef2, <IOrganizationMembers>{
+        
+        const docRef = doc(aliceFirestore, 'organizations', data.id, "organizationMembers", "alice");
+        let member = await assertSucceeds(setDoc(docRef, <IOrganizationMembers>{
             userId:"alice",
             permissions:["admin"],
             organizationId: data.id
