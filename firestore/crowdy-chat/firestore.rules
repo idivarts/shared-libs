@@ -49,6 +49,14 @@ service cloud.firestore {
 							validateCollectibles();
 					}
 				}
+
+				match /conversations/{conversationId} {
+					allow read: if isAuthenticated() && isOrgMember(organizationId);
+					allow create: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+						validateConversations();
+					allow update: if isAuthenticated() && isOrgMember(organizationId) &&
+						validateConversations();
+				}
 			}
 
 			// Rule for leads subcollection
@@ -265,5 +273,36 @@ service cloud.firestore {
 
 			// Ensure only allowed fields are present
 			request.resource.data.keys().hasOnly(['name']);
+	}
+
+	function validateConversations(){
+		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.sourceId is string) &&
+			(request.resource.data.threadId is string) &&
+			(request.resource.data.leadId is string) &&
+			(request.resource.data.lastMid is string) &&
+			(request.resource.data.lastBotMessageTime is number) &&
+			(request.resource.data.botMessageCount is number) &&
+			(request.resource.data.isProfileFetched is boolean) &&
+			(request.resource.data.phases is list) &&
+			(request.resource.data.phases.size() > 0) &&
+			(request.resource.data.currentPhase is number) &&
+			(request.resource.data.collectibles is map) &&
+			
+			(request.resource.data.reminderCount is number) &&
+			(request.resource.data.status is number) &&
+
+			// Optional fields: validate only if they exist
+			(!('messageQueue' in request.resource.data) || (request.resource.data.messageQueue is string)) &&
+			(!('nextMessageTime' in request.resource.data) || (request.resource.data.nextMessageTime is number)) &&
+			(!('nextReminderTime' in request.resource.data) || (request.resource.data.nextReminderTime is number)) &&
+			(!('reminderQueue' in request.resource.data) || (request.resource.data.reminderQueue is string)) &&
+
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasOnly([
+			'sourceId', 'threadId', 'leadId', 'lastMid', 'lastBotMessageTime', 'botMessageCount', 
+			'isProfileFetched', 'phases', 'currentPhase', 'collectibles', 'messageQueue', 
+			'nextMessageTime', 'nextReminderTime', 'reminderQueue', 'reminderCount', 'status'
+			]);
 	}
 }

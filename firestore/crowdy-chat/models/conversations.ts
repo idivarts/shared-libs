@@ -13,18 +13,8 @@ export interface IConversation {
 
     phases: number[];
     currentPhase: number;
-    information: {
-        phase: number;
-        engagement: string;
-        engagement_unit: string;
-        views: string;
-        views_unit: string;
-        video_category: string;
-        brand_category: string;
-        interestInService?: boolean;
-        interestInApp?: boolean;
-        collaboration_brand: string;
-        collaboration_product: string;
+    collectibles: {
+        [collectibleId: string]: string
     }
     messageQueue?: string;
     nextMessageTime?: number;
