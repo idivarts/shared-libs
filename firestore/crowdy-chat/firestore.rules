@@ -4,14 +4,14 @@ service cloud.firestore {
 	match /databases/{database}/documents {
 
 		match /{document=**} {
-		allow read, write: if false;
+			allow read, write: if false;
 		}
 		// Rule for users collection
 		match /users/{userId} {
-			allow read: if isAuthenticated();
-			allow create: if isAuthenticated() &&
+			allow read: if request.auth != null;
+			allow create: if request.auth != null &&
 				validateUserFields();
-			allow update: if isAuthenticated() &&
+			allow update: if request.auth != null &&
 				request.auth.uid == userId &&
 				validateUserFields();
 		}
@@ -71,6 +71,10 @@ service cloud.firestore {
 					validateTags();
 			}
 		}
+	}
+	// Function to check if the user is authenticated
+	function isAuthenticated() {
+		return request.auth != null;
 	}
 	function isOrgOwner(organizationId){
 		return true;
@@ -195,10 +199,6 @@ service cloud.firestore {
 			(request.resource.data.mandatory is bool) &&
 			request.resource.data.keys().hasOnly(['name', 'type', 'description',
 				'mandatory']);
-	}
-	// Function to check if the user is authenticated
-	function isAuthenticated() {
-		return request.auth != null;
 	}
 
 	function validateSources(){
