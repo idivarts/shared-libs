@@ -28,76 +28,26 @@ service cloud.firestore {
 		// Rule for organizationUsers subcollection
 		match /organizationMembers/{userId} {
 			allow read: if isOrgMember(organizationId);
-			allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['userId', "permissions", "organizationId"]) &&
-				request.resource.data.userId is string &&
-				request.resource.data.organizationId is string &&
-				request.resource.data.organizationId == organizationId &&
-				request.resource.data.permissions is list;
+			allow write: if isOrgOwnerOrAdmin(organizationId) &&
+				validateOrgMembers();
 		}
 
 		// Rule for campaigns subcollection
 		match /campaigns/{campaignId} {
 			allow read: if isOrgMember(organizationId);
 			allow create, update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-				// Mandatory fields: ensure they are present and of the correct type
-				(request.resource.data.name is string) &&
-				(request.resource.data.objective is string) &&
-				(request.resource.data.createdBy is string) &&
-				(request.resource.data.createdAt is number) &&
-				(request.resource.data.updatedAt is number) &&
-				(request.resource.data.status is number) &&
-
-				// Nested object validation for replySpeed
-				(request.resource.data.replySpeed is map) &&
-				(request.resource.data.replySpeed.min is number) &&
-				(request.resource.data.replySpeed.max is number) &&
-
-				// Nested object validation for reminderTiming
-				(request.resource.data.reminderTiming is map) &&
-				(request.resource.data.reminderTiming.min is number) &&
-				(request.resource.data.reminderTiming.max is number) &&
-
-				// Nested object validation for chatgpt
-				(request.resource.data.chatgpt is map) &&
-				(request.resource.data.chatgpt.prescript is string) &&
-				(request.resource.data.chatgpt.purpose is string) &&
-				(request.resource.data.chatgpt.actor is string) &&
-				(request.resource.data.chatgpt.examples is string) &&
-
-				// Array validation for leadStages
-				request.resource.data.keys().hasOnly([
-						'name', 'objective', 'createdBy', 'createdAt', 'updatedAt',
-						'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt'
-						]);
-				// (request.resource.data.leadStages is list);
+				validateCampaigns();
 
 			match /leadStages/{i1} {
-			allow read: if isAuthenticated() && isOrgMember(organizationId);
-			allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-					// Mandatory fields: ensure they are present and of the correct type
-					(request.resource.data.name is string) &&
-					(request.resource.data.purpose is string) &&
-					(request.resource.data.exampleConversations is string) &&
-					(request.resource.data.stopConversation is bool) &&
-					(request.resource.data.leadConversion is bool) &&
-
-					// Validate the collectibles array
-					(request.resource.data.collectibles is list) &&
-					
-					// Validate the reminders object
-					(request.resource.data.reminders is map) &&
-					(request.resource.data.reminders.state is bool) &&
-					(request.resource.data.reminders.reminderCount is number) &&
-					(request.resource.data.reminders.reminderExamples is string);
-			match /collectibles/{i2} {
 				allow read: if isAuthenticated() && isOrgMember(organizationId);
 				allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-					// Mandatory fields: ensure they are present and of the correct type
-					(request.resource.data.name is string) &&
-					(request.resource.data.type is string) &&
-					(request.resource.data.description is string) &&
-					(request.resource.data.mandatory is bool); 
-			}
+						validateLeadStages();
+				
+				match /collectibles/{i2} {
+					allow read: if isAuthenticated() && isOrgMember(organizationId);
+					allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+						validateCollectibles();
+				}
 			}
 		}
 
@@ -129,6 +79,7 @@ service cloud.firestore {
 			// Ensure only allowed fields are present
 			request.resource.data.keys().hasOnly(['email', 'username', 'name', 'image'])
 	}
+
 	function validateOrgObject(){
 		return 	(request.resource.data.name is string) &&
 			(request.resource.data.createdAt is number) &&
@@ -146,6 +97,73 @@ service cloud.firestore {
 			]);
 	}
 
+	function validateCampaigns(){
+		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.name is string) &&
+			(request.resource.data.objective is string) &&
+			(request.resource.data.createdBy is string) &&
+			(request.resource.data.createdAt is number) &&
+			(request.resource.data.updatedAt is number) &&
+			(request.resource.data.status is number) &&
+
+			// Nested object validation for replySpeed
+			(request.resource.data.replySpeed is map) &&
+			(request.resource.data.replySpeed.min is number) &&
+			(request.resource.data.replySpeed.max is number) &&
+
+			// Nested object validation for reminderTiming
+			(request.resource.data.reminderTiming is map) &&
+			(request.resource.data.reminderTiming.min is number) &&
+			(request.resource.data.reminderTiming.max is number) &&
+
+			// Nested object validation for chatgpt
+			(request.resource.data.chatgpt is map) &&
+			(request.resource.data.chatgpt.prescript is string) &&
+			(request.resource.data.chatgpt.purpose is string) &&
+			(request.resource.data.chatgpt.actor is string) &&
+			(request.resource.data.chatgpt.examples is string) &&
+
+			// Array validation for leadStages
+			request.resource.data.keys().hasOnly([
+					'name', 'objective', 'createdBy', 'createdAt', 'updatedAt',
+					'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt'
+					]);
+			// (request.resource.data.leadStages is list);
+	}
+
+	function validateOrgMembers(){
+		return request.resource.data.keys().hasAll(['userId', "permissions", "organizationId"]) &&
+			request.resource.data.userId is string &&
+			request.resource.data.organizationId is string &&
+			request.resource.data.organizationId == organizationId &&
+			request.resource.data.permissions is list;
+	}
+
+	function validateLeadStages(){
+		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.name is string) &&
+			(request.resource.data.purpose is string) &&
+			(request.resource.data.exampleConversations is string) &&
+			(request.resource.data.stopConversation is bool) &&
+			(request.resource.data.leadConversion is bool) &&
+
+			// Validate the collectibles array
+			(request.resource.data.collectibles is list) &&
+			
+			// Validate the reminders object
+			(request.resource.data.reminders is map) &&
+			(request.resource.data.reminders.state is bool) &&
+			(request.resource.data.reminders.reminderCount is number) &&
+			(request.resource.data.reminders.reminderExamples is string);
+	}
+
+	function validateCollectibles(){
+		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.name is string) &&
+			(request.resource.data.type is string) &&
+			(request.resource.data.description is string) &&
+			(request.resource.data.mandatory is bool); 
+	}
 	// Function to check if the user is authenticated
 	function isAuthenticated() {
 		return request.auth != null;
