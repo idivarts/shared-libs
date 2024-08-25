@@ -3,107 +3,163 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /{document=**} {
-      allow read, write: if false;
-    }
-    // Rule for users collection
-    match /users/{userId} {
-      allow read: if isAuthenticated() && request.auth.uid == userId;
-      allow create, update: if isAuthenticated() && request.auth.uid == userId &&
-                            // Mandatory field: email must be a string
-                            (request.resource.data.email is string) &&
-                            
-                            // Optional fields: validate only if they exist
-                            (!('username' in request.resource.data) || (request.resource.data.username is string)) &&
-                            (!('name' in request.resource.data) || (request.resource.data.name is string)) &&
-                            (!('image' in request.resource.data) || (request.resource.data.image is string)) &&
-                            
-                            // Optional array: organizations must be an array of objects with specified structure if present
-                            // (!('organizations' in request.resource.data) || (
-                            //   request.resource.data.organizations is list &&
-                            //   request.resource.data.organizations.size() > 0 &&
-                            //   request.resource.data.organizations
-                            //     .map(org => org.organizationId is string && org.status is number)
-                            //     .reduce((acc, curr) => acc && curr, true)
-                            // )) &&
-                            
-                            // Ensure only allowed fields are present
-                            request.resource.data.keys().hasOnly(['email', 'username', 'name', 'image', 'organizations']);
-    }
+	match /{document=**} {
+	  allow read, write: if false;
+	}
+	// Rule for users collection
+	match /users/{userId} {
+		allow read: if isAuthenticated();
+		allow create: if isAuthenticated() &&
+			validateUserFields();
+		allow update: if isAuthenticated() &&
+			request.auth.uid == userId &&
+			validateUserFields();
+	}
 
-    // Rule for organizations collection
-    match /organizations/{organizationId} {
-      allow read: if isAuthenticated();
-      allow create, update: if isAuthenticated() &&
-                    // Mandatory fields
-                    (request.resource.data.name is string) &&
-                    (request.resource.data.createdAt is number) &&
+	// Rule for organizations collection
+	match /organizations/{organizationId} {
+		allow read: if isAuthenticated();
+		allow create: if isAuthenticated() &&
+			request.resource.data.createdBy == request.auth.uid && validateOrgObject();
 
-                    // Optional fields: validate only if they exist
-                    (!('image' in request.resource.data) || (request.resource.data.image is string)) &&
-                    (!('description' in request.resource.data) || (request.resource.data.description is string)) &&
-                    (!('industry' in request.resource.data) || (request.resource.data.industry is string)) &&
-                    (!('website' in request.resource.data) || (request.resource.data.website is string)) &&
-                    (!('openAIKey' in request.resource.data) || (request.resource.data.openAIKey is string)) &&
+		allow update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+			request.resource.data.createdBy == resource.data.createdBy && validateOrgObject();
 
-                    // // Ensure subcollections exist where specified
-                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/campaigns).exists()) &&
-                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/leads).exists()) &&
-                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/sources).exists()) &&
-                    // (get(/databases/$(database)/documents/organizations/$(organizationId)/members).exists()) &&
+		// Rule for organizationUsers subcollection
+		match /organizationMembers/{userId} {
+			allow read: if isOrgMember(organizationId);
+			allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['userId', "permissions", "organizationId"]) &&
+				request.resource.data.userId is string &&
+				request.resource.data.organizationId is string &&
+				request.resource.data.organizationId == organizationId &&
+				request.resource.data.permissions is list;
+		}
 
-                    // Ensure only allowed fields are present
-                    request.resource.data.keys().hasOnly([
-                      'name', 'image', 'description', 'industry', 'website',
-                      'createdAt', 'openAIKey', 'campaigns', 'leads', 'sources', 'members'
-                    ]);
+		// Rule for campaigns subcollection
+		match /campaigns/{campaignId} {
+			allow read: if isOrgMember(organizationId);
+			allow create, update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+				// Mandatory fields: ensure they are present and of the correct type
+				(request.resource.data.name is string) &&
+				(request.resource.data.objective is string) &&
+				(request.resource.data.createdBy is string) &&
+				(request.resource.data.createdAt is number) &&
+				(request.resource.data.updatedAt is number) &&
+				(request.resource.data.status is number) &&
 
-      // Rule for organizationUsers subcollection
-      match /organizationUsers/{userId} {
-        allow read: if isOrgMember(organizationId);
-        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['role']) &&
-                                  request.resource.data.role is string;
-      }
+				// Nested object validation for replySpeed
+				(request.resource.data.replySpeed is map) &&
+				(request.resource.data.replySpeed.min is number) &&
+				(request.resource.data.replySpeed.max is number) &&
 
-      // Rule for campaigns subcollection
-      match /campaigns/{campaignId} {
-        allow read: if isOrgMember(organizationId);
-        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'status']) &&
-                                  request.resource.data.name is string &&
-                                  request.resource.data.status is string;
-      }
+				// Nested object validation for reminderTiming
+				(request.resource.data.reminderTiming is map) &&
+				(request.resource.data.reminderTiming.min is number) &&
+				(request.resource.data.reminderTiming.max is number) &&
 
-      // Rule for leads subcollection
-      match /leads/{leadId} {
-        allow read: if isOrgMember(organizationId);
-        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'email', 'status']) &&
-                                  request.resource.data.name is string &&
-                                  request.resource.data.email is string &&
-                                  request.resource.data.status is string;
-      }
+				// Nested object validation for chatgpt
+				(request.resource.data.chatgpt is map) &&
+				(request.resource.data.chatgpt.prescript is string) &&
+				(request.resource.data.chatgpt.purpose is string) &&
+				(request.resource.data.chatgpt.actor is string) &&
+				(request.resource.data.chatgpt.examples is string) &&
 
-      // Rule for sources subcollection
-      match /sources/{sourceId} {
-        allow read: if isOrgMember(organizationId);
-        allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'type']) &&
-                                  request.resource.data.name is string &&
-                                  request.resource.data.type is string;
-      }
-    }
+				// Array validation for leadStages
+				request.resource.data.keys().hasOnly([
+						'name', 'objective', 'createdBy', 'createdAt', 'updatedAt',
+						'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt'
+						]);
+				// (request.resource.data.leadStages is list);
+
+			match /leadStages/{i1} {
+			allow read: if isAuthenticated() && isOrgMember(organizationId);
+			allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+					// Mandatory fields: ensure they are present and of the correct type
+					(request.resource.data.name is string) &&
+					(request.resource.data.purpose is string) &&
+					(request.resource.data.exampleConversations is string) &&
+					(request.resource.data.stopConversation is bool) &&
+					(request.resource.data.leadConversion is bool) &&
+
+					// Validate the collectibles array
+					(request.resource.data.collectibles is list) &&
+					
+					// Validate the reminders object
+					(request.resource.data.reminders is map) &&
+					(request.resource.data.reminders.state is bool) &&
+					(request.resource.data.reminders.reminderCount is number) &&
+					(request.resource.data.reminders.reminderExamples is string);
+			match /collectibles/{i2} {
+				allow read: if isAuthenticated() && isOrgMember(organizationId);
+				allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+					// Mandatory fields: ensure they are present and of the correct type
+					(request.resource.data.name is string) &&
+					(request.resource.data.type is string) &&
+					(request.resource.data.description is string) &&
+					(request.resource.data.mandatory is bool); 
+			}
+			}
+		}
+
+		// Rule for leads subcollection
+		match /leads/{leadId} {
+			allow read: if isOrgMember(organizationId);
+			allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'email', 'status']) &&
+									request.resource.data.name is string &&
+									request.resource.data.email is string &&
+									request.resource.data.status is string;
+		}
+
+		// Rule for sources subcollection
+		match /sources/{sourceId} {
+			allow read: if isOrgMember(organizationId);
+			allow write: if isOrgOwnerOrAdmin(organizationId) && request.resource.data.keys().hasAll(['name', 'type']) &&
+									request.resource.data.name is string &&
+									request.resource.data.type is string;
+		}
+		}
   }
 
-  // Function to check if the user is authenticated
-  function isAuthenticated() {
-    return request.auth != null;
-  }
+	function validateUserFields(){
+		return (request.resource.data.email is string) &&
+			// Optional fields: validate only if they exist
+			(!('username' in request.resource.data) || (request.resource.data.username is string)) &&
+			(!('name' in request.resource.data) || (request.resource.data.name is string)) &&
+			(!('image' in request.resource.data) || (request.resource.data.image is string)) &&
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasOnly(['email', 'username', 'name', 'image'])
+	}
+	function validateOrgObject(){
+		return 	(request.resource.data.name is string) &&
+			(request.resource.data.createdAt is number) &&
+			(request.resource.data.createdBy is string) &&
+			// Optional fields: validate only if they exist
+			(!('image' in request.resource.data) || (request.resource.data.image is string)) &&
+			(!('description' in request.resource.data) || (request.resource.data.description is string)) &&
+			(!('industry' in request.resource.data) || (request.resource.data.industry is string)) &&
+			(!('website' in request.resource.data) || (request.resource.data.website is string)) &&
+			(!('openAIKey' in request.resource.data) || (request.resource.data.openAIKey is string)) &&
+			// Ensure only allowed fields are present
+			request.resource.data.keys().hasOnly([
+				'name', 'image', 'description', 'industry', 'website',
+				'createdAt', 'openAIKey', 'createdBy'
+			]);
+	}
 
-  // Function to check if the user is the owner or admin of the organization
-  function isOrgOwnerOrAdmin(organizationId) {
-    return get(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid)).data.role in ['owner', 'admin'];
-  }
+	// Function to check if the user is authenticated
+	function isAuthenticated() {
+		return request.auth != null;
+	}
 
-  // Function to check if the user is a member of the organization
-  function isOrgMember(organizationId) {
-    return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid));
-  }
+	// Function to check if the user is the owner or admin of the organization
+	function isOrgOwnerOrAdmin(organizationId) {
+		return true;
+		// return get(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid)).data.role in ['owner', 'admin'];
+	}
+
+	// Function to check if the user is a member of the organization
+	function isOrgMember(organizationId) {
+		return true;
+		// return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationUsers/$(request.auth.uid));
+	}
 }

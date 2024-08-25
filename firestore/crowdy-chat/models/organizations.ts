@@ -10,17 +10,27 @@ export const getOrganizationPath = (orgId: string) => `/organizations/${orgId}`
 
 export interface IOrganizations {
     name: string
+    createdBy: string,
+    createdAt: number
+
     image?: string
     description?: string
     industry?: string
     website?: string
-    createdAt: number
-
+    
     // This field will be used to store the openAI key
     openAIKey?: string,
+
+    organizationMembers?: ICollection<IOrganizationMembers>
 
     campaigns?: ICollection<ICampaigns>
     leads?: ICollection<ILeads>
     sources?: ICollection<ISources>
     members?: ICollection<IMembers>
+}
+
+export interface IOrganizationMembers{
+    userId: string,
+    organizationId: string,
+    permissions: string[]
 }
