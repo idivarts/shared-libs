@@ -1,5 +1,11 @@
-export const getSourcesPath = (orgId: string, sourceId?: string) => `/organizations/${orgId}/sources/${sourceId}`
+export const getSourcesPath = (orgId: string, sourceId?: string) => `/organizations/${orgId}/sources/${sourceId || ''}`
 
+export enum SourceType {
+    Facebook = "facebook",
+    Instagram = "instagram",
+    YouTube = "youtube",
+    Email = "email"
+}
 export interface ISources {
     pageId: string;
     name: string;
@@ -10,7 +16,7 @@ export interface ISources {
 
     userName?: string;
     bio?: string;
-    sourceType: "facebook" | "instagram" | "youtube" | "email";
+    sourceType: SourceType;
     // isInstagram: boolean;
     connectedId?: string;
     accessToken?: string;

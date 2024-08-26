@@ -10,10 +10,10 @@ export const getOrganizationPath = (orgId: string) => `/organizations/${orgId}`
 
 export interface IOrganizations {
     name: string
-    createdBy: string,
-    createdAt: number
+    createdBy: string, // user id of the person who has crated this firebase.auth.uid
+    createdAt: number // Date.now()
 
-    image?: string
+    image?: string // storage url of the stored image
     description?: string
     industry?: string
     website?: string
