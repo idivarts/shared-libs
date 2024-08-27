@@ -20,10 +20,10 @@ service cloud.firestore {
 		match /organizations/{organizationId} {
 			allow read: if isAuthenticated();
 			allow create: if isAuthenticated() &&
-				request.resource.data.createdBy == request.auth.uid && validateOrgObject();
+				request.resource.data.createdBy == request.auth.uid && validateOrgObject(organizationId);
 
 			allow update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
-				request.resource.data.createdBy == resource.data.createdBy && validateOrgObject();
+				request.resource.data.createdBy == resource.data.createdBy && validateOrgObject(organizationId);
 
 			// Rule for organizationUsers subcollection
 			match /members/{userId} {
@@ -53,8 +53,12 @@ service cloud.firestore {
 				match /conversations/{conversationId} {
 					allow read: if isAuthenticated() && isOrgMember(organizationId);
 					allow create: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+						request.resource.data.organizationId == organizationId &&
+						request.resource.data.campaignId == campaignId &&
 						validateConversations();
 					allow update: if isAuthenticated() && isOrgMember(organizationId) &&
+						request.resource.data.organizationId == organizationId &&
+						request.resource.data.campaignId == campaignId &&
 						validateConversations();
 				}
 			}
@@ -70,6 +74,7 @@ service cloud.firestore {
 			match /sources/{sourceId} {
 				allow read: if isAuthenticated() && isOrgMember(organizationId);
 				allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+					request.resource.data.organizationId == organizationId &&
 					validateSources();
 			}
 
@@ -114,11 +119,12 @@ service cloud.firestore {
 			request.resource.data.keys().hasOnly(['email', 'username', 'name', 'image'])
 	}
 
-	function validateOrgObject(){
+	function validateOrgObject(organizationId){
 		return 	(request.resource.data.name is string) &&
 			(request.resource.data.createdAt is number) &&
 			(request.resource.data.createdBy is string) &&
 			// Optional fields: validate only if they exist
+			(!('organizationId' in request.resource.data) || (request.resource.data.organizationId == organizationId)) &&
 			(!('image' in request.resource.data) || (request.resource.data.image is string)) &&
 			(!('description' in request.resource.data) || (request.resource.data.description is string)) &&
 			(!('industry' in request.resource.data) || (request.resource.data.industry is string)) &&
@@ -212,6 +218,7 @@ service cloud.firestore {
 
 	function validateSources(){
 		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.organizationId is string) &&
 			(request.resource.data.pageId is string) &&
 			(request.resource.data.name is string) &&
 			(request.resource.data.userId is string) &&
@@ -277,6 +284,8 @@ service cloud.firestore {
 
 	function validateConversations(){
 		return // Mandatory fields: ensure they are present and of the correct type
+			(request.resource.data.organizationId is string) &&
+			(request.resource.data.campaignId is string) &&
 			(request.resource.data.sourceId is string) &&
 			(request.resource.data.threadId is string) &&
 			(request.resource.data.leadId is string) &&

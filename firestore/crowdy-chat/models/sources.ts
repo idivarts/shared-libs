@@ -7,6 +7,8 @@ export enum SourceType {
     Email = "email"
 }
 export interface ISources {
+    organizationId: string
+
     pageId: string;
     name: string;
     userId: string;
