@@ -3,6 +3,8 @@ import { ICollection } from "./collections";
 export const getCampaignPath = (orgId: string, campaignId?: string) => `/organizations/${orgId}/campaigns/${campaignId}`
 
 export interface ICampaigns {
+    organizationId: string,
+
     name: string;
     objective: string;
     createdBy: string
@@ -28,6 +30,9 @@ export interface ICampaigns {
 }
 
 interface LeadStage {
+    organizationId: string,
+    campaignId: string,
+
     name: string;
     purpose: string;
     collectibles: ICollection<Collectible>;
@@ -42,6 +47,10 @@ interface LeadStage {
 }
 
 interface Collectible {
+    organizationId: string,
+    campaignId: string,
+    leadStageId: string,
+
     name: string;
     type: string;
     description: string;
