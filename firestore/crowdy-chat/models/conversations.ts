@@ -2,6 +2,9 @@ export const getConversationPath = (orgId: string, campaignId: string, conversat
 
 export interface IConversation {
     // igsid: string; - This is no longer needed as this is stored in the leads table
+    organizationId: string,
+    campaignId: string,
+
     sourceId: string;
     threadId: string;
     leadId: string,

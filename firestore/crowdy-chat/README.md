@@ -2,4 +2,6 @@ This will contain all the firestore related files like rules and tests for crowd
 
 Deploy code -
 
-`firebase deploy --only firestore:rules`
+```
+firebase deploy --only firestore:rules
+```

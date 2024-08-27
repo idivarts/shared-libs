@@ -9,6 +9,8 @@ import { ISources } from "./sources"
 export const getOrganizationPath = (orgId: string) => `/organizations/${orgId}`
 
 export interface IOrganizations {
+    organizationId?: string //This is optional as when we insert the first org, there would be no ID there
+
     name: string
     createdBy: string, // user id of the person who has crated this firebase.auth.uid
     createdAt: number // Date.now()
