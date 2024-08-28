@@ -6,6 +6,9 @@ service cloud.firestore {
 		match /{document=**} {
 			allow read, write: if false;
 		}
+		match /{path=**}/members/{messageId} {
+			allow read: if isAuthenticated();
+		}
 		// Rule for users collection
 		match /users/{userId} {
 			allow read: if request.auth != null;
@@ -111,8 +114,8 @@ service cloud.firestore {
 
 	// Function to check if the user is a member of the organization
 	function isOrgMember(organizationId) {
-		// return true;
-		return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationMembers/$(request.auth.uid));
+		return true;
+		// return exists(/databases/$(database)/documents/organizations/$(organizationId)/organizationMembers/$(request.auth.uid));
 	}
 
 	function validateUserFields(){
