@@ -27,6 +27,9 @@ export interface ICampaigns {
         actor: string;
         examples: string;
     };
+
+    assistantId?: string
+
     leadStages: ICollection<LeadStage>;
     conversations: ICollection<IConversation>;
 }

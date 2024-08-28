@@ -175,7 +175,7 @@ service cloud.firestore {
 			// Array validation for leadStages
 			request.resource.data.keys().hasOnly([
 					'name', 'objective', 'createdBy', 'createdAt', 'updatedAt',
-					'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt', 'organizationId'
+					'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt', 'organizationId', "assistantId"
 					]);
 			// (request.resource.data.leadStages is list);
 	}
