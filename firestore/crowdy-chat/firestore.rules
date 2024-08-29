@@ -90,7 +90,7 @@ service cloud.firestore {
 
 			match /tags/{tagId} {
 				allow read: if isAuthenticated();
-				allow write: if isOrgOwnerOrAdmin() &&
+				allow write: if isOrgOwnerOrAdmin(organizationId) &&
 					validateTags();
 			}
 		}
