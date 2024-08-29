@@ -1,4 +1,5 @@
 import { ICollection } from "./collections";
+import { IConversation } from "./conversations";
 
 export const getCampaignPath = (orgId: string, campaignId?: string) => `/organizations/${orgId}/campaigns/${campaignId}`
 
@@ -26,7 +27,11 @@ export interface ICampaigns {
         actor: string;
         examples: string;
     };
+
+    assistantId?: string
+
     leadStages: ICollection<LeadStage>;
+    conversations: ICollection<IConversation>;
 }
 
 interface LeadStage {
