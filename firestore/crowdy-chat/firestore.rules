@@ -31,8 +31,9 @@ service cloud.firestore {
 			// Rule for organizationUsers subcollection
 			match /members/{userId} {
 				allow read: if isOrgMember(organizationId);
-				allow write: if isOrgOwnerOrAdmin(organizationId) &&
+				allow create, update: if isOrgOwnerOrAdmin(organizationId) &&
 					validateOrgMembers(organizationId);
+				allow delete: if isOrgOwnerOrAdmin(organizationId);
 			}
 
 			// Rule for campaigns subcollection
