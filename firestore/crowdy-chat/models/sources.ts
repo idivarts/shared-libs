@@ -9,7 +9,7 @@ export enum SourceType {
 export interface ISources {
     organizationId: string
 
-    pageId: string;
+    id: string;
     name: string;
     userId: string;
     ownerName: string;
@@ -19,7 +19,6 @@ export interface ISources {
     userName?: string;
     bio?: string;
     sourceType: SourceType;
-    // isInstagram: boolean;
     connectedId?: string;
-    accessToken?: string;
+    campaignId?: string
 }
