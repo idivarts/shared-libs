@@ -173,10 +173,12 @@ service cloud.firestore {
 			(request.resource.data.chatgpt.actor is string) &&
 			(request.resource.data.chatgpt.examples is string) &&
 
+			(!('assistantId' in request.resource.data) || (request.resource.data.assistantId == resource.data.assistantId)) &&
+
 			// Array validation for leadStages
 			request.resource.data.keys().hasOnly([
 					'name', 'objective', 'createdBy', 'createdAt', 'updatedAt',
-					'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt', 'organizationId', "assistantId"
+					'status', 'openAIKey', 'replySpeed', 'reminderTiming', 'chatgpt', 'organizationId', 'assistantId'
 					]);
 			// (request.resource.data.leadStages is list);
 	}
@@ -229,7 +231,7 @@ service cloud.firestore {
 	function validateSources(){
 		return // Mandatory fields: ensure they are present and of the correct type
 			(request.resource.data.organizationId is string) &&
-			(request.resource.data.pageId is string) &&
+			(request.resource.data.id is string) &&
 			(request.resource.data.name is string) &&
 			(request.resource.data.userId is string) &&
 			(request.resource.data.ownerName is string) &&
@@ -241,12 +243,12 @@ service cloud.firestore {
 			(!('userName' in request.resource.data) || (request.resource.data.userName is string)) &&
 			(!('bio' in request.resource.data) || (request.resource.data.bio is string)) &&
 			(!('connectedId' in request.resource.data) || (request.resource.data.connectedId is string)) &&
-			(!('accessToken' in request.resource.data) || (request.resource.data.accessToken is string)) &&
+			(!('campaignId' in request.resource.data) || (request.resource.data.campaignId is string)) &&
 
 			// Ensure only allowed fields are present
 			request.resource.data.keys().hasOnly([
-			'pageId', 'name', 'userId', 'ownerName', 'isWebhookConnected', 'status', 'userName', 
-			'bio', 'sourceType', 'connectedId', 'accessToken', 'organizationId'
+			'id', 'name', 'userId', 'ownerName', 'isWebhookConnected', 'status', 'userName', 
+			'bio', 'sourceType', 'connectedId', 'organizationId', 'campaignId'
 			]);
 	}
 
@@ -259,12 +261,10 @@ service cloud.firestore {
 			(request.resource.data.updatedAt is number) &&
 
 			// Optional fields: validate only if they exist
-			(!('igsid' in request.resource.data) || (request.resource.data.igsid is string)) &&
-			(!('fbid' in request.resource.data) || (request.resource.data.fbid is string)) &&
+			(request.resource.data.id is string) &&
 			(!('email' in request.resource.data) || (request.resource.data.email is string)) &&
 			(!('name' in request.resource.data) || (request.resource.data.name is string)) &&
 			(!('tagId' in request.resource.data) || (request.resource.data.tagId is string)) &&
-			(!('campaignId' in request.resource.data) || (request.resource.data.campaignId is string)) &&
 
 			// Optional nested object: validate userProfile only if it exists
 			(!('userProfile' in request.resource.data) || (
@@ -279,17 +279,18 @@ service cloud.firestore {
 
 			// Ensure only allowed fields are present
 			request.resource.data.keys().hasOnly([
-			'igsid', 'fbid', 'email', 'name', 'sourceType', 'sourceId', 'userProfile', 'tagId',
-			'campaignId', 'status', 'createdAt', 'updatedAt'
+			'id', 'email', 'name', 'sourceType', 'sourceId', 'userProfile', 'tagId',
+			'status', 'createdAt', 'updatedAt'
 			]);
 	}
 
 	function validateTags(){
 		return // Mandatory field: ensure it is present and of the correct type
 			(request.resource.data.name is string) &&
+			(!('campaignId' in request.resource.data) || (request.resource.data.campaignId is string)) &&
 
 			// Ensure only allowed fields are present
-			request.resource.data.keys().hasOnly(['name']);
+			request.resource.data.keys().hasOnly(['name', 'campaignId']);
 	}
 
 	function validateConversations(){

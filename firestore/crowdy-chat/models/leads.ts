@@ -3,8 +3,7 @@ import { SourceType } from "./sources"
 export const getLeadPath = (orgId: string, leadId?: string) => `/organizations/${orgId}/leads/${leadId || ''}`
 
 export interface ILeads {
-    igsid?: string
-    fbid?: string
+    id: string
     email?: string
 
     name?: string
@@ -15,7 +14,6 @@ export interface ILeads {
     userProfile?: UserProfile
 
     tagId?: string
-    campaignId?: string
     status: number
     createdAt: number
     updatedAt: number
