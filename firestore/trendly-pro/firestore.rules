@@ -12,10 +12,14 @@ service cloud.firestore {
       match /notifications/{notificationId} {
         allow read, write: if request.auth.uid == resource.data.receiver;
       }
+
+      match /socials/{socialId} {
+        allow read, write: if request.auth.uid == userId;
+      }
     }
 
-    match /clients/{clientId} {
-      allow read, write: if request.auth.uid == resource.data.owner;
+    match /managers/{managerId} {
+      allow read, write: if request.auth.uid == managerId;
 
       match /notifications/{notificationId} {
         allow read, write: if request.auth.uid == resource.data.receiver;
@@ -25,8 +29,8 @@ service cloud.firestore {
     match /brands/{brandId} {
       allow read, write: if request.auth.uid == resource.data.owner;
 
-      match /members/{clientId} {
-        allow read, write: if request.auth.uid == clientId;
+      match /members/{managerId} {
+        allow read, write: if request.auth.uid == managerId;
       }
       match /notifications/{notificationId} {
         allow read, write: if request.auth.uid == resource.data.receiver;
