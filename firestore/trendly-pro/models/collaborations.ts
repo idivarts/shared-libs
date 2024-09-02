@@ -2,11 +2,9 @@ import { ICollection } from "../../collections";
 import { IBrands } from "./brands";
 
 export interface ICollaboration {
-    collaborationName: string; // Name of the collaboration
-    brandName: string; // Name of the brand
-    shortDescription: string; // Short description of the brand
-    adCampaignDescription: string; // Description of the ad campaigns and objectives
-    postedDateTime: number; // Posted date and time
+    name: string; // Name of the collaboration
+    description: string; // Description of the ad campaigns and objectives
+    timeStamp: number; // Posted date and time
     cost: number; // Associated price or cost
     paymentMethodVerified: boolean; // Indicates if the payment method is verified
     promotionType: string; // Type of promotion (e.g., paid, barter)
@@ -20,7 +18,6 @@ export interface ICollaboration {
     aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
     viewsLastHour: number; // Number of influencers who viewed this in the last 1 hour
     lastReviewedDateTime: number | null; // Last time the brand reviewed the influencers
-    brandHireRate: number; // Brand hire rate (e.g., percentage)
 
     brand: ICollection<IBrands>; // Brand details
 }
