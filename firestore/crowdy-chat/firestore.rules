@@ -46,18 +46,20 @@ service cloud.firestore {
 
 				match /leadStages/{leadStageId} {
 					allow read: if isAuthenticated() && isOrgMember(organizationId);
-					allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+					allow create, update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
 							request.resource.data.organizationId == organizationId &&
 							request.resource.data.campaignId == campaignId &&
 							validateLeadStages();
-					
+					allow delete: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId);
+
 					match /collectibles/{collectibleId} {
 						allow read: if isAuthenticated() && isOrgMember(organizationId);
-						allow write: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
+						allow create, update: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId) &&
 							request.resource.data.organizationId == organizationId &&
 							request.resource.data.campaignId == campaignId &&
 							request.resource.data.leadStageId == leadStageId &&
 							validateCollectibles();
+						allow delete: if isAuthenticated() && isOrgOwnerOrAdmin(organizationId);
 					}
 				}
 
