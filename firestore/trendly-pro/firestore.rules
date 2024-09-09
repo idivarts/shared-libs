@@ -1,0 +1,91 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // This will store all the data about the influencers and the creators 
+    match /users/{userId} {
+      allow read, write: if isAuthenticated();
+
+      // This will store all the notifications for the specific user
+      match /notifications/{notificationId} {
+        allow read, write: if isAuthenticated();
+      }
+
+      // This subcollection will store all the social media related data for the specific user
+      match /socials/{socialId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // This collection will store all the managers of the brands
+    match /managers/{managerId} {
+      allow read, write: if isAuthenticated();
+
+      // This subcollection will store all the notifications for the specific manager
+      match /notifications/{notificationId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // This collection will store all the brands
+    match /brands/{brandId} {
+      allow read, write: if isAuthenticated();
+
+      // This subcollection will store all the managers referencer and its privileges of the specific brand
+      match /members/{managerId} {
+        allow read, write: if isAuthenticated();
+      }
+      // This subcollection will store all the notifications from a specific brand
+      match /notifications/{notificationId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+
+    // This collection will store all the collaborations
+    match /collaborations/{collaborationId} {
+      allow read, write: if isAuthenticated();
+
+      // This subcollection will store all the proposals/applications for the specific collaboration
+      match /proposals/{proposalId} {
+        allow read, write: if isAuthenticated();
+      }
+      // This subcollection will store all the invitations that the brands sends for the specific collaboration
+      match /invitations/{invitationId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // This collection will store all the groups that got created for collaborations 
+    match /groups/{groupId} {
+      allow read, write: if isAuthenticated();
+
+      // This subcollection will store all the messages for the specific group
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // This collection will store all the contracts that got created for the specific collaboration
+    match /contracts/{contractId} {
+      allow read, write: if isAuthenticated();
+
+      // This subcollection will store all the deliverables for the specific contract
+      match /deliverables/{deliverableId} {
+        allow read, write: if isAuthenticated();
+      }
+      // This subcollection will store all the payments for the specific contract
+      match /payments/{paymentId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+  }
+}
