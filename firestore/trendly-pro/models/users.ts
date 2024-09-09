@@ -1,4 +1,5 @@
 import { ICollection } from "../../collections";
+import { SocialPlatform } from "../constants/social-platform";
 import { INotifications } from "./notifications";
 
 export interface IUsers {
@@ -19,9 +20,11 @@ export interface IUsers {
 }
 
 export interface ISocials {
+    id: string; // Social media ID
     userId: string; // User ID
-    platform: string; // Social media platform
+    platform: SocialPlatform; // Social media platform
     handle: string; // Social media handle
+    url: string; // URL of the social media profile
     followers: number; // Number of followers
     following: number; // Number of accounts following
     posts: number; // Number of posts
