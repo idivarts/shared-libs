@@ -7,6 +7,12 @@ export interface IUsers {
     phoneNumber: string; // Phone number of the user
     location: string; // Location of the user
     dateOfBirth: string; // Date of birth of the user
+    preferences?: {
+        theme?: 'light' | 'dark'
+        question1: string,
+        question2: string,
+        question3: string
+    } // User preferences
 
     notifications: ICollection<INotifications>; // Notifications for the user
     socials: ICollection<ISocials>; // Social media accounts of the user
