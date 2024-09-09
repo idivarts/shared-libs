@@ -13,7 +13,11 @@ export interface IUsers {
         question1: string,
         question2: string,
         question3: string
-    } // User preferences
+    }, // User preferences
+    settings?: {
+        emailNotification: boolean,
+        pushNotification: boolean
+    }, // User settings
 
     notifications: ICollection<INotifications>; // Notifications for the user
     socials: ICollection<ISocials>; // Social media accounts of the user
