@@ -1,4 +1,7 @@
 import { ICollection } from "../../collections";
+import { CollaborationType } from "../constants/collaboration-type";
+import { PromotionType } from "../constants/promotion-type";
+import { SocialPlatform } from "../constants/social-platform";
 
 export interface ICollaboration {
     name: string; // Name of the collaboration
@@ -14,9 +17,11 @@ export interface ICollaboration {
         name?: string; // Location name - applicable for physical locations
         latlong?: any; // Latitude and longitude - applicable for physical locations
     };
-    promotionType: string; // Type of promotion (e.g., paid, barter)
-    collaborationType: string; // Type of collaboration (e.g., long-term, short-term)
-    platform: string; // Platform for the campaign (e.g., Instagram, YouTube)
+
+    promotionType: PromotionType; // Type of promotion (e.g., paid, barter)
+    collaborationType: CollaborationType; // Type of collaboration (e.g., long-term, short-term)
+    platform: SocialPlatform; // Platform for the campaign (e.g., Instagram, YouTube)
+
     numberOfInfluencersNeeded: number; // Number of influencers they are looking for
     externalLinks: string[]; // Array to hold any number of external links
     viewsLastHour: number; // Number of influencers who viewed this in the last 1 hour
