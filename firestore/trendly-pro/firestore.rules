@@ -50,8 +50,8 @@ service cloud.firestore {
     match /collaborations/{collaborationId} {
       allow read, write: if isAuthenticated();
 
-      // This subcollection will store all the proposals/applications for the specific collaboration
-      match /proposals/{proposalId} {
+      // This subcollection will store all the applications for the specific collaboration
+      match /applications/{applicationId} {
         allow read, write: if isAuthenticated();
       }
       // This subcollection will store all the invitations that the brands sends for the specific collaboration

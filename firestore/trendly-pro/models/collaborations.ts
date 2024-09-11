@@ -6,11 +6,13 @@ import { SocialPlatform } from "../constants/social-platform";
 export interface ICollaboration {
     name: string; // Name of the collaboration
     brandId: string; // Brand details
-    description: string; // Description of the ad campaigns and objectives
+    managerId: string; // Manager who created the collaboration
+
+    description?: string; // Description of the ad campaigns and objectives
     timeStamp: number; // Posted date and time
     budget: { // Associated price or cost
-        min: number;
-        max: number;
+        min?: number;
+        max?: number;
     };
     location: { // Location of the collaboration (e.g., city, country)
         type: string; // Type of location (e.g., physical, remote)
@@ -23,11 +25,11 @@ export interface ICollaboration {
     platform: SocialPlatform; // Platform for the campaign (e.g., Instagram, YouTube)
 
     numberOfInfluencersNeeded: number; // Number of influencers they are looking for
-    externalLinks: string[]; // Array to hold any number of external links
-    viewsLastHour: number; // Number of influencers who viewed this in the last 1 hour
-    lastReviewedTimeStamp: number | null; // Last time the brand reviewed the influencers
+    externalLinks?: string[]; // Array to hold any number of external links
+    viewsLastHour?: number; // Number of influencers who viewed this in the last 1 hour
+    lastReviewedTimeStamp?: number | null; // Last time the brand reviewed the influencers
 
-    proposals: ICollection<IProposals>; // Proposals for the collaboration
+    applications: ICollection<IApplications>; // Proposals for the collaboration
     invitaions: ICollection<IInvitations>; // Invitations for the collaboration
 
     // These data needs to come from api calls
@@ -35,8 +37,8 @@ export interface ICollaboration {
     // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
 }
 
-export interface IProposals {
-    influencerId: string;
+export interface IApplications {
+    userId: string;
     collaborationId: string;
     status: string;
     timeStamp: number;
@@ -44,8 +46,9 @@ export interface IProposals {
 }
 
 export interface IInvitations {
-    influencerId: string;
+    userId: string;
     collaborationId: string;
+    managerId: string;
     status: string;
     timeStamp: number;
     message: string;
