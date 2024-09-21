@@ -1,33 +1,38 @@
-import { ICollection } from "./collections";
+import { ICollection } from "../../collections";
+import { IConversation } from "./conversations";
 
 export const getCampaignPath = (orgId: string, campaignId?: string) =>
   `/organizations/${orgId}/campaigns/${campaignId}`;
 
 export interface ICampaigns {
-  organizationId: string;
+    organizationId: string;
 
-  name: string;
-  objective: string;
-  createdBy: string;
-  createdAt: number;
-  updatedAt: number;
-  status: number;
+    name: string;
+    objective: string;
+    createdBy: string;
+    createdAt: number;
+    updatedAt: number;
+    status: number;
 
-  replySpeed: {
-    min: number;
-    max: number;
-  };
-  reminderTiming: {
-    min: number;
-    max: number;
-  };
-  chatgpt: {
-    prescript: string;
-    purpose: string;
-    actor: string;
-    examples: string;
-  };
-  leadStages?: ICollection<ILeadStage>;
+    replySpeed: {
+      min: number;
+      max: number;
+    };
+    reminderTiming: {
+      min: number;
+      max: number;
+    };
+    chatgpt: {
+      prescript: string;
+      purpose: string;
+      actor: string;
+      examples: string;
+    };
+  
+    assistantId?: string
+  
+    leadStages?: ICollection<ILeadStage>;
+    conversations: ICollection<IConversation>;
 }
 
 export interface ILeadStage {

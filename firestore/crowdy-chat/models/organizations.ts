@@ -1,7 +1,7 @@
 // import {  } from "firebase/firestore";
 
+import { ICollection } from "../../collections"
 import { ICampaigns } from "./campaigns"
-import { ICollection } from "./collections"
 import { ILeads } from "./leads"
 import { IMembers } from "./members"
 import { ISources } from "./sources"
