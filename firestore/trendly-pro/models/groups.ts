@@ -10,6 +10,12 @@ export interface IGroups {
   messages: ICollection<IMessages>; // Messages in the group
   latestMessage?: IMessages; // Latest message in the group
   updatedAt: number; // Last updated date and time
+  lastUserReadTime: {
+    [userId: string]: number;
+  }[]; // Last time the user read the messages
+  lastManagerReadTime: {
+    [managerId: string]: number;
+  }[]; // Last time the manager read the messages
 }
 
 // When a group is opened
