@@ -12,10 +12,10 @@ export interface IGroups {
   updatedAt: number; // Last updated date and time
   lastUserReadTime: {
     [userId: string]: number;
-  }[]; // Last time the user read the messages
+  };
   lastManagerReadTime: {
     [managerId: string]: number;
-  }[]; // Last time the manager read the messages
+  };
 }
 
 // When a group is opened
