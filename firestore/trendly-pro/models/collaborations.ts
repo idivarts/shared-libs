@@ -52,7 +52,7 @@ export interface IInvitations {
   userId: string;
   collaborationId: string;
   managerId: string;
-  status: string;
+  status: string; // "active", "inactive", "accepted"
   timeStamp: number;
   message: string;
 }
