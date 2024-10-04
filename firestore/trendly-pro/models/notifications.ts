@@ -6,7 +6,8 @@ export interface INotifications {
     isRead: boolean; // Indicates if the notification is read
     data?: {
         // Mixed
-        collaborationsId?: string
+        collaborationId?: string,
+        groupId?: string,
     }
     type: string; // Type of notification (e.g., invite(users), applications(managers), applications-accept(users))
 }
