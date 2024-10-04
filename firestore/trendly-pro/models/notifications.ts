@@ -4,5 +4,9 @@ export interface INotifications {
     description: string; // Description of the notification
     timeStamp: number; // Posted date and time
     isRead: boolean; // Indicates if the notification is read
-    type: string; // Type of notification (e.g., collaboration, message)
+    data?: {
+        // Mixed
+        collaborationsId?: string
+    }
+    type: string; // Type of notification (e.g., invite(users), applications(managers), applications-accept(users))
 }
