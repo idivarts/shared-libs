@@ -39,10 +39,18 @@ export interface ICollaboration {
   // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
 }
 
+// Empty Illustration (there are none in that category)
+// Looking for past applications/invitations (but if there are past data available)
+
+// total - 0 -> empty
+// total - 5, active -> 0 -> Looking for past application (Illustration)
+// total - 10, active -> 5, inactive -> 5 -> Data to seen | At the bottom looking for past?
+// total - 10, active -> 10, inactive -> 0 -> Data
+
 export interface IApplications {
   userId: string;
   collaborationId: string;
-  status: string;
+  status: string; // "active", "rejected", "accepted"
   timeStamp: number;
   message: string;
   attachments: string[];
