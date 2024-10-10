@@ -9,6 +9,7 @@ export interface ICollaboration {
   managerId: string; // Manager who created the collaboration
 
   description?: string; // Description of the ad campaigns and objectives
+  image?: string; // Image of the collaboration
   timeStamp: number; // Posted date and time
   budget: {
     // Associated price or cost
@@ -32,7 +33,7 @@ export interface ICollaboration {
   lastReviewedTimeStamp?: number | null; // Last time the brand reviewed the influencers
 
   applications: ICollection<IApplications>; // Proposals for the collaboration
-  invitaions: ICollection<IInvitations>; // Invitations for the collaboration
+  invitations: ICollection<IInvitations>; // Invitations for the collaboration
 
   // These data needs to come from api calls
   // aiGeneratedSuccessRate: number; // AI-generated success rate for influencer selection (e.g., percentage)
