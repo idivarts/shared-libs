@@ -1,6 +1,27 @@
-import { getAuth } from "firebase/auth";
+//@ts-nocheck
+import {
+  initializeAuth,
+  getReactNativePersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { FirebaseApp } from "./firebase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
-const AuthApp = getAuth(FirebaseApp);
+if (!FirebaseApp) {
+  throw new Error("Firebase app is not initialized");
+}
 
-export { AuthApp }
+// const AuthApp = initializeAuth(FirebaseApp, {
+//   persistence:
+//     Platform.OS === "web" ? "LOCAL" : getReactNativePersistence(AsyncStorage),
+// });
+
+const AuthApp =
+  Platform.OS === "web"
+    ? initializeAuth(FirebaseApp, { persistence: browserLocalPersistence })
+    : initializeAuth(FirebaseApp, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
+
+export { AuthApp };
