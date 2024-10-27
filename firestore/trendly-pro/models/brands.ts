@@ -13,12 +13,12 @@ export interface IBrands {
     website?: string; // Website of the brand
   },
 
-  prefereces?: {
-    promotionType: string[]; // Promotion types (e.g., social media, email)
-    influencerType: string[]; // Influencer types (e.g., micro, macro)
+  preferences?: {
+    promotionType: string[]; // Promotion types (e.g., Barter, Paid)
+    influencerCategory: string[]; // Influencer Category (Beauty, Fashion, etc.)
   }
 
-  calculatedDetails?: { // These would be updated only from backend
+  backend?: { // These would be updated only from backend
     hireRate?: number; // Brand hire rate (e.g., percentage)
   },
 
