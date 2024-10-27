@@ -3,10 +3,30 @@ import { INotifications } from "./notifications";
 
 export interface IBrands {
   name: string; // Name of the brand
-  description?: string; // Description of the brand
-  hireRate?: number; // Brand hire rate (e.g., percentage)
   image?: string; // Image of the brand
   paymentMethodVerified?: boolean; // Indicates if the payment method is verified
+
+  profile?: {
+    about?: string; // About of the brand
+    banner?: string; // Banner of the brand
+    industry: string; // Industry of the brand
+    website?: string; // Website of the brand
+  },
+
+  prefereces?: {
+    promotionType: string[]; // Promotion types (e.g., social media, email)
+    influencerType: string[]; // Influencer types (e.g., micro, macro)
+  }
+
+  calculatedDetails?: { // These would be updated only from backend
+    hireRate?: number; // Brand hire rate (e.g., percentage)
+  },
+
+  survey?: { // This contains some survey about the trendly app
+    source?: string; // Source from where you have heaed about us
+    purpose?: string; // Purpose of using Trendly
+    collaborationValue?: string; // Collaboration value
+  }
 
   members: ICollection<IBrandsMembers>; // Members of the brand
   notifications: ICollection<INotifications>; // Notifications for the brand
@@ -15,6 +35,9 @@ export interface IBrands {
 export interface IBrandsMembers {
   brandId: string;
   managerId: string;
+
+  designation?: string; // Designation of the member
+
   permissions?: {
     read?: boolean;
     write?: boolean;
