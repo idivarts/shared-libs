@@ -35,6 +35,8 @@ export interface ICollaboration {
   applications: ICollection<IApplications>; // Proposals for the collaboration
   invitations: ICollection<IInvitations>; // Invitations for the collaboration
 
+  status: string; // "active", "past"
+
   // These data needs to come from api calls
   // aiGeneratedSuccessRate: number; // AI-generated success rate for influencer selection (e.g., percentage)
   // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
