@@ -10,11 +10,29 @@ export interface IUsers {
   phoneNumber?: string; // Phone number of the user
   location?: string; // Location of the user
 
+  emailVerified?: boolean; // Email verification status
+  phoneVerified?: boolean; // Phone verification status
+
   profile?: {
-    about?: string; // About of the user
+    completionPercentage?: number; // Profile completion percentage
+    content?: {
+      about?: string; // About of the user
+      socialMediaHighlight?: string; // Highlight of the social media
+      collaborationGoals?: string; // Collaboration goals
+      audienceInsights?: string; // Audience insights
+      funFactAboutUser?: string; // Fun fact about the user
+    };
     introVideo?: string; // URL of the intro video
 
-    category?: string; // Category of the content created by this influencer
+    category?: string[]; // Categories of the content created by the influencer
+
+    attachments?: {
+      id: number;
+      type: "image" | "video";
+      appleUrl?: string;
+      playUrl?: string;
+      imageUrl?: string;
+    }[];
   };
 
   // dateOfBirth?: string; // Date of birth of the user
