@@ -26,7 +26,7 @@ export interface IUsers {
 
     category?: string[]; // Categories of the content created by the influencer
 
-    attachments: {
+    attachments?: {
       id: number;
       type: "image" | "video";
       appleUrl?: string;
