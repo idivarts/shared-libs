@@ -14,21 +14,24 @@ export interface IUsers {
   phoneVerified?: boolean; // Phone verification status
 
   profile?: {
-    introVideo?: string; // URL of the intro video
+    completionPercentage?: number; // Profile completion percentage
     content?: {
       about?: string; // About of the user
       socialMediaHighlight?: string; // Highlight of the social media
       collaborationGoals?: string; // Collaboration goals
       audienceInsights?: string; // Audience insights
-      funFactAboutYou?: string; // Fun fact about the user
+      funFactAboutUser?: string; // Fun fact about the user
     };
+    introVideo?: string; // URL of the intro video
 
     category?: string[]; // Categories of the content created by the influencer
 
     attachments: {
       id: number;
       type: "image" | "video";
-      url: string;
+      appleUrl?: string;
+      playUrl?: string;
+      imageUrl?: string;
     }[];
   };
 
