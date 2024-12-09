@@ -32,6 +32,8 @@ export interface IUsers {
       playUrl?: string;
       imageUrl?: string;
     }[];
+
+    timeCommitment?: string; // Time commitment of the user
   };
 
   // dateOfBirth?: string; // Date of birth of the user
