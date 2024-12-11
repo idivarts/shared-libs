@@ -3,6 +3,7 @@ export interface ISocials {
     name: string;
     image: string;
     isInstagram: boolean;
+    connectedId?: string; // if facebook, it will show the insta id if its connected and viceversa
     instaProfile?: IInstagramProfile; // Instagram profile will only be present when isInstagram is true
     fbProfile?: IFacebookProfile; // Facebook profile will only be present when isInstagram is false
 }
