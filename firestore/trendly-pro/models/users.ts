@@ -13,6 +13,8 @@ export interface IUsers {
   emailVerified?: boolean; // Email verification status
   phoneVerified?: boolean; // Phone verification status
 
+  primarySocial?: string; // Primary social media account of the user
+
   profile?: {
     completionPercentage?: number; // Profile completion percentage
     content?: {
