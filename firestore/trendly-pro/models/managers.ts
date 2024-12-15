@@ -8,6 +8,8 @@ export interface IManagers {
   location?: string; // Location of the manager
   // dateOfBirth?: string; // Date of birth of the manager
 
+  isChatConnected?: boolean; // Chat connection status
+
   notifications: ICollection<INotifications>; // Notifications for the manager
 
   profileImage?: string;
