@@ -14,6 +14,7 @@ export interface IUsers {
   phoneVerified?: boolean; // Phone verification status
 
   primarySocial?: string; // Primary social media account of the user
+  isChatConnected?: boolean; // Chat connection status
 
   profile?: {
     completionPercentage?: number; // Profile completion percentage
