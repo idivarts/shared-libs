@@ -40,17 +40,16 @@ export interface IUsers {
   };
 
   // dateOfBirth?: string; // Date of birth of the user
-  preferences?: {
-    question1?: string[];
-    question2?: string[];
-    question3?: string[];
-    question4?: string[];
-  }; // User preferences
+  preferences?: IPreferences; // User preferences
 
   settings?: {
-    theme?: "light" | "dark";
+    accountStatus?: AccountStatus; // Activated, Deactivated, Suspended
+    availability?: string;
+    dataSharing?: string;
     emailNotification?: boolean;
+    profileVisibility?: string;
     pushNotification?: boolean;
+    theme?: "light" | "dark";
   }; // User settings
 
   backend?: {
@@ -70,3 +69,21 @@ export interface IUsers {
   };
 }
 
+export interface IPreferences {
+  budgetForPaidCollabs?: number[];
+  contentCategory?: string[];
+  contentWillingToPost?: string[];
+  goal?: string;
+  maximumMonthlyCollabs?: number[];
+  preferredBrandIndustries?: string[];
+  preferredCollaborationType?: string;
+  preferredLanguages?: string[];
+  preferredVideoType?: string;
+}
+
+export enum AccountStatus {
+  Activated = "Activated",
+  Deactivated = "Deactivated",
+  Deleted = "Deleted",
+  Suspended = "Suspended",
+}
