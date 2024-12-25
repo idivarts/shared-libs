@@ -32,6 +32,12 @@ export interface ICollaboration {
 
   externalLinks?: ExternalLink[];
   questionsToInfluencers?: string[];
+  preferences: {
+    timeCommitment: string;
+    influencerNiche: string[];
+    influencerRelation: string;
+    preferredVideoType: string;
+  };
   status: string; // "active", "past", "draft", "published"
 
   applications: ICollection<IApplications>; // Proposals for the collaboration
