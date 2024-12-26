@@ -65,7 +65,18 @@ export interface IApplications {
   status: string; // "active", "rejected", "accepted"
   timeStamp: number;
   message: string;
+  quotation: string;
+  answersFromInfluencer: {
+    question: number;
+    answer: string;
+  }[];
+  timeline: number;
   attachments: string[];
+  fileAttachments: {
+    url: string;
+    name: string;
+    type: string;
+  }[];
 }
 
 export interface IInvitations {
