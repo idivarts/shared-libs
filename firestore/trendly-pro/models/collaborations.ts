@@ -1,42 +1,51 @@
 import { ICollection } from "../../collections";
-import { CollaborationType } from "../constants/collaboration-type";
+import { Attachment } from "../constants/attachment";
+import { ExternalLink } from "../constants/external-link";
 import { PromotionType } from "../constants/promotion-type";
-import { SocialPlatform } from "../constants/social-platform";
 
 export interface ICollaboration {
   name: string; // Name of the collaboration
   brandId: string; // Brand details
   managerId: string; // Manager who created the collaboration
 
+  attachments?: Attachment[];
   description?: string; // Description of the ad campaigns and objectives
-  image?: string; // Image of the collaboration
-  timeStamp: number; // Posted date and time
-  budget: {
-    // Associated price or cost
+
+  promotionType: PromotionType; // Type of promotion (e.g., paid, barter)
+  budget?: {
+    // Applicable for paid promotions
     min?: number;
     max?: number;
   };
+  preferredContentLanguage: string[]; // E.g. English, Hindi, Bengali, Marathi
+  contentFormat: string[]; // E.g. Posts, Stories, Reels, Live, Product Reviews
+  platform: string[]; // E.g. Facebook, Instagram, Twitter
+  numberOfInfluencersNeeded: number;
   location: {
-    // Location of the collaboration (e.g., city, country)
-    type: string; // Type of location (e.g., physical, remote)
-    name?: string; // Location name - applicable for physical locations
-    latlong?: any; // Latitude and longitude - applicable for physical locations
+    type: string; // E.g. On-Site, Remote
+    name?: string; // Location name - applicable for on-site locations
+    latlong?: {
+      lat: number;
+      long: number;
+    }; // Latitude and longitude - applicable for on-site locations
   };
 
-  promotionType: PromotionType; // Type of promotion (e.g., paid, barter)
-  collaborationType: CollaborationType; // Type of collaboration (e.g., long-term, short-term)
-  platform: SocialPlatform; // Platform for the campaign (e.g., Instagram, YouTube)
-
-  numberOfInfluencersNeeded: number; // Number of influencers they are looking for
-  externalLinks?: string[]; // Array to hold any number of external links
-  viewsLastHour?: number; // Number of influencers who viewed this in the last 1 hour
-  lastReviewedTimeStamp?: number | null; // Last time the brand reviewed the influencers
+  externalLinks?: ExternalLink[];
+  questionsToInfluencers?: string[];
+  preferences: {
+    timeCommitment: string;
+    influencerNiche: string[];
+    influencerRelation: string;
+    preferredVideoType: string;
+  };
+  status: string; // "active", "past", "draft", "published"
 
   applications: ICollection<IApplications>; // Proposals for the collaboration
   invitations: ICollection<IInvitations>; // Invitations for the collaboration
 
-  status: string; // "active", "past"
-
+  timeStamp: number; // Posted date and time
+  viewsLastHour?: number; // Number of influencers who viewed this in the last 1 hour
+  lastReviewedTimeStamp?: number | null; // Last time the brand reviewed the influencers
   // These data needs to come from api calls
   // aiGeneratedSuccessRate: number; // AI-generated success rate for influencer selection (e.g., percentage)
   // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
@@ -56,7 +65,18 @@ export interface IApplications {
   status: string; // "active", "rejected", "accepted"
   timeStamp: number;
   message: string;
+  quotation: string;
+  answersFromInfluencer: {
+    question: number;
+    answer: string;
+  }[];
+  timeline: number;
   attachments: string[];
+  fileAttachments: {
+    url: string;
+    name: string;
+    type: string;
+  }[];
 }
 
 export interface IInvitations {

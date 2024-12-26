@@ -1,4 +1,5 @@
 import { ICollection } from "../../collections";
+import { Attachment } from "../constants/attachment";
 import { INotifications } from "./notifications";
 import { ISocials } from "./socials";
 
@@ -29,12 +30,7 @@ export interface IUsers {
 
     category?: string[]; // Categories of the content created by the influencer
 
-    attachments?: {
-      type: "image" | "video";
-      appleUrl?: string;
-      playUrl?: string;
-      imageUrl?: string;
-    }[];
+    attachments?: Attachment[];
 
     timeCommitment?: string; // Time commitment of the user
   };
