@@ -9,24 +9,26 @@ export interface IBrands {
   profile?: {
     about?: string; // About of the brand
     banner?: string; // Banner of the brand
-    industry: string; // Industry of the brand
+    industries?: string[]; // Industries of the brand
     website?: string; // Website of the brand
-  },
+  };
 
   preferences?: {
-    promotionType: string[]; // Promotion types (e.g., Barter, Paid)
-    influencerCategory: string[]; // Influencer Category (Beauty, Fashion, etc.)
-  }
+    promotionType?: string[]; // Promotion types (e.g., Barter, Paid)
+    influencerCategories?: string[]; // Influencer Category (Beauty, Fashion, etc.)
+  };
 
-  backend?: { // These would be updated only from backend
+  backend?: {
+    // These would be updated only from backend
     hireRate?: number; // Brand hire rate (e.g., percentage)
-  },
+  };
 
-  survey?: { // This contains some survey about the trendly app
+  survey?: {
+    // This contains some survey about the trendly app
     source?: string; // Source from where you have heaed about us
     purpose?: string; // Purpose of using Trendly
     collaborationValue?: string; // Collaboration value
-  }
+  };
 
   members: ICollection<IBrandsMembers>; // Members of the brand
   notifications: ICollection<INotifications>; // Notifications for the brand
