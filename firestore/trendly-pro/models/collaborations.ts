@@ -71,7 +71,7 @@ export interface IApplications {
     answer: string;
   }[];
   timeline: number;
-  attachments: string[];
+  attachments: Attachment[];
   fileAttachments: {
     url: string;
     name: string;
