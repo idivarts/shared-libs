@@ -10,6 +10,7 @@ export interface IUsers {
 
   phoneNumber?: string; // Phone number of the user
   location?: string; // Location of the user
+  isVerified?: boolean; // Verification status of the user
 
   emailVerified?: boolean; // Email verification status
   phoneVerified?: boolean; // Phone verification status
