@@ -37,6 +37,7 @@ export interface IBrands {
 export interface IBrandsMembers {
   brandId: string;
   managerId: string;
+  status: number;
 
   designation?: string; // Designation of the member
 
