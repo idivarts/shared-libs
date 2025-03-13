@@ -6,11 +6,19 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /{path=**}/applications/{applicationId} {
+			allow read: if isAuthenticated();
+		}
+    match /{path=**}/invitations/{invitationId} {
+			allow read: if isAuthenticated();
+		}
+    
     // This will store all the data about the influencers and the creators 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId;
-
+      allow create, delete: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId && validateUserUpdate();
+      
       // This will store all the notifications for the specific user
       match /notifications/{notificationId} {
         allow read: if isAuthenticated() && request.auth.uid == userId;
@@ -100,6 +108,9 @@ service cloud.firestore {
 
     function isAuthenticated() {
       return request.auth != null;
+    }
+    function validateUserUpdate() {
+      return (request.resource.data.isChatConnected == resource.data.isChatConnected);
     }
   }
 }
