@@ -66,7 +66,7 @@ export interface IUsers {
   };
 
   creationTime?: number,
-  lastLoginTime?: number,
+  lastUseTime?: number,
   updateTime?: number,
 }
 
