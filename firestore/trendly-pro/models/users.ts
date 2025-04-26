@@ -67,6 +67,7 @@ export interface IUsers {
 
   creationTime?: number,
   lastLoginTime?: number,
+  updateTime?: number,
 }
 
 export interface IPreferences {
