@@ -64,6 +64,9 @@ export interface IUsers {
     android?: string[];
     web?: string[];
   };
+
+  creationTime?: number,
+  lastLoginTime?: number,
 }
 
 export interface IPreferences {
