@@ -8,6 +8,7 @@ export interface ISocials {
     ownerName: string;
     instaProfile?: IInstagramProfile; // Instagram profile will only be present when isInstagram is true
     fbProfile?: IFacebookProfile; // Facebook profile will only be present when isInstagram is false
+    socialScreenShots?: string[]
 }
 
 export interface IInstagramProfile {
