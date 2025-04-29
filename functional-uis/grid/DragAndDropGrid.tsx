@@ -7,9 +7,10 @@ import DragAndDropWeb from './web/DragAndDropWeb';
 interface DragAndDropWebProps {
     attachments: Attachment[];
     onAttachmentChange: (attachments: Attachment[]) => void;
+    onLoadStateChange?: (isLoading: boolean) => void;
 }
 
-const DragAndDropGrid: FC<DragAndDropWebProps> = ({ attachments, onAttachmentChange }) => {
+const DragAndDropGrid: FC<DragAndDropWebProps> = ({ attachments, onAttachmentChange, onLoadStateChange }) => {
     return (
         <>
             {
@@ -17,11 +18,13 @@ const DragAndDropGrid: FC<DragAndDropWebProps> = ({ attachments, onAttachmentCha
                     <DragAndDropWeb
                         attachments={attachments}
                         onAttachmentChange={onAttachmentChange}
+                        onLoadStateChange={onLoadStateChange}
                     />
                 ) : (
                     <DragAndDropNative
                         attachments={attachments}
                         onAttachmentChange={onAttachmentChange}
+                        onLoadStateChange={onLoadStateChange}
                     />
                 )
             }

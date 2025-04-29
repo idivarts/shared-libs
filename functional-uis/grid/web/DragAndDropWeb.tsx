@@ -1,8 +1,8 @@
 // import { useAuthContext } from '@/contexts';
 import { useAWSContext } from "@/shared-libs/contexts/aws-context.provider";
 import { Attachment } from '@/shared-libs/firestore/trendly-pro/constants/attachment';
-import { processRawAttachment } from '@/shared-uis/utils/attachments';
-import { WebAssetItem } from '@/types/Asset';
+import { WebAssetItem } from '@/shared-libs/types/Asset';
+import { processRawAttachment } from '@/shared-libs/utils/attachments';
 import {
   closestCenter,
   DndContext,
@@ -28,9 +28,10 @@ import SortableItem from './SortableItem';
 interface DragAndDropWebProps {
   attachments: Attachment[];
   onAttachmentChange: (attachments: Attachment[]) => void;
+  onLoadStateChange?: (isLoading: boolean) => void;
 }
 
-const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachmentChange }) => {
+const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachmentChange, onLoadStateChange }) => {
   const [assets, setAssets] = useState(attachments.map((a, index): WebAssetItem => ({
     ...processRawAttachment(a),
     id: "" + index,
@@ -56,10 +57,12 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
   )
 
   const handleDragStart = (event: DragStartEvent) => {
+    onLoadStateChange?.(true)
     setActiveId(event.active.id as string)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
+    onLoadStateChange?.(true)
     const { active, over } = event
     // active.id
 
@@ -75,6 +78,7 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
   }
 
   const handleRemoveAsset = (id: string) => {
+    onLoadStateChange?.(true)
     const newAssets = assets.filter((asset) => asset.id !== id);
     setAssets([...newAssets]);
 
@@ -84,6 +88,7 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
   }
 
   const handleAddAsset = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    onLoadStateChange?.(true)
     const file = event.target.files?.[0]
     if (file) {
       const id = assets.length
@@ -112,6 +117,7 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
       newAttachments.push(myAttachments["" + id])
     }
     console.log("New Attachments", newAttachments);
+    onLoadStateChange?.(false)
     onAttachmentChange(newAttachments)
   }
 

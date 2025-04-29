@@ -12,6 +12,7 @@ import DraggableItem, { AssetItem } from './DraggableItem';
 interface DragAndDropNativeProps {
   attachments: Attachment[]
   onAttachmentChange: (attachments: Attachment[]) => void
+  onLoadStateChange?: (isLoading: boolean) => void;
 }
 
 const generateEmptyAssets = (
@@ -49,7 +50,8 @@ class DataHolder {
 let myData: DataHolder
 const DragAndDropNative: React.FC<DragAndDropNativeProps> = ({
   attachments,
-  onAttachmentChange
+  onAttachmentChange,
+  onLoadStateChange
 }) => {
   const [assets, setAssets] = useState<AssetItem[]>(generateEmptyAssets(attachments));
   useEffect(() => {
@@ -69,6 +71,7 @@ const DragAndDropNative: React.FC<DragAndDropNativeProps> = ({
 
   const handlePositionsUpdate = (newPositions: Record<string, number>) => {
     // const newFinalAssets = [...assets];
+    onLoadStateChange?.(true)
 
     for (let key in newPositions) {
       const pos = parseInt(key)
@@ -79,6 +82,7 @@ const DragAndDropNative: React.FC<DragAndDropNativeProps> = ({
   };
 
   const handleAssetUpdate = (id: number, attachment: Attachment) => {
+    onLoadStateChange?.(true)
     const position = id;
     myData.assets[position] = {
       id: position,
@@ -107,6 +111,7 @@ const DragAndDropNative: React.FC<DragAndDropNativeProps> = ({
     }
     console.log("New Attachments", newAttachments);
     onAttachmentChange(newAttachments)
+    onLoadStateChange?.(false)
   }
 
   // useEffect(() => {
