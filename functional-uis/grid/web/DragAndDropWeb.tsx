@@ -98,11 +98,18 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
         type: file.type.includes('video') ? 'video' : 'image',
       })
       setAssets([...assets])
-      const uploadedAsset = await uploadFile(file)
-      assets[id].url = processRawAttachment(uploadedAsset).url
+      const uploadedAsset = await uploadFile(file).catch((error) => { })
+      if (uploadedAsset) {
+        assets[id].url = processRawAttachment(uploadedAsset).url
+      }
+      // assets[id].url = processRawAttachment(uploadedAsset).url
       setAssets([...assets])
       myAttachments[id] = uploadedAsset
       setMyAttachments({ ...myAttachments })
+      if (!uploadedAsset) {
+        handleRemoveAsset("" + id)
+        return;
+      }
     }
     orderAndUpload(assets, myAttachments)
   }
