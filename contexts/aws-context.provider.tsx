@@ -47,15 +47,16 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
   const [processPercentage, setProcessPercentage] = useState<number>(0);
 
   const preUploadRequestUrl = (file: File | AssetItem): string => {
-    const date = new Date().getTime();
+    const date = Date.now();
     const baseUrl = "/s3/v1/";
     const type = file.type.includes("video") ? "videos" : "images";
     let filename: string = "";
 
-    if (Platform.OS === "web") {
-      filename = `${date}.${file.type.split("/")[1]}`;
+    if (file instanceof File) {
+      filename = `${type}-${date}-${file.name}`;
     } else {
-      filename = `${date}.${type === "videos" ? "mp4" : "jpg"}`;
+      const aFile = file.uri.split('/').pop()
+      filename = `${type}-${date}-${aFile}`;
     }
 
     return `${baseUrl}${type}?filename=${filename}`;
