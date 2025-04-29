@@ -9,7 +9,7 @@ import {
 import { Platform } from "react-native";
 import { Subject } from "rxjs";
 import { AssetItem, NativeAssetItem, WebAssetItem } from "../types/Asset";
-import { HttpWrapper } from "./http-wrapper";
+import { HttpWrapper } from "../utils/http-wrapper";
 
 interface SubjectInterface { index: number, percentage: number }
 interface AWSContextProps {
