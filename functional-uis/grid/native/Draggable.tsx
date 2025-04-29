@@ -1,3 +1,4 @@
+import { MARGIN, getOrder, getPosition } from '@/shared-libs/utils/drag-component';
 import React from 'react';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, {
@@ -8,7 +9,6 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { MARGIN, getOrder, getPosition } from '@/utils/drag-component';
 
 interface DraggableProps {
   children: React.ReactNode;
