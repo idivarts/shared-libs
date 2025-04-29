@@ -6,6 +6,12 @@ export interface MediaItem {
 }
 
 export const processRawAttachment = (attachment: any): MediaItem => {
+  if (!attachment) {
+    return {
+      type: "",
+      url: "",
+    };
+  }
   if (attachment.type.includes("video")) {
     if (Platform.OS === "ios") {
       return {
