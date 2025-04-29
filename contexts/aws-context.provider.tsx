@@ -40,6 +40,14 @@ const AWSContext = createContext<AWSContextProps>(null!);
 
 export const useAWSContext = () => useContext(AWSContext);
 
+const getExtensionFromDataUri = (dataUri: string): string => {
+  const match = dataUri.match(/^data:(.*?);/);
+  if (!match || !match[1]) return "";
+  const mime = match[1]; // e.g., "image/jpeg"
+  const parts = mime.split("/");
+  return parts.length > 1 ? parts[1] : "";
+};
+
 export const AWSContextProvider: React.FC<PropsWithChildren> = ({
   children,
 }) => {
@@ -54,6 +62,9 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
     if (file instanceof File) {
       filename = `${type}-${date}-${file.name}`;
+    } else if (Platform.OS == "web") {
+      const ext = getExtensionFromDataUri(file.uri) //file.uri
+      filename = `${type}-${date}.${ext}`;
     } else {
       const aFile = file.uri.split('/').pop()
       filename = `${type}-${date}-${aFile}`;
