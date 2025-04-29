@@ -18,8 +18,8 @@ interface AWSContextProps {
   processPercentage: number;
   setProcessMessage: (message: string) => void;
   setProcessPercentage: (percentage: number) => void;
-  uploadFile: (file: File) => Promise<any>;
-  uploadFiles: (files: File[]) => Promise<any[]>;
+  uploadFile: (file: File) => Promise<Attachment>;
+  uploadFiles: (files: File[]) => Promise<Attachment[]>;
   uploadFileUri: (fileUri: AssetItem) => Promise<Attachment>;
   uploadFileUris: (fileUris: AssetItem[]) => Promise<Attachment[]>;
   uploadAttachment: (file: AssetItem) => Promise<any>;
@@ -250,7 +250,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
     }
   };
 
-  const uploadFiles = async (files: File[]): Promise<any[]> => {
+  const uploadFiles = async (files: File[]): Promise<Attachment[]> => {
     try {
       const uploadedFiles: Promise<any>[] = [];
       const totalProgress = 100 / files.length;
