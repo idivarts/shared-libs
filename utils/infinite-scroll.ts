@@ -2,7 +2,7 @@ import { CollectionReference, DocumentData, DocumentSnapshot, getDocs, limit, on
 import { useEffect, useState } from "react"
 
 export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentData, DocumentData> | Query<DocumentData, DocumentData>,
-    perPage = 10, hardRefreshOnChange = false) => {
+    perPage = 5, hardRefreshOnChange = false) => {
 
     const [loading, setLoading] = useState(true)
     const [nextAvailable, setNextAvailable] = useState(true)
