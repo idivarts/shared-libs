@@ -2,7 +2,7 @@ import { CollectionReference, DocumentData, DocumentSnapshot, getDocs, limit, on
 import { useEffect, useState } from "react"
 
 export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentData, DocumentData> | Query<DocumentData, DocumentData>,
-    perPage = 10) => {
+    perPage = 10, hardRefreshOnChange = false) => {
 
     const [loading, setLoading] = useState(true)
     const [nextAvailable, setNextAvailable] = useState(true)
@@ -15,7 +15,7 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
         setLoading(true)
         console.log("After", after?.id);
 
-        const docs = await getDocs(query(queryOrCol, ...(after ?
+        const docs = await getDocs(query(queryOrCol, ...((after && data.length > 0) ?
             [startAfter(after), limit(perPage)] :
             [limit(perPage)])))
         docs.forEach((doc) => {
@@ -39,8 +39,16 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
                 }
             })
             if (newDocs.length > 0) {
-                setScrollToTop(true)
-                setTimeout(() => setScrollToTop(false), 5000)
+                if (hardRefreshOnChange) {
+                    setAfter(undefined)
+                    setNextAvailable(true)
+                    setScrollToTop(false)
+                    setData([])
+                    fetchDocuments([])
+                } else {
+                    setScrollToTop(true)
+                    setTimeout(() => setScrollToTop(false), 5000)
+                }
             }
         })
 
