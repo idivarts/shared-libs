@@ -9,9 +9,9 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
     const [after, setAfter] = useState<DocumentSnapshot | undefined>(undefined)
     const [scrollToTop, setScrollToTop] = useState(false)
 
-    const [data, setData] = useState<T[]>([])
+    const [data, setData] = useState<(T & { documentId: string })[]>([])
 
-    const fetchDocuments = async (data: T[]) => {
+    const fetchDocuments = async (data: (T & { documentId: string })[]) => {
         setLoading(true)
         console.log("After", after?.id);
 
@@ -19,7 +19,10 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
             [startAfter(after), limit(perPage)] :
             [limit(perPage)])))
         docs.forEach((doc) => {
-            data.push(doc.data() as T)
+            data.push({
+                ...(doc.data() as T),
+                documentId: doc.id
+            })
         })
         setAfter(docs.docs[docs.docs.length - 1])
         setData([...data])
