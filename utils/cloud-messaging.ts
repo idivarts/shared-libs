@@ -50,9 +50,10 @@ export const useCloudMessaging = (streamClient: any, userId: any, user: any, upd
     }
 
     const getTokenCustom = async () => {
-        const token = await getToken(messaging, Platform.OS == "web" ? {
-            vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
-        } : {});
+        const token = await getToken(messaging);
+        // , Platform.OS == "web" ? {
+        //     vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
+        // } : {}
         return token
     }
 
