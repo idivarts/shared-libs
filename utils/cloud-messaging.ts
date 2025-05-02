@@ -11,7 +11,7 @@ import { newToken } from "@/shared-libs/utils/token";
 import { PermissionsAndroid } from 'react-native';
 
 
-export const useCloudMessaging = (streamClient: any, userId: string, user: any, updateManager: Function) => {
+export const useCloudMessaging = (streamClient: any, userId: any, user: any, updateManager: Function) => {
 
     const requestUserPermission = async () => {
         if (Platform.OS == "web") {
@@ -33,7 +33,7 @@ export const useCloudMessaging = (streamClient: any, userId: string, user: any, 
     ) => {
         const push_provider = 'firebase';
         const push_provider_name = 'TrendlyFirebase';
-        streamClient.addDevice(token, push_provider, user?.id, push_provider_name);
+        streamClient?.addDevice(token, push_provider, user?.id, push_provider_name);
     };
     const registerPushTokenWithPlatform = async (
         token: string,
@@ -49,14 +49,19 @@ export const useCloudMessaging = (streamClient: any, userId: string, user: any, 
         }
     }
 
+    const getTokenCustom = async () => {
+        const token = await getToken(messaging, Platform.OS == "web" ? {
+            vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
+        } : {});
+        return token
+    }
+
     const initNotification = async () => {
         const accessGranted = await requestUserPermission();
         if (!accessGranted)
             return;
 
-        const token = await getToken(messaging, Platform.OS == "web" ? {
-            vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
-        } : {});
+        const token = await getTokenCustom();
 
         await registerPushTokenWithPlatform(token)
         await registerPushTokenWithStream(token);
@@ -98,6 +103,7 @@ export const useCloudMessaging = (streamClient: any, userId: string, user: any, 
 
     return {
         initNotification,
-        requestUserPermission
+        requestUserPermission,
+        getToken: getTokenCustom
     }
 };
