@@ -31,9 +31,20 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     const registerPushTokenWithStream = async (
         token: string,
     ) => {
+        if (!token) {
+            console.log("Token is invalid");
+            return
+        }
+        console.log("Got Token to register", token);
+
         const push_provider = 'firebase';
         const push_provider_name = 'TrendlyFirebase';
-        streamClient?.addDevice(token, push_provider, userOrManager?.id, push_provider_name);
+        try {
+            const x = await streamClient?.addDevice(token, push_provider, userOrManager?.id, push_provider_name);
+            console.log("Stream Device Added", x);
+        } catch (e) {
+            console.log("Stream Error", e);
+        }
     };
     const registerPushTokenWithPlatform = async (
         token: string,
@@ -105,6 +116,8 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     return {
         initNotification,
         requestUserPermission,
-        getToken: getTokenCustom
+        getToken: getTokenCustom,
+        registerPushTokenWithPlatform,
+        registerPushTokenWithStream
     }
 };
