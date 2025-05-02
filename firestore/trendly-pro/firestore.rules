@@ -16,8 +16,8 @@ service cloud.firestore {
     // This will store all the data about the influencers and the creators 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create, delete: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isAuthenticated() && request.auth.uid == userId && validateUserUpdate();
+      allow create: if isAuthenticated() && request.auth.uid == userId && !doesManagerExists(userId);
+      allow update, delete: if isAuthenticated() && request.auth.uid == userId && validateUserUpdate();
       
       // This will store all the notifications for the specific user
       match /notifications/{notificationId} {
@@ -35,7 +35,8 @@ service cloud.firestore {
     // This collection will store all the managers of the brands
     match /managers/{managerId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == managerId;
+      allow create: if isAuthenticated() && request.auth.uid == managerId && !doesUserExists(managerId);
+      allow update, delete: if isAuthenticated() && request.auth.uid == managerId;
 
       // This subcollection will store all the notifications for the specific manager
       match /notifications/{notificationId} {
@@ -108,6 +109,12 @@ service cloud.firestore {
 
     function isAuthenticated() {
       return request.auth != null;
+    }
+    function doesManagerExists(uid) {
+      return exists(/databases/$(database)/documents/managers/$(uid));
+    }
+    function doesUserExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
     }
     function validateUserUpdate() {
       return (request.resource.data.isChatConnected == resource.data.isChatConnected || !(resource.data.keys().hasAll(['isChatConnected'])));
