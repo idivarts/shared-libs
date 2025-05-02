@@ -11,7 +11,7 @@ import { newToken } from "@/shared-libs/utils/token";
 import { PermissionsAndroid } from 'react-native';
 
 
-export const useCloudMessaging = (streamClient: any, userId: any, user: any, updateManager: Function) => {
+export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
 
     const requestUserPermission = async () => {
         if (Platform.OS == "web") {
@@ -33,17 +33,17 @@ export const useCloudMessaging = (streamClient: any, userId: any, user: any, upd
     ) => {
         const push_provider = 'firebase';
         const push_provider_name = 'TrendlyFirebase';
-        streamClient?.addDevice(token, push_provider, user?.id, push_provider_name);
+        streamClient?.addDevice(token, push_provider, userOrManager?.id, push_provider_name);
     };
     const registerPushTokenWithPlatform = async (
         token: string,
     ) => {
-        const newNativeToken = Platform.OS === "ios" ? newToken("ios", user, token) :
-            (Platform.OS == "android" ? newToken("android", user, token) :
-                newToken("web", user, token));
+        const newNativeToken = Platform.OS === "ios" ? newToken("ios", userOrManager, token) :
+            (Platform.OS == "android" ? newToken("android", userOrManager, token) :
+                newToken("web", userOrManager, token));
 
         if (newNativeToken) {
-            await updateManager(userId, {
+            await updateUserOrManager(uid, {
                 pushNotificationToken: newNativeToken,
             });
         }
@@ -78,7 +78,7 @@ export const useCloudMessaging = (streamClient: any, userId: any, user: any, upd
     }
 
     useEffect(() => {
-        if (!userId && !user) return;
+        if (!uid && !userOrManager) return;
 
         initNotification();
 
@@ -100,7 +100,7 @@ export const useCloudMessaging = (streamClient: any, userId: any, user: any, upd
                 foregroundSubscription();
             };
         }
-    }, [userId, user]);
+    }, [uid, userOrManager]);
 
     return {
         initNotification,
