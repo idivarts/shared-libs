@@ -1,7 +1,10 @@
 import { useIsFocused } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from 'react';
+import { IContracts } from "../firestore/trendly-pro/models/contracts";
 import { IMessengerData } from '../messenger/interfaces/message-interface';
+import { FirestoreDB } from "../utils/firebase/firestore";
 
 interface IProps {
     influencerManagerid: string
@@ -17,12 +20,24 @@ const WebMessageWrapper: React.FC<IProps> = ({ influencerManagerid: id, streamTo
 
     const router = useRouter()
     useEffect(() => {
-        window.addEventListener('message', function (event) {
+        window.addEventListener('message', async (event) => {
             console.log("Received event from ifram");
             const mData: IMessengerData = event.data;
             if (mData.type == "open-contract") {
                 const contractId = mData.data
                 router.push(`/contract-details/${contractId}`);
+            } else if (mData.type == "contract-status") {
+                const contractId = mData.data
+                const contractSnap = await getDoc(doc(FirestoreDB, "contracts", contractId))
+                const contract = await contractSnap.data() as IContracts
+                const sData: IMessengerData = {
+                    type: "contract-status-receive",
+                    data: contract.status
+                }
+                iFrameRef.current?.contentWindow?.postMessage(sData)
+            } else if (mData.type == "give-feedback") {
+                const contractId = mData.data
+                router.push(`/contract-details/${contractId}?giveFeedback=true`);
             }
         });
     }, [])
