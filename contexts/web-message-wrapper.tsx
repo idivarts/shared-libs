@@ -1,14 +1,17 @@
 import { useIsFocused } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { PropsWithChildren, useEffect } from 'react';
+import React, { PropsWithChildren, useEffect, useRef, useState } from 'react';
 import { IMessengerData } from '../messenger/interfaces/message-interface';
 
 interface IProps {
-    iFrameLoaded: boolean,
-    iFrameRef: React.RefObject<HTMLIFrameElement>,
-    isUser: boolean
+    id: string
+    isInfluencer: boolean,
+    streamToken: string
 }
-const WebMessageWrapper: React.FC<PropsWithChildren & IProps> = ({ children, iFrameLoaded, iFrameRef, isUser }) => {
+const WebMessageWrapper: React.FC<PropsWithChildren & IProps> = ({ children, id, streamToken, isInfluencer }) => {
+    const [iFrameLoaded, setIFrameLoaded] = useState(false)
+    const iFrameRef = useRef<HTMLIFrameElement>(null)
+
     const { channelId } = useLocalSearchParams()
     const isFocused = useIsFocused()
 
@@ -35,7 +38,14 @@ const WebMessageWrapper: React.FC<PropsWithChildren & IProps> = ({ children, iFr
     }, [channelId, iFrameLoaded, isFocused])
 
     return (
-        children
+        <iframe
+            ref={iFrameRef}
+            src={`/messenger/index.html?user=${id}&user_token=${streamToken}&target_origin=${window.location.origin}&skip_name_image_set=false&no_channel_name_filter=false`}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            onLoad={() => {
+                setIFrameLoaded(true)
+            }}
+        />
     )
 }
 
