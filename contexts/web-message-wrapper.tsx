@@ -40,7 +40,7 @@ const WebMessageWrapper: React.FC<IProps> = ({ influencerManagerid: id, streamTo
     return (
         <iframe
             ref={iFrameRef}
-            src={`/messenger/index.html?user=${id}&user_token=${streamToken}&target_origin=${window.location.origin}&skip_name_image_set=false&no_channel_name_filter=false`}
+            src={`/messenger/index.html?user=${id}&user_token=${streamToken}&target_origin=${window.location.origin}${isInfluencer ? "&isInfluencer=true" : ""}&skip_name_image_set=false&no_channel_name_filter=false`}
             style={{ width: '100%', height: '100%', border: 'none' }}
             onLoad={() => {
                 setIFrameLoaded(true)
