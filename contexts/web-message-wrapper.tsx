@@ -5,9 +5,10 @@ import { IMessengerData } from '../messenger/interfaces/message-interface';
 
 interface IProps {
     iFrameLoaded: boolean,
-    iFrameRef: React.RefObject<HTMLIFrameElement>
+    iFrameRef: React.RefObject<HTMLIFrameElement>,
+    isUser: boolean
 }
-const WebMessageWrapper: React.FC<PropsWithChildren & IProps> = ({ children, iFrameLoaded, iFrameRef }) => {
+const WebMessageWrapper: React.FC<PropsWithChildren & IProps> = ({ children, iFrameLoaded, iFrameRef, isUser }) => {
     const { channelId } = useLocalSearchParams()
     const isFocused = useIsFocused()
 
