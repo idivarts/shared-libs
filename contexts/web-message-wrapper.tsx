@@ -1,4 +1,4 @@
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from 'react';
@@ -17,6 +17,12 @@ const WebMessageWrapper: React.FC<IProps> = ({ influencerManagerid: id, streamTo
 
     const { channelId } = useLocalSearchParams()
     const isFocused = useIsFocused()
+
+    const theme = useTheme()
+    useEffect(() => {
+        if (iFrameLoaded && iFrameRef.current)
+            iFrameRef.current?.contentWindow?.postMessage(theme.dark ? "dark" : "light")
+    }, [theme, iFrameLoaded, iFrameRef])
 
     const router = useRouter()
     useEffect(() => {
