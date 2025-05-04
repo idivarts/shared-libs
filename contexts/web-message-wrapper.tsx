@@ -1,14 +1,14 @@
 import { useIsFocused } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { PropsWithChildren, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IMessengerData } from '../messenger/interfaces/message-interface';
 
 interface IProps {
-    id: string
+    influencerManagerid: string
     isInfluencer: boolean,
     streamToken: string
 }
-const WebMessageWrapper: React.FC<PropsWithChildren & IProps> = ({ children, id, streamToken, isInfluencer }) => {
+const WebMessageWrapper: React.FC<IProps> = ({ influencerManagerid: id, streamToken, isInfluencer }) => {
     const [iFrameLoaded, setIFrameLoaded] = useState(false)
     const iFrameRef = useRef<HTMLIFrameElement>(null)
 
