@@ -65,7 +65,7 @@ export interface IApplications {
   status: string; // "active", "rejected", "accepted"
   timeStamp: number;
   message: string;
-  quotation: number;
+  quotation: number | string;
   answersFromInfluencer: {
     question: number;
     answer: string;
