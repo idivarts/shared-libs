@@ -9,6 +9,7 @@ export interface IManagers {
   // dateOfBirth?: string; // Date of birth of the manager
 
   isChatConnected?: boolean; // Chat connection status
+  isAdmin?: boolean,
 
   notifications: ICollection<INotifications>; // Notifications for the manager
 
