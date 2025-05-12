@@ -11,7 +11,7 @@ export interface IManagers {
   isChatConnected?: boolean; // Chat connection status
   isAdmin?: boolean,
 
-  notifications: ICollection<INotifications>; // Notifications for the manager
+  notifications?: ICollection<INotifications>; // Notifications for the manager
 
   profileImage?: string;
   settings?: {
