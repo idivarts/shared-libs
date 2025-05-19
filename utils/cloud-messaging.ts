@@ -1,7 +1,6 @@
 
-import { messaging } from "@/shared-libs/utils/firebase/messaging";
-import nativeMessaging, { requestPermission } from "@react-native-firebase/messaging";
-import { getToken } from "firebase/messaging";
+import { getToken, messaging } from "@/shared-libs/utils/firebase/messaging";
+import { requestPermission } from "@react-native-firebase/messaging";
 import {
     useEffect
 } from "react";
@@ -19,7 +18,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             return permission === "granted"
         } else {
             const authStatus = await requestPermission(messaging);
-            const enabled = authStatus === nativeMessaging.AuthorizationStatus.AUTHORIZED || authStatus === nativeMessaging.AuthorizationStatus.PROVISIONAL;
+            const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
             if (enabled && Platform.OS === 'android') {
                 const perm = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
                 return perm == "granted"
@@ -64,7 +63,6 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
         const token = await getToken(messaging, Platform.OS == "web" ? {
             vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
         } : {});
-
         return token
     }
 
@@ -79,7 +77,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
         await registerPushTokenWithStream(token);
 
         if (Platform.OS != "web")
-            nativeMessaging()
+            messaging()
                 .getInitialNotification()
                 .then(async (remoteMessage) => {
                     if (remoteMessage) {
@@ -94,15 +92,15 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
         initNotification();
 
         if (Platform.OS != "web") {
-            const backgroundSubscription = nativeMessaging().onNotificationOpenedApp((remoteMessage) => {
+            const backgroundSubscription = messaging().onNotificationOpenedApp((remoteMessage) => {
                 console.log("Notification caused app to open from background state:", remoteMessage.notification);
             });
 
-            nativeMessaging().setBackgroundMessageHandler(async (remoteMessage) => {
+            messaging().setBackgroundMessageHandler(async (remoteMessage) => {
                 console.log("Message handled in the background:", remoteMessage);
             });
 
-            const foregroundSubscription = nativeMessaging().onMessage(async (remoteMessage) => {
+            const foregroundSubscription = messaging().onMessage(async (remoteMessage) => {
                 console.log("A new FCM message arrived!", remoteMessage);
             });
 
