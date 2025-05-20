@@ -1,16 +1,41 @@
 
-import { getToken, messaging } from "@/shared-libs/utils/firebase/messaging";
+import { deleteToken, getToken, messaging } from "@/shared-libs/utils/firebase/messaging";
 import { requestPermission } from "@react-native-firebase/messaging";
 import {
     useEffect
 } from "react";
 import { Platform } from "react-native";
 
-import { newToken } from "@/shared-libs/utils/token";
+import { newToken, removeToken } from "@/shared-libs/utils/token";
+import { User } from "firebase/auth";
 import { PermissionsAndroid } from 'react-native';
 
 
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
+
+    const updatedTokens = async (user: User | null) => {
+        if (!user) return null;
+        let p = await requestUserPermission()
+        if (!p) return null;
+
+        let newUpdatedTokens: {
+            ios?: string[];
+            android?: string[];
+            web?: string[];
+        } | null = null;
+
+        const token = await getTokenCustom();
+
+        if (Platform.OS === "ios") {
+            newUpdatedTokens = removeToken("ios", user, token);
+        } else if (Platform.OS === "android") {
+            newUpdatedTokens = removeToken("android", user, token);
+        }
+
+        await deleteToken(messaging);
+
+        return newUpdatedTokens;
+    }
 
     const requestUserPermission = async () => {
         if (Platform.OS == "web") {
@@ -114,6 +139,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     return {
         initNotification,
         requestUserPermission,
+        updatedTokens,
         getToken: getTokenCustom,
         registerPushTokenWithPlatform,
         registerPushTokenWithStream

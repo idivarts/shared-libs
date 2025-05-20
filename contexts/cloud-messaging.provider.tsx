@@ -9,6 +9,7 @@ import { AuthApp } from "@/shared-libs/utils/firebase/auth";
 
 interface CloudMessagingContextProps {
   getToken: () => Promise<string>;
+  updatedTokens?: Function
   registerPushTokenWithStream: (token: string) => Promise<void>
   registerPushTokenWithPlatform: (token: string) => Promise<void>
 }
@@ -27,12 +28,13 @@ export const CloudMessagingContextProvider: React.FC<PropsWithChildren & { userO
   updateUserOrManager,
   streamClient
 }) => {
-  const { getToken, registerPushTokenWithStream, registerPushTokenWithPlatform } = useCloudMessaging(streamClient, AuthApp.currentUser?.uid, userOrmanager, updateUserOrManager)
+  const { getToken, updatedTokens, registerPushTokenWithStream, registerPushTokenWithPlatform } = useCloudMessaging(streamClient, AuthApp.currentUser?.uid, userOrmanager, updateUserOrManager)
 
   return (
     <CloudMessagingContext.Provider
       value={{
         getToken,
+        updatedTokens,
         registerPushTokenWithPlatform,
         registerPushTokenWithStream
       }}

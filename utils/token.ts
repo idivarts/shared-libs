@@ -24,7 +24,7 @@ export const newToken = (
 
 export const removeToken = (
   os: "ios" | "android" | "web",
-  user: IManagers,
+  user: any,
   currentToken: string
 ) => {
   if (!user) return null;
