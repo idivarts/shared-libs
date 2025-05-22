@@ -1,6 +1,5 @@
 
 import { deleteToken, getToken, messaging } from "@/shared-libs/utils/firebase/messaging";
-import { requestPermission } from "@react-native-firebase/messaging";
 import {
     useEffect
 } from "react";
@@ -42,7 +41,8 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             const permission = await Notification.requestPermission();
             return permission === "granted"
         } else {
-            const authStatus = await requestPermission(messaging);
+            const authStatus = await messaging().requestPermission().catch((e) => { console.log("Cloud Authorization Error", e) });
+
             const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
             if (enabled && Platform.OS === 'android') {
                 const perm = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
@@ -112,7 +112,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     }
 
     useEffect(() => {
-        if (!uid && !userOrManager) return;
+        if (!uid || !userOrManager) return;
 
         initNotification();
 
