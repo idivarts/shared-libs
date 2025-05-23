@@ -8,7 +8,11 @@ type ScrollContextType = {
     setScrollHeight?: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const ScrollContext = createContext<ScrollContextType | null>(null);
+const ScrollContext = createContext<ScrollContextType>({
+    scrollRef: { current: null },
+    scrollHeight: 0,
+    setScrollHeight: () => { }
+});
 
 export const ScrollProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const scrollRef = useRef<ScrollView>(null);
@@ -27,8 +31,4 @@ export const ScrollProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
 };
 
-export const useScrollContext = () => {
-    const context = useContext(ScrollContext);
-    if (!context) throw new Error("useScrollContext must be used within ScrollProvider");
-    return context;
-};
+export const useScrollContext = () => useContext(ScrollContext);
