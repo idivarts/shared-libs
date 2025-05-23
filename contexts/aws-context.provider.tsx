@@ -66,7 +66,8 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       const ext = getExtensionFromDataUri(file.uri) //file.uri
       filename = `${type}-${date}.${ext}`;
     } else {
-      const aFile = file.uri.split('/').pop()
+      // console.log("File Details", file.localUri, file.uri);
+      const aFile = file.localUri.split('/').pop()
       filename = `${type}-${date}-${aFile}`;
     }
 
