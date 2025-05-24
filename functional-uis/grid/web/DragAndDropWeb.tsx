@@ -22,6 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useTheme } from "@react-navigation/native";
 import React, { useState } from "react";
+import { Text, View } from "react-native";
 import DraggableItem from './DraggableItem';
 import EmptyItem from './EmptyItem';
 import SortableItem from './SortableItem';
@@ -176,9 +177,11 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
           </DragOverlay>
         </div>
       </DndContext>
-      <div style={{ color: theme.dark ? '#fff' : '#000', textAlign: 'center', padding: 16 }}>
-        Upload images and videos that best describes your content style
-      </div>
+      <View style={{ padding: 16 }}>
+        <Text style={{ color: theme.dark ? '#fff' : '#000', textAlign: 'center' }}>
+          Upload images and videos that best describes your content style
+        </Text>
+      </View>
     </>
   )
 }
