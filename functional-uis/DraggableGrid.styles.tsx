@@ -155,4 +155,7 @@ export const gridStylesFn = (
     borderColor: theme.dark ? Colors(theme).white : Colors(theme).platinum,
     borderStyle: 'dashed',
   },
+  text: {
+    color: Colors(theme).text,
+  }
 });

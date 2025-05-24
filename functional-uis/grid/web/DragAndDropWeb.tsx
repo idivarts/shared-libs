@@ -20,7 +20,8 @@ import {
   SortableContext,
   sortableKeyboardCoordinates
 } from '@dnd-kit/sortable';
-import { useState } from 'react';
+import { useTheme } from "@react-navigation/native";
+import React, { useState } from "react";
 import DraggableItem from './DraggableItem';
 import EmptyItem from './EmptyItem';
 import SortableItem from './SortableItem';
@@ -43,6 +44,7 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
   const [activeId, setActiveId] = useState<string | null>(null)
   // const { user, updateUser } = useAuthContext()
   const { uploadFile } = useAWSContext()
+  const theme = useTheme();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -129,50 +131,55 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div
-        style={{
-          display: 'grid',
-          gap: '20px',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          justifyItems: 'center',
-          margin: '0 auto',
-          maxWidth: '900px',
-          padding: '20px',
-        }}
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        <SortableContext
-          items={assets.map((asset) => asset.id as string)}
-          strategy={rectSortingStrategy}
+        <div
+          style={{
+            display: 'grid',
+            gap: '20px',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            justifyItems: 'center',
+            margin: '0 auto',
+            maxWidth: '900px',
+            padding: '20px',
+          }}
         >
-          {assets.map((asset) => (
-            <SortableItem
-              key={asset.id}
-              id={asset.id as string}
-              asset={asset}
-              onRemove={() => handleRemoveAsset(asset.id as string)}
-            />
-          ))}
-          {Array.from({ length: 6 - assets.length }).map((_, index) => (
-            <EmptyItem index={index} handleAddAsset={handleAddAsset} />
-          ))}
-        </SortableContext>
+          <SortableContext
+            items={assets.map((asset) => asset.id as string)}
+            strategy={rectSortingStrategy}
+          >
+            {assets.map((asset) => (
+              <SortableItem
+                key={asset.id}
+                id={asset.id as string}
+                asset={asset}
+                onRemove={() => handleRemoveAsset(asset.id as string)}
+              />
+            ))}
+            {Array.from({ length: 6 - assets.length }).map((_, index) => (
+              <EmptyItem index={index} handleAddAsset={handleAddAsset} />
+            ))}
+          </SortableContext>
 
-        <DragOverlay>
-          {activeId ? (
-            <DraggableItem
-              asset={assets.find((asset) => asset.id === activeId) as WebAssetItem}
-              id={activeId}
-            />
-          ) : null}
-        </DragOverlay>
+          <DragOverlay>
+            {activeId ? (
+              <DraggableItem
+                asset={assets.find((asset) => asset.id === activeId) as WebAssetItem}
+                id={activeId}
+              />
+            ) : null}
+          </DragOverlay>
+        </div>
+      </DndContext>
+      <div style={{ color: theme.dark ? '#fff' : '#000', textAlign: 'center', padding: 16 }}>
+        Upload images and videos that best describes your content style
       </div>
-    </DndContext>
+    </>
   )
 }
 

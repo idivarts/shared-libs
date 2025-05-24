@@ -9,6 +9,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import Draggable from './Draggable';
 import DraggableItem, { AssetItem } from './DraggableItem';
 
+
 interface DragAndDropNativeProps {
   attachments: Attachment[]
   onAttachmentChange: (attachments: Attachment[]) => void
@@ -142,12 +143,11 @@ const DragAndDropNative: React.FC<DragAndDropNativeProps> = ({
         style={styles.hintContainer}
       >
         <View
-          style={styles.hintText}
-        >
-          <Text>Hold & drag your photos to change the order</Text>
+          style={styles.hintText}>
+          <Text style={styles.text}>Upload images and videos that best describe your content style</Text>
         </View>
       </View>
-    </View>
+    </View >
   );
 };
 
