@@ -1,5 +1,6 @@
 import { CollectionReference, DocumentData, DocumentSnapshot, getDocs, limit, onSnapshot, query, Query, startAfter } from "firebase/firestore"
 import { useEffect, useState } from "react"
+import { CrashLog } from "./firebase/crashlytics"
 
 export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentData, DocumentData> | Query<DocumentData, DocumentData>,
     perPage = 5, hardRefreshOnChange = false) => {
@@ -13,7 +14,7 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
 
     const fetchDocuments = async (data: (T & { documentId: string })[]) => {
         setLoading(true)
-        console.log("After", after?.id);
+        CrashLog.log("After", after?.id);
 
         const docs = await getDocs(query(queryOrCol, ...((after && data.length > 0) ?
             [startAfter(after), limit(perPage)] :
@@ -71,7 +72,7 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
         const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
 
         if (isNearBottom && nextAvailable && !loading) {
-            console.log("Scroll Case", isNearBottom, nextAvailable, !loading, after?.id);
+            CrashLog.log("Scroll Case", isNearBottom, nextAvailable, !loading, after?.id);
             fetchDocuments(data)
         }
     }

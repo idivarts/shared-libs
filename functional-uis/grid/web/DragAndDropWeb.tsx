@@ -3,6 +3,7 @@ import { useAWSContext } from "@/shared-libs/contexts/aws-context.provider";
 import { Attachment } from '@/shared-libs/firestore/trendly-pro/constants/attachment';
 import { WebAssetItem } from '@/shared-libs/types/Asset';
 import { processRawAttachment } from '@/shared-libs/utils/attachments';
+import { CrashLog } from "@/shared-libs/utils/firebase/crashlytics";
 import {
   closestCenter,
   DndContext,
@@ -120,13 +121,13 @@ const DragAndDropWeb: React.FC<DragAndDropWebProps> = ({ attachments, onAttachme
 
   const orderAndUpload = (assets: WebAssetItem[], myAttachments: any) => {
     const assetOrder = assets.filter(a => !!a.url).map(a => a.id)
-    console.log("Order and Upload", assetOrder, "\n", myAttachments);
+    CrashLog.log("Order and Upload", assetOrder, "\n", myAttachments);
     let newAttachments: Attachment[] = []
     for (let i = 0; i < assetOrder.length; i++) {
       const id = assetOrder[i];
       newAttachments.push(myAttachments["" + id])
     }
-    console.log("New Attachments", newAttachments);
+    CrashLog.log("New Attachments", newAttachments);
     onLoadStateChange?.(false)
     onAttachmentChange(newAttachments)
   }

@@ -8,6 +8,7 @@ import { Platform } from "react-native";
 import { newToken, removeToken } from "@/shared-libs/utils/token";
 import { User } from "firebase/auth";
 import { PermissionsAndroid } from 'react-native';
+import { CrashLog } from "./firebase/crashlytics";
 
 
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
@@ -41,7 +42,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             const permission = await Notification.requestPermission();
             return permission === "granted"
         } else {
-            const authStatus = await messaging().requestPermission().catch((e) => { console.log("Cloud Authorization Error", e) });
+            const authStatus = await messaging().requestPermission().catch((e) => { CrashLog.log("Cloud Authorization Error", e) });
 
             const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
             if (enabled && Platform.OS === 'android') {
@@ -56,18 +57,18 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
         token: string,
     ) => {
         if (!token) {
-            console.log("Token is invalid");
+            CrashLog.log("Token is invalid");
             return
         }
-        console.log("Got Token to register", token);
+        CrashLog.log("Got Token to register", token);
 
         const push_provider = 'firebase';
         const push_provider_name = 'TrendlyFirebase';
         try {
             const x = await streamClient?.addDevice(token, push_provider, userOrManager?.id, push_provider_name);
-            console.log("Stream Device Added", x);
+            CrashLog.log("Stream Device Added", x);
         } catch (e) {
-            console.log("Stream Error", e);
+            CrashLog.log("Stream Error", e);
         }
     };
     const registerPushTokenWithPlatform = async (
@@ -106,7 +107,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                 .getInitialNotification()
                 .then(async (remoteMessage) => {
                     if (remoteMessage) {
-                        console.log("Notification caused app to open from quit state:", remoteMessage);
+                        CrashLog.log("Notification caused app to open from quit state:", remoteMessage);
                     }
                 });
     }
@@ -118,15 +119,15 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
         if (Platform.OS != "web") {
             const backgroundSubscription = messaging().onNotificationOpenedApp((remoteMessage) => {
-                console.log("Notification caused app to open from background state:", remoteMessage.notification);
+                CrashLog.log("Notification caused app to open from background state:", remoteMessage.notification);
             });
 
             messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-                console.log("Message handled in the background:", remoteMessage);
+                CrashLog.log("Message handled in the background:", remoteMessage);
             });
 
             const foregroundSubscription = messaging().onMessage(async (remoteMessage) => {
-                console.log("A new FCM message arrived!", remoteMessage);
+                CrashLog.log("A new FCM message arrived!", remoteMessage);
             });
 
             return () => {
