@@ -2,6 +2,7 @@ import { getCrashlytics } from "@react-native-firebase/crashlytics";
 import { Platform } from "react-native";
 
 const crashlytics = Platform.OS != "web" ? getCrashlytics() : null;
+crashlytics?.setCrashlyticsCollectionEnabled(true);
 
 export class CrashLog {
     public static log(message: string, tag?: string): void {
@@ -12,8 +13,10 @@ export class CrashLog {
         if (crashlytics) crashlytics.log(message);
     }
     public static crash(): void {
-        console.log("Crashing the app for testing purposes");
-        if (crashlytics) crashlytics.crash();
+        if (crashlytics && crashlytics.isCrashlyticsCollectionEnabled) {
+            console.log("Crashing the app for testing purposes");
+            crashlytics.crash();
+        }
     }
     public static error(error: Error, tag?: string): void {
         if (tag)
