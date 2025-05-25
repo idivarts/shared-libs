@@ -25,13 +25,13 @@ export class CrashLog {
             console.error(tag, error);
         if (crashlytics) {
             if (error instanceof Error) {
-                crashlytics.recordError(error);
+                crashlytics.recordError(error, tag);
             } else if (typeof error === "string") {
-                crashlytics.recordError(new Error(error));
+                crashlytics.recordError(new Error(error), tag);
             } else if (error instanceof Object) {
-                crashlytics.recordError(new Error(JSON.stringify(error)));
+                crashlytics.recordError(new Error(JSON.stringify(error)), tag);
             } else {
-                crashlytics.log("" + error)
+                crashlytics.log(tag + " : " + error)
             }
         };
     }
