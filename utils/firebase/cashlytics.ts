@@ -1,6 +1,7 @@
 import { getCrashlytics } from "@react-native-firebase/crashlytics";
+import { Platform } from "react-native";
 
-const crashlytics = getCrashlytics();
+const crashlytics = Platform.OS != "web" ? getCrashlytics() : null;
 
 export class CrashLog {
     public static log(message: string, tag?: string): void {
@@ -8,17 +9,17 @@ export class CrashLog {
             console.log(message)
         else
             console.log(tag, message);
-        crashlytics.log(message);
+        if (crashlytics) crashlytics.log(message);
     }
     public static crash(): void {
         console.log("Crashing the app for testing purposes");
-        crashlytics.crash();
+        if (crashlytics) crashlytics.crash();
     }
     public static error(error: Error, tag?: string): void {
         if (tag)
             console.error(error);
         else
             console.error(tag, error);
-        crashlytics.recordError(error);
+        if (crashlytics) crashlytics.recordError(error);
     }
 }
