@@ -5,7 +5,9 @@
         "composite": true
     },
     "include": [
-        "**/*"
+        "**/*",
+        "../shared-uis/**/*",
+        "../shared-constants/**/*"
     ],
     "references": []
 }
