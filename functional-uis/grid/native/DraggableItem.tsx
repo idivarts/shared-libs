@@ -1,7 +1,7 @@
-import Colors from '@/constants/Colors';
 import { useAWSContext } from "@/shared-libs/contexts/aws-context.provider";
 import { Attachment } from '@/shared-libs/firestore/trendly-pro/constants/attachment';
 import { draggableGridStylesFn } from '@/shared-libs/functional-uis/DraggableGrid.styles';
+import Colors from '@/shared-uis/constants/Colors';
 import { faClose, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useTheme } from '@react-navigation/native';
