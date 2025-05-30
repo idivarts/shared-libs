@@ -3,7 +3,9 @@ import { CrashLog } from "./firebase/crashlytics";
 
 export const Console = {
     log: (message: string, ...optionalParams: any[]) => {
-        console.log(message, ...optionalParams);
+        if (__DEV__) {
+            console.log(message, ...optionalParams);
+        }
         try {
             CrashLog.log(message, ...optionalParams);
             analyticsLogEvent("log", {
