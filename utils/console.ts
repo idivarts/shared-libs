@@ -27,5 +27,15 @@ export const Console = {
         } catch (e) {
             console.error("Error logging error to Crashlytics or Analytics", e);
         }
+    },
+    analytics: (
+        eventName: string,
+        eventParams: Record<string, any>
+    ) => {
+        try {
+            analyticsLogEvent(eventName, eventParams);
+        } catch (error) {
+            console.error("Error logging event to Analytics", error);
+        }
     }
 }
