@@ -1,4 +1,4 @@
-import { MAX_WIDTH_WEB } from "@/constants/Container";
+import { MAX_WIDTH_WEB } from "@/shared-uis/components/carousel/carousel-util";
 import { CSSProperties } from "react";
 import { Dimensions } from "react-native";
 

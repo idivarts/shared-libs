@@ -1,4 +1,4 @@
-import { WebAssetItem } from "@/types/Asset";
+import { WebAssetItem } from "@/shared-libs/types/Asset";
 import { ActivityIndicator } from "react-native-paper";
 import { DraggableItemStyle } from "./DraggableItem.style";
 
