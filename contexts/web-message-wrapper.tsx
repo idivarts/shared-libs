@@ -4,7 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from 'react';
 import { IContracts } from "../firestore/trendly-pro/models/contracts";
 import { IMessengerData } from '../messenger/interfaces/message-interface';
-import { CrashLog } from "../utils/firebase/crashlytics";
+import { Console } from "../utils/console";
 import { FirestoreDB } from "../utils/firebase/firestore";
 
 interface IProps {
@@ -28,7 +28,7 @@ const WebMessageWrapper: React.FC<IProps> = ({ influencerManagerid: id, streamTo
     const router = useRouter()
     useEffect(() => {
         window.addEventListener('message', async (event) => {
-            CrashLog.log("Received event from ifram");
+            Console.log("Received event from ifram");
             const mData: IMessengerData = event.data;
             if (mData.type == "open-contract") {
                 const contractId = mData.data

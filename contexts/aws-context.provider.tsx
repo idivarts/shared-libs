@@ -9,7 +9,7 @@ import {
 import { Platform } from "react-native";
 import { Subject } from "rxjs";
 import { AssetItem, NativeAssetItem, WebAssetItem } from "../types/Asset";
-import { CrashLog } from "../utils/firebase/crashlytics";
+import { Console } from "../utils/console";
 import { HttpWrapper } from "../utils/http-wrapper";
 
 interface SubjectInterface { index: number, percentage: number }
@@ -98,7 +98,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           let percentCompleted = (event.loaded / event.total) * 100;
-          CrashLog.log(`Upload Progress: ${index} : ${percentCompleted.toFixed(2)}%`);
+          Console.log(`Upload Progress: ${index} : ${percentCompleted.toFixed(2)}%`);
           if (communicatePercentage && index !== undefined) {
             communicatePercentage.next({ index: index, percentage: startPercentage + (percentCompleted * (100 - startPercentage) / 100) });
           }

@@ -2,7 +2,7 @@
 import { Attachment } from '@/shared-libs/firestore/trendly-pro/constants/attachment';
 import { gridStylesFn } from '@/shared-libs/functional-uis/DraggableGrid.styles';
 import { processRawAttachment } from '@/shared-libs/utils/attachments';
-import { CrashLog } from '@/shared-libs/utils/firebase/crashlytics';
+import { Console } from '@/shared-libs/utils/console';
 import { useTheme } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
@@ -105,13 +105,13 @@ const DragAndDropNative: React.FC<DragAndDropNativeProps> = ({
 
   const orderAndUpload = async () => {
     const assetOrder = myData.assets.filter(a => !!a.url).sort((a, b) => (a.index - b.index)).map(a => a.id)
-    CrashLog.log("Order and Upload", assetOrder, "\n", myData.myAttachments);
+    Console.log("Order and Upload", assetOrder, "\n", myData.myAttachments);
     let newAttachments: Attachment[] = []
     for (let i = 0; i < assetOrder.length; i++) {
       const id = assetOrder[i];
       newAttachments.push(myData.myAttachments[id])
     }
-    CrashLog.log("New Attachments", newAttachments);
+    Console.log("New Attachments", newAttachments);
     onAttachmentChange(newAttachments)
     onLoadStateChange?.(false)
   }
