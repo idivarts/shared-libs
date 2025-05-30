@@ -6,7 +6,6 @@ crashlytics?.setCrashlyticsCollectionEnabled(true);
 
 export class CrashLog {
     public static log(message: string, ...optionalParams: any[]): void {
-        console.log(message, optionalParams);
         if (optionalParams && optionalParams.length > 0) {
             message += " " + optionalParams.join(" ");
         }
@@ -19,10 +18,6 @@ export class CrashLog {
         }
     }
     public static error(error: any, tag?: string): void {
-        if (tag)
-            console.error(error);
-        else
-            console.error(tag, error);
         if (crashlytics) {
             if (error instanceof Error) {
                 crashlytics.recordError(error, tag);
