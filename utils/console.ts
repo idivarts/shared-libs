@@ -28,12 +28,12 @@ export const Console = {
             console.error("Error logging error to Crashlytics or Analytics", e);
         }
     },
-    analytics: async (
+    analytics: (
         eventName: string,
         eventParams: Record<string, any>
     ) => {
         try {
-            await analyticsLogEvent(eventName, eventParams);
+            return analyticsLogEvent(eventName, eventParams);
         } catch (error) {
             console.error("Error logging event to Analytics", error);
         }
