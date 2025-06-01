@@ -13,7 +13,6 @@ export class CrashLog {
     }
     public static crash(): void {
         if (crashlytics && crashlytics.isCrashlyticsCollectionEnabled) {
-            console.log("Crashing the app for testing purposes");
             crashlytics.crash();
         }
     }
