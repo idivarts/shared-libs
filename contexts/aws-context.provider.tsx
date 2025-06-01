@@ -249,7 +249,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
         };
       }
     } catch (error) {
-      Console.errorT("File upload error:", error);
+      Console.error(error, "File upload error:");
       throw new Error("Failed to upload file");
     }
   };
@@ -314,7 +314,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
         name: file.id,
       };
     } catch (error) {
-      Console.errorT("File upload error:", error);
+      Console.error(error, "File upload error:");
       throw new Error("Failed to upload file");
     }
   };
