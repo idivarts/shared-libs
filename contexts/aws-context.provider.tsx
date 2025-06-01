@@ -67,7 +67,6 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       const ext = getExtensionFromDataUri(file.uri) //file.uri
       filename = `${type}-${date}.${ext}`;
     } else {
-      // console.log("File Details", file.localUri, file.uri);
       const aFile = file.localUri.split('/').pop()
       filename = `${type}-${date}-${aFile}`;
     }
@@ -125,14 +124,6 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       xhr.send(blobOrFile);
     });
   };
-
-  // // Usage
-  // const fileUri = "file:///path-to-your-file";
-  // const uploadUrl = "https://your-server.com/upload";
-
-  // uploadFile(fileUri, uploadUrl)
-  //   .then((response) => console.log("Upload success:", response))
-  //   .catch((error) => console.error("Upload error:", error));
 
   const getBlob = async (fileUri: AssetItem): Promise<Blob> => {
     if (fileUri.type === "video") {
