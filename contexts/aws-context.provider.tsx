@@ -211,7 +211,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
       return files;
     } catch (error) {
-      console.error(error);
+      Console.error(error);
       throw new Error("Failed to upload files");
     }
   };
@@ -249,7 +249,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
         };
       }
     } catch (error) {
-      console.error("File upload error:", error);
+      Console.errorT("File upload error:", error);
       throw new Error("Failed to upload file");
     }
   };
@@ -282,7 +282,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
       return mfiles;
     } catch (error) {
-      console.error(error);
+      Console.error(error);
       throw new Error("Failed to upload files");
     }
   };
@@ -314,7 +314,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
         name: file.id,
       };
     } catch (error) {
-      console.error("File upload error:", error);
+      Console.errorT("File upload error:", error);
       throw new Error("Failed to upload file");
     }
   };
@@ -340,7 +340,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
       return allFiles;
     } catch (error) {
-      console.error(error);
+      Console.error(error);
       throw new Error("Failed to upload files");
     }
   };

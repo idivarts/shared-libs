@@ -28,6 +28,9 @@ export const Console = {
             console.error("Error logging error to Crashlytics or Analytics", e);
         }
     },
+    errorT: (tag: string, error: any) => {
+        Console.error(error, tag);
+    },
     analytics: (
         eventName: string,
         eventParams: Record<string, any>
