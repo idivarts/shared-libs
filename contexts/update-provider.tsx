@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import VersionCheck from 'react-native-version-check';
 
 type Props = {
@@ -9,6 +9,9 @@ type Props = {
 
 const UpdateProvider = ({ children, force = false }: Props) => {
     useEffect(() => {
+        if (Platform.OS == "web")
+            return;
+
         const checkVersion = async () => {
             try {
                 const latestVersion = await VersionCheck.getLatestVersion();
