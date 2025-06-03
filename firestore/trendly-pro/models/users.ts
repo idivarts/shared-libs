@@ -65,6 +65,11 @@ export interface IUsers {
     web?: string[];
   };
 
+  moderations?: {
+    reportedCollaborations?: string[]// Array of reported collaborations ids
+    blockedBrands?: string[] // Array of blocked brand ids
+  }
+
   creationTime?: number,
   lastUseTime?: number,
   updateTime?: number,
