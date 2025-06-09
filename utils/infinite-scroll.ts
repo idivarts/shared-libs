@@ -2,6 +2,8 @@ import { CollectionReference, DocumentData, DocumentSnapshot, getDocs, limit, on
 import { useEffect, useState } from "react"
 import { Console } from "./console"
 
+let lock = false
+
 export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentData, DocumentData> | Query<DocumentData, DocumentData>,
     perPage = 5, hardRefreshOnChange = false) => {
 
@@ -13,6 +15,9 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
     const [data, setData] = useState<(T & { documentId: string })[]>([])
 
     const fetchDocuments = async (data: (T & { documentId: string })[]) => {
+        if (lock) return
+        lock = true
+
         setLoading(true)
         Console.log("After", after?.id);
 
@@ -22,6 +27,7 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
         docs.forEach((doc) => {
             data.push({
                 ...(doc.data() as T),
+                name: doc.data().name + " : " + data.length + " - " + doc.id,
                 documentId: doc.id
             })
         })
@@ -31,7 +37,12 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
             setNextAvailable(false)
         }
         setLoading(false)
+        lock = false
     }
+
+    useEffect(() => {
+        lock = false
+    }, [])
 
     useEffect(() => {
         const q = query(queryOrCol) // Assumes docs have a `createdAt` timestamp
