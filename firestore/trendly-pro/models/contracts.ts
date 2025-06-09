@@ -1,3 +1,5 @@
+import { Attachment } from "../constants/attachment";
+
 export interface IContracts {
   brandId: string;
   managerId: string;
@@ -10,6 +12,7 @@ export interface IContracts {
     feedbackReview?: string;
     managerId?: string;
     timeSubmitted?: number;
+    paymentProofs: Attachment[]
   };
   feedbackFromInfluencer?: {
     ratings?: number;
