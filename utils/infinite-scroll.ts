@@ -27,7 +27,7 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
         docs.forEach((doc) => {
             data.push({
                 ...(doc.data() as T),
-                name: doc.data().name + " : " + data.length + " - " + doc.id,
+                // name: doc.data().name + " : " + data.length + " - " + doc.id,
                 documentId: doc.id
             })
         })
