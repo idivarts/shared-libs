@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Alert, Linking } from 'react-native';
 import VersionCheck from 'react-native-version-check';
+import { Console } from '../utils/console';
 
 type Props = {
     children: React.ReactNode;
@@ -45,7 +46,7 @@ const UpdateProvider = ({ children, force = false }: Props) => {
                     );
                 }
             } catch (e) {
-                console.log('Version check failed', e);
+                Console.log('Version check failed', e);
             }
         };
 
