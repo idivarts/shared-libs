@@ -76,6 +76,20 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
         }
     }, [nextAvailable])
 
+    const loadMore = () => {
+        fetchDocuments(data)
+    }
+    const resetData = () => {
+        // reset all variables
+        setLoading(true);
+        setNextAvailable(true);
+        setAfter(undefined);
+        setScrollToTop(false);
+        setData([]);
+        lock = false;
+        fetchDocuments([])
+    }
+
     const onScrollEvent = (event: any) => {
         const { nativeEvent } = event
         const paddingToBottom = 200;
@@ -92,7 +106,10 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
         loading,
         data,
         scrollToTop,
-        onScrollEvent
+        onScrollEvent,
+        loadMore,
+        resetData,
+        nextAvailable
     }
 
 }
