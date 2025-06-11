@@ -1,6 +1,7 @@
 // src/contexts/ScrollContext.tsx
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, ScrollViewProps } from "react-native";
+import { IOScrollView } from "react-native-intersection-observer";
 
 type ScrollContextType = {
     scrollRef: React.RefObject<ScrollView>;
@@ -32,3 +33,13 @@ export const ScrollProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 };
 
 export const useScrollContext = () => useContext(ScrollContext);
+
+export const IOScroll: React.FC<ScrollViewProps> = ({ children, onScroll }) => {
+    const { scrollRef, setScrollHeight } = useScrollContext()
+    return <IOScrollView ref={scrollRef} onScroll={(e) => {
+        setScrollHeight?.(e.nativeEvent.contentOffset?.y || 0)
+        onScroll?.(e)
+    }}>
+        {children}
+    </IOScrollView>
+}
