@@ -29,5 +29,7 @@ export interface IManagers {
   moderations?: {
     blockedInfluencers?: string[] // Array of blocked brand ids
     reportedInfluencers?: string[]
-  }
+  },
+  // TODO: This needs to be added on the backend as well
+  creationTime: number
 }
