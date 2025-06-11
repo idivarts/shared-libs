@@ -24,4 +24,10 @@ export interface IManagers {
     android?: string[];
     web?: string[];
   };
+
+  // TODO: This needs to be added on the backend as well
+  moderations?: {
+    blockedInfluencers?: string[] // Array of blocked brand ids
+    reportedInfluencers?: string[]
+  }
 }
