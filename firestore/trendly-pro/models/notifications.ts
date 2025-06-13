@@ -9,5 +9,6 @@ export interface INotifications {
     groupId?: string;
     userId?: string;
   };
-  type: string; // Type of notification (e.g., invite(users), applications(managers), application-accepted(users), invitation-accepted(managers))
+  type: "revise-quotation" | "application" | "contract-started" | "contract-ended" | "invitation" |
+  "new-quotation" | "application-accepted" | "contract-start-request" | "contract-end-request" | "feedback-given"
 }
