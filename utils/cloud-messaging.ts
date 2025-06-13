@@ -8,7 +8,6 @@ import { Platform } from "react-native";
 import { newToken, removeToken } from "@/shared-libs/utils/token";
 import * as Notifications from 'expo-notifications';
 import { router } from "expo-router";
-import { User } from "firebase/auth";
 import { PermissionsAndroid } from 'react-native';
 import { Console } from "./console";
 
@@ -22,10 +21,11 @@ Notifications.setNotificationHandler({
     }),
 });
 
+
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
 
-    const updatedTokens = async (user: User | null) => {
-        if (!user) return null;
+    const updatedTokens = async () => {
+        if (!userOrManager) return null;
         let p = await requestUserPermission()
         if (!p) return null;
 
@@ -38,10 +38,14 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
         const token = await getTokenCustom();
 
         if (Platform.OS === "ios") {
-            newUpdatedTokens = removeToken("ios", user, token);
+            newUpdatedTokens = removeToken("ios", userOrManager, token);
         } else if (Platform.OS === "android") {
-            newUpdatedTokens = removeToken("android", user, token);
+            newUpdatedTokens = removeToken("android", userOrManager, token);
+        } else {
+            newUpdatedTokens = removeToken("web", userOrManager, token);
         }
+
+        await streamClient.removeDevice(token, 'firebase', userOrManager?.id, 'TrendlyFirebase')
 
         await deleteToken(messaging);
 
