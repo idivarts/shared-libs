@@ -9,6 +9,6 @@ export interface INotifications {
     groupId?: string;
     userId?: string;
   };
-  type: "revise-quotation" | "application" | "contract-started" | "contract-ended" | "invitation" |
-  "new-quotation" | "application-accepted" | "contract-start-request" | "contract-end-request" | "feedback-given"
+  type: "invitation" | "application-accepted" | "revise-quotation" | "contract-started" | "contract-ended" |
+  "application" | "new-quotation" | "contract-start-request" | "contract-end-request" | "feedback-given"
 }
