@@ -155,7 +155,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                 if (remoteMessage.notification?.ios?.badge !== undefined)
                     Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
             });
-            Notifications.addNotificationResponseReceivedListener(response => {
+            const subscription = Notifications.addNotificationResponseReceivedListener(response => {
                 const data = response.notification.request.content.data;
                 const cid = data?.stream?.cid || "";
                 const groupId = data?.groupId || "";
@@ -172,6 +172,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             return () => {
                 backgroundSubscription();
                 foregroundSubscription();
+                subscription.remove();
             };
         }
     }, [uid, userOrManager]);
