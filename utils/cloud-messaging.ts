@@ -7,6 +7,7 @@ import { Platform } from "react-native";
 
 import { newToken, removeToken } from "@/shared-libs/utils/token";
 import * as Notifications from 'expo-notifications';
+import { router } from "expo-router";
 import { User } from "firebase/auth";
 import { PermissionsAndroid } from 'react-native';
 import { Console } from "./console";
@@ -146,11 +147,26 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                     content: {
                         title: remoteMessage.notification?.title || "New Notification",
                         body: remoteMessage.notification?.body || "You have a new notification",
+                        data: remoteMessage.data || {},
+                        sound: "default",
                     },
                     trigger: null,
                 });
                 if (remoteMessage.notification?.ios?.badge !== undefined)
                     Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
+            });
+            Notifications.addNotificationResponseReceivedListener(response => {
+                const data = response.notification.request.content.data;
+                const cid = data?.stream?.cid || "";
+                const groupId = data?.groupId || "";
+                const collaborationId = data?.collaborationId || "";
+                if (cid) {
+                    router.push(`/channel/${cid}`);
+                } else if (groupId) {
+                    router.push(`/contract-details/:${groupId}`);
+                } else if (collaborationId) {
+                    router.push(`/collaboration-details/${collaborationId}`);
+                }
             });
 
             return () => {
