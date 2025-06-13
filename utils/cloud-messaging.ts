@@ -6,10 +6,20 @@ import {
 import { Platform } from "react-native";
 
 import { newToken, removeToken } from "@/shared-libs/utils/token";
+import * as Notifications from 'expo-notifications';
 import { User } from "firebase/auth";
 import { PermissionsAndroid } from 'react-native';
 import { Console } from "./console";
 
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldShowAlert: true,
+    }),
+});
 
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
 
@@ -120,14 +130,27 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
         if (Platform.OS != "web") {
             const backgroundSubscription = messaging().onNotificationOpenedApp((remoteMessage) => {
                 Console.log("Notification caused app to open from background state:", remoteMessage.notification);
+                if (remoteMessage.notification?.ios?.badge !== undefined)
+                    Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
             });
 
             messaging().setBackgroundMessageHandler(async (remoteMessage) => {
                 Console.log("Message handled in the background:", remoteMessage);
+                if (remoteMessage.notification?.ios?.badge !== undefined)
+                    Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
             });
 
             const foregroundSubscription = messaging().onMessage(async (remoteMessage) => {
                 Console.log("A new FCM message arrived!", remoteMessage);
+                Notifications.scheduleNotificationAsync({
+                    content: {
+                        title: remoteMessage.notification?.title || "New Notification",
+                        body: remoteMessage.notification?.body || "You have a new notification",
+                    },
+                    trigger: null,
+                });
+                if (remoteMessage.notification?.ios?.badge !== undefined)
+                    Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
             });
 
             return () => {
