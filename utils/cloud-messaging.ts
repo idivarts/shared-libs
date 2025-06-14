@@ -25,31 +25,36 @@ Notifications.setNotificationHandler({
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
 
     const updatedTokens = async () => {
-        if (!userOrManager) return null;
-        let p = await requestUserPermission()
-        if (!p) return null;
+        try {
+            if (!userOrManager) return null;
+            let p = await requestUserPermission()
+            if (!p) return null;
 
-        let newUpdatedTokens: {
-            ios?: string[];
-            android?: string[];
-            web?: string[];
-        } | null = null;
+            let newUpdatedTokens: {
+                ios?: string[];
+                android?: string[];
+                web?: string[];
+            } | null = null;
 
-        const token = await getTokenCustom();
+            const token = await getTokenCustom();
 
-        if (Platform.OS === "ios") {
-            newUpdatedTokens = removeToken("ios", userOrManager, token);
-        } else if (Platform.OS === "android") {
-            newUpdatedTokens = removeToken("android", userOrManager, token);
-        } else {
-            newUpdatedTokens = removeToken("web", userOrManager, token);
+            if (Platform.OS === "ios") {
+                newUpdatedTokens = removeToken("ios", userOrManager, token);
+            } else if (Platform.OS === "android") {
+                newUpdatedTokens = removeToken("android", userOrManager, token);
+            } else {
+                newUpdatedTokens = removeToken("web", userOrManager, token);
+            }
+
+            await streamClient.removeDevice(token, 'firebase', userOrManager?.id, 'TrendlyFirebase')
+            await updateUserOrManager(uid, {
+                pushNotificationToken: newUpdatedTokens,
+            });
+
+            await deleteToken(messaging);
+        } catch (e) {
+            Console.error(e, "Error in updatedTokens");
         }
-
-        await streamClient.removeDevice(token, 'firebase', userOrManager?.id, 'TrendlyFirebase')
-
-        await deleteToken(messaging);
-
-        return newUpdatedTokens;
     }
 
     const requestUserPermission = async () => {
