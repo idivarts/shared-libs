@@ -46,12 +46,17 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                 newUpdatedTokens = removeToken("web", userOrManager, token);
             }
 
-            await streamClient.removeDevice(token, 'firebase', userOrManager?.id, 'TrendlyFirebase')
+            await streamClient.removeDevice(token)
             await updateUserOrManager(uid, {
                 pushNotificationToken: newUpdatedTokens,
             });
 
-            await deleteToken(messaging);
+            if (Platform.OS === "web") {
+                await deleteToken(messaging);
+            } else {
+                await messaging().deleteToken()
+            }
+
             Console.log("Token removed successfully", newUpdatedTokens);
         } catch (e) {
             Console.error(e, "Error in updatedTokens");
