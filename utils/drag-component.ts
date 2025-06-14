@@ -2,7 +2,7 @@ import { Dimensions } from "react-native";
 
 const COL = 3;
 export const MARGIN = 8;
-export const SIZE = Dimensions.get("window").width / COL - MARGIN;
+export const SIZE = Dimensions.get("window").width / COL - MARGIN * 2;
 
 export const getPosition = (index: number) => {
   "worklet";

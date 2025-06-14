@@ -80,7 +80,7 @@ export const draggableGridStylesFn = (
   container: {
     width: SIZE - MARGIN - 8,
     height: SIZE - MARGIN - 8,
-    margin: MARGIN + 4,
+    margin: MARGIN,
     borderRadius: 10,
     borderWidth: 4,
     borderColor: Colors(theme).white,
