@@ -51,6 +51,8 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                 pushNotificationToken: newUpdatedTokens,
             });
 
+            await Notifications.setBadgeCountAsync(0);
+
             if (Platform.OS === "web") {
                 await deleteToken(messaging);
             } else {
