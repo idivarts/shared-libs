@@ -27,8 +27,8 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     const updatedTokens = async () => {
         try {
             if (!userOrManager) return null;
-            let p = await requestUserPermission()
-            if (!p) return null;
+            // let p = await requestUserPermission()
+            // if (!p) return null;
 
             let newUpdatedTokens: {
                 ios?: string[];
