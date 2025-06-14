@@ -52,6 +52,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             });
 
             await deleteToken(messaging);
+            Console.log("Token removed successfully", newUpdatedTokens);
         } catch (e) {
             Console.error(e, "Error in updatedTokens");
         }
