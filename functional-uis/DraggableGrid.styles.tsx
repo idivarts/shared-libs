@@ -78,8 +78,8 @@ export const draggableGridStylesFn = (
   theme: Theme,
 ) => StyleSheet.create({
   container: {
-    width: SIZE - MARGIN - 8,
-    height: SIZE - MARGIN - 8,
+    width: SIZE - MARGIN * 2,
+    height: SIZE - MARGIN * 2,
     margin: MARGIN,
     borderRadius: 10,
     borderWidth: 4,
