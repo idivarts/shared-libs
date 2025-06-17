@@ -129,15 +129,19 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
         await registerPushTokenWithPlatform(token)
         await registerPushTokenWithStream(token);
+    }
 
-        if (Platform.OS != "web")
-            messaging()
-                .getInitialNotification()
-                .then(async (remoteMessage) => {
-                    if (remoteMessage) {
-                        Console.log("Notification caused app to open from quit state:", remoteMessage);
-                    }
-                });
+    const redirectionLogic = (data: any) => {
+        const cid = data?.stream?.cid || "";
+        const groupId = data?.groupId || "";
+        const collaborationId = data?.collaborationId || "";
+        if (cid) {
+            router.push(`/channel/${cid}`);
+        } else if (groupId) {
+            router.push(`/contract-details/:${groupId}`);
+        } else if (collaborationId) {
+            router.push(`/collaboration-details/${collaborationId}`);
+        }
     }
 
     useEffect(() => {
@@ -145,7 +149,16 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
         initNotification();
 
+
         if (Platform.OS != "web") {
+            messaging().getInitialNotification().then(async (remoteMessage) => {
+                if (remoteMessage) {
+                    Console.log("Notification caused app to open from quit state:", remoteMessage);
+                    const data = remoteMessage.data || {};
+                    redirectionLogic(data);
+                }
+            });
+
             const backgroundSubscription = messaging().onNotificationOpenedApp((remoteMessage) => {
                 Console.log("Notification caused app to open from background state:", remoteMessage.notification);
                 if (remoteMessage.notification?.ios?.badge !== undefined)
@@ -174,16 +187,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             });
             const subscription = Notifications.addNotificationResponseReceivedListener(response => {
                 const data = response.notification.request.content.data;
-                const cid = data?.stream?.cid || "";
-                const groupId = data?.groupId || "";
-                const collaborationId = data?.collaborationId || "";
-                if (cid) {
-                    router.push(`/channel/${cid}`);
-                } else if (groupId) {
-                    router.push(`/contract-details/:${groupId}`);
-                } else if (collaborationId) {
-                    router.push(`/collaboration-details/${collaborationId}`);
-                }
+                redirectionLogic(data);
             });
 
             return () => {
