@@ -1,5 +1,6 @@
+import Constants from 'expo-constants';
 import React, { useEffect } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import VersionCheck from 'react-native-version-check';
 import { Console } from '../utils/console';
 
@@ -15,6 +16,19 @@ const UpdateProvider = ({ children, force = false }: Props) => {
                 const latestVersion = await VersionCheck.getLatestVersion();
                 const currentVersion = VersionCheck.getCurrentVersion();
 
+                const appId = Platform.select({
+                    ios: Constants.expoConfig?.ios?.bundleIdentifier,
+                    android: Constants.expoConfig?.android?.package,
+                });
+
+                if (!appId) {
+                    Console.error('App ID is missing in app config.');
+                    return;
+                }
+
+                console.log('Current Version:', currentVersion);
+                console.log('Latest Version:', latestVersion);
+
                 const updateNeeded = await VersionCheck.needUpdate({
                     currentVersion,
                     latestVersion,
@@ -29,18 +43,18 @@ const UpdateProvider = ({ children, force = false }: Props) => {
                                 text: force ? 'Update Now' : 'Later',
                                 onPress: async () => {
                                     if (force) {
-                                        Linking.openURL(await VersionCheck.getStoreUrl());
+                                        Linking.openURL(await VersionCheck.getStoreUrl({ appID: appId }));
                                     }
                                 },
-                                style: 'cancel',
+                                style: force ? 'default' : 'cancel',
                             },
-                            {
+                            ...(!force ? [{
                                 text: 'Update',
                                 onPress: async () => {
-                                    const url = await VersionCheck.getStoreUrl();
+                                    const url = await VersionCheck.getStoreUrl({ appID: appId });
                                     Linking.openURL(url);
                                 },
-                            },
+                            }] : []),
                         ],
                         { cancelable: !force }
                     );
