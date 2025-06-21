@@ -34,9 +34,9 @@ export const ScrollProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useScrollContext = () => useContext(ScrollContext);
 
-export const IOScroll: React.FC<ScrollViewProps> = ({ children, onScroll }) => {
+export const IOScroll: React.FC<ScrollViewProps & { setRef?: boolean }> = ({ children, onScroll, setRef = true }) => {
     const { scrollRef, setScrollHeight } = useScrollContext()
-    return <IOScrollView ref={scrollRef} onScroll={(e) => {
+    return <IOScrollView ref={setRef ? scrollRef : undefined} onScroll={(e) => {
         setScrollHeight?.(e.nativeEvent.contentOffset?.y || 0)
         onScroll?.(e)
     }}>
