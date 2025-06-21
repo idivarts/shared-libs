@@ -21,6 +21,11 @@ export interface IInstagramProfile {
     followsCount: number;
     mediaCount: number;
     website: string;
+    approxMetrics?: {
+        views: string;
+        interactions: string;
+        followers: string;
+    }
 }
 
 export interface IFacebookProfile {
