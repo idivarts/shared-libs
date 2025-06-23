@@ -77,7 +77,7 @@ export interface IUsers {
 
 export interface IPreferences {
   budgetForPaidCollabs?: number[];
-  contentCategory?: string[];
+  // contentCategory?: string[];
   contentWillingToPost?: string[];
   goal?: string;
   maximumMonthlyCollabs?: number[];
