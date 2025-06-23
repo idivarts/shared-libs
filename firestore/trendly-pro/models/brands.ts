@@ -16,6 +16,12 @@ export interface IBrands {
   preferences?: {
     promotionType?: string[]; // Promotion types (e.g., Barter, Paid)
     influencerCategories?: string[]; // Influencer Category (Beauty, Fashion, etc.)
+    languages?: string[],
+    locations?: string[],
+    platforms?: string[],
+    collaborationPostTypes?: string[],
+    timeCommitments?: string[],
+    contentVideoType?: string[]
   };
 
   backend?: {
