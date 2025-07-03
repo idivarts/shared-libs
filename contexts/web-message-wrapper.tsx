@@ -1,11 +1,12 @@
 import { useIsFocused, useTheme } from "@react-navigation/native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from 'react';
 import { IContracts } from "../firestore/trendly-pro/models/contracts";
 import { IMessengerData } from '../messenger/interfaces/message-interface';
 import { Console } from "../utils/console";
 import { FirestoreDB } from "../utils/firebase/firestore";
+import { useMyNavigation } from "../utils/router";
 
 interface IProps {
     influencerManagerid: string
@@ -25,7 +26,7 @@ const WebMessageWrapper: React.FC<IProps> = ({ influencerManagerid: id, streamTo
             iFrameRef.current?.contentWindow?.postMessage(theme.dark ? "dark" : "light")
     }, [theme, iFrameLoaded, iFrameRef])
 
-    const router = useRouter()
+    const router = useMyNavigation()
     useEffect(() => {
         window.addEventListener('message', async (event) => {
             Console.log("Received event from ifram");

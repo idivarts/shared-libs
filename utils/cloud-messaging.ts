@@ -7,9 +7,9 @@ import { Platform } from "react-native";
 
 import { newToken, removeToken } from "@/shared-libs/utils/token";
 import * as Notifications from 'expo-notifications';
-import { router } from "expo-router";
 import { PermissionsAndroid } from 'react-native';
 import { Console } from "./console";
+import { useMyNavigation } from "./router";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -23,7 +23,7 @@ Notifications.setNotificationHandler({
 
 
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
-
+    const router = useMyNavigation()
     const updatedTokens = async () => {
         try {
             if (!userOrManager) return null;
