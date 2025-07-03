@@ -18,3 +18,26 @@ export const pushNavigate = (newPath: Href) => {
     Console.log("resetAndNavigate - dismissAll failed", e)
   }
 };
+
+
+export const useMyNavigation = () => {
+  const push = (newPath: Href) => {
+    router.push(newPath);
+  };
+  const replace = (newPath: Href) => {
+    router.replace(newPath);
+  };
+  const canGoBack = () => {
+    return router.canGoBack()
+  };
+  const back = () => {
+    router.back()
+  }
+
+  return {
+    push,
+    replace,
+    canGoBack,
+    back
+  }
+}
