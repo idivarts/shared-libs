@@ -70,13 +70,7 @@ export interface IApplications {
     question: number;
     answer: string;
   }[];
-  timeline: number;
   attachments: Attachment[];
-  fileAttachments: {
-    url: string;
-    name: string;
-    type: string;
-  }[];
 }
 
 export interface IInvitations {
