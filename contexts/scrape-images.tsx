@@ -72,6 +72,11 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
         Console.log("Fetched images:", uploadabledAsset.length);
         for (let i = 0; i < uploadabledAsset.length; i++) {
             const uAsset = uploadabledAsset[i];
+            for (let i = 0; i < existingImages.length; i++) {
+                const ele = existingImages[i];
+                if (uAsset.id == ele.id)
+                    continue
+            }
             const att = await uploadFileUri(uAsset).catch(e => { })
             if (att && att.imageUrl) {
                 console.log("Uploaded File", uAsset.id);
