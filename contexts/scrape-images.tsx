@@ -7,10 +7,12 @@ import { AuthApp } from "../utils/firebase/auth";
 import { FirestoreDB } from "../utils/firebase/firestore";
 import { useAWSContext } from "./aws-context.provider";
 
-interface ScrapeImagesContextProps { }
+interface ScrapeImagesContextProps {
+    searchImages: Function
+}
 
 const ScrapeImagesContext = createContext<ScrapeImagesContextProps>({
-
+    searchImages: () => { }
 });
 
 export const useScrapeImages = () => useContext(ScrapeImagesContext);
@@ -20,7 +22,6 @@ interface ScrapeImagesProviderProps {
 }
 
 export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ children }) => {
-    const contextValue: ScrapeImagesContextProps = {};
 
     const { uploadFileUri } = useAWSContext()
 
@@ -93,6 +94,8 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
     useEffect(() => {
         searchImages();
     }, []);
+
+    const contextValue: ScrapeImagesContextProps = { searchImages: searchImages };
 
     return (
         <ScrapeImagesContext.Provider value={contextValue}>
