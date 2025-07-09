@@ -22,7 +22,7 @@ interface AWSContextProps {
   uploadFile: (file: File) => Promise<Attachment>;
   uploadFiles: (files: File[]) => Promise<Attachment[]>;
   uploadFileUri: (fileUri: AssetItem) => Promise<Attachment>;
-  uploadFileUris: (fileUris: AssetItem[]) => Promise<Attachment[]>;
+  uploadFileUris: (fileUris: AssetItem[], softLoad?: boolean) => Promise<Attachment[]>;
   uploadAttachment: (file: AssetItem) => Promise<any>;
   uploadAttachments: (attachment: AssetItem[]) => Promise<any>;
   uploadNewAssets: (
