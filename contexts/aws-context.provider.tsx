@@ -101,7 +101,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           let percentCompleted = (event.loaded / event.total) * 100;
-          Console.log(`Upload Progress: ${index} : ${percentCompleted.toFixed(2)}%`);
+          // Console.log(`Upload Progress: ${index} : ${percentCompleted.toFixed(2)}%`);
           if (communicatePercentage && index !== undefined) {
             communicatePercentage.next({ index: index, percentage: startPercentage + (percentCompleted * (100 - startPercentage) / 100) });
           }
