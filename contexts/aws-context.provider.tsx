@@ -183,7 +183,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
     }
   };
 
-  const uploadFileUris = async (fileUris: AssetItem[]): Promise<Attachment[]> => {
+  const uploadFileUris = async (fileUris: AssetItem[], softLoad = false): Promise<Attachment[]> => {
     try {
       const uploadedFiles: Promise<Attachment>[] = [];
       const totalProgress = 100 / fileUris.length;
@@ -198,12 +198,12 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       })
 
       for (const [index, fileUri] of fileUris.entries()) {
-        // setProcessMessage(`Uploading asset ${index + 1}`);
-        const result = uploadFileUri(fileUri, { index, subject });
-        // setProcessPercentage((prev) =>
-        //   Math.ceil(Math.round(prev + totalProgress))
-        // );
-        uploadedFiles.push(result);
+        const result = uploadFileUri(fileUri, { index, subject })
+        uploadedFiles.push(result.catch(e => {
+          if (!softLoad)
+            throw e
+          return { type: "image", imageUrl: undefined, }
+        }));
       }
       const files = await Promise.all(uploadedFiles)
       // setProcessMessage("Uploaded Successfully - Processing files");
