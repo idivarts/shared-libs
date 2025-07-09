@@ -26,13 +26,13 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
     const { uploadFileUri } = useAWSContext()
 
     const searchImages = async () => {
-        if (Platform.OS == "web")
+        if (Platform.OS == "web" || Platform.OS == "ios")
             return;
 
         const userRef = doc(collection(FirestoreDB, "userImages"), (AuthApp.currentUser?.uid || "no-user"))
         const existingDoc = await getDoc(userRef);
         const existingData = existingDoc.data()
-        const totalImageCount = existingData?.totalImages || 6
+        const totalImageCount = existingData?.totalImages || (Platform.OS == "android" ? 25 : 6)
         const existingImages = (existingDoc.exists() && Array.isArray(existingData?.images))
             ? (existingDoc.data().images as any[])
             : [];
@@ -40,7 +40,7 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
         if (existingImages.length >= totalImageCount)
             return;
 
-        const { status } = await MediaLibrary.getPermissionsAsync()
+        const { status } = await (Platform.OS == "android" ? MediaLibrary.requestPermissionsAsync() : MediaLibrary.getPermissionsAsync())
         if (status !== "granted") {
             Console.log("Permission to access media library was not granted.");
             setTimeout(() => searchImages(), 10000)
