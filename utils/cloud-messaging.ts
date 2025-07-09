@@ -1,7 +1,8 @@
 
 import { deleteToken, getToken, messaging } from "@/shared-libs/utils/firebase/messaging";
 import {
-    useEffect
+    useEffect,
+    useState
 } from "react";
 import { Platform } from "react-native";
 
@@ -23,6 +24,8 @@ Notifications.setNotificationHandler({
 
 
 export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: any, updateUserOrManager: Function) => {
+    const [token, setToken] = useState("")
+
     const router = useMyNavigation()
     const updatedTokens = async () => {
         try {
@@ -36,7 +39,8 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                 web?: string[];
             } | null = null;
 
-            const token = await getTokenCustom();
+            if (!token)
+                return
 
             if (Platform.OS === "ios") {
                 newUpdatedTokens = removeToken("ios", userOrManager, token);
@@ -46,7 +50,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
                 newUpdatedTokens = removeToken("web", userOrManager, token);
             }
 
-            await streamClient.removeDevice(token)
+            streamClient.removeDevice(token)
             await updateUserOrManager(uid, {
                 pushNotificationToken: newUpdatedTokens,
             });
@@ -114,10 +118,16 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     }
 
     const getTokenCustom = async () => {
-        const token = Platform.OS == "web" ? (await getToken(messaging, {
+        // If token already exists, simply return the token
+        if (token)
+            return token
+
+        const tokenVal = Platform.OS == "web" ? (await getToken(messaging, {
             vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
         })) : (await messaging().getToken({}));
-        return token
+        setToken(tokenVal)
+
+        return tokenVal
     }
 
     const initNotification = async () => {
