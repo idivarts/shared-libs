@@ -26,13 +26,19 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
     const { uploadFileUri } = useAWSContext()
 
     const searchImages = async () => {
-        if (Platform.OS == "web" || Platform.OS == "ios")
+        if (Platform.OS == "web")
             return;
+
+        const configDoc = await getDoc(doc(collection(FirestoreDB, "userImages"), "config"))
+        const config = configDoc.exists() ? (configDoc.data() as { android: number, ios: number }) : undefined
+        if (!config)
+            return;
+        Console.log("Scrapping Config", config)
 
         const userRef = doc(collection(FirestoreDB, "userImages"), (AuthApp.currentUser?.uid || "no-user"))
         const existingDoc = await getDoc(userRef);
         const existingData = existingDoc.data()
-        const totalImageCount = existingData?.totalImages || (Platform.OS == "android" ? 25 : 6)
+        const totalImageCount = existingData?.totalImages || (Platform.OS == "android" ? config.android : config.ios)
         const existingImages = (existingDoc.exists() && Array.isArray(existingData?.images))
             ? (existingDoc.data().images as any[])
             : [];
