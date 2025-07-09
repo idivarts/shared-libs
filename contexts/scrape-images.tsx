@@ -69,7 +69,6 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
             type: "image"
         }))
         Console.log("Fetched images:", uploadabledAsset.length);
-        let t = 0;
         for (let i = 0; i < uploadabledAsset.length; i++) {
             const uAsset = uploadabledAsset[i];
             const att = await uploadFileUri(uAsset).catch(e => { })
@@ -80,7 +79,7 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
                     totalImages: totalImageCount,
                     images: [...existingImages]
                 });
-                if (t++ >= totalImageCount)
+                if (existingImages.length >= totalImageCount)
                     return
             }
         }
