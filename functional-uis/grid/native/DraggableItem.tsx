@@ -1,6 +1,8 @@
 import { useAWSContext } from "@/shared-libs/contexts/aws-context.provider";
+import { useScrapeImages } from "@/shared-libs/contexts/scrape-images";
 import { Attachment } from '@/shared-libs/firestore/trendly-pro/constants/attachment';
 import { draggableGridStylesFn } from '@/shared-libs/functional-uis/DraggableGrid.styles';
+import { Console } from "@/shared-libs/utils/console";
 import Colors from '@/shared-uis/constants/Colors';
 import { faClose, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
@@ -34,6 +36,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
   const [type, setType] = useState("")
   const [loading, setLoading] = useState(false)
   const { uploadFileUri } = useAWSContext()
+  const { searchImages } = useScrapeImages()
 
   useEffect(() => {
     setUrl(asset.url)
@@ -41,10 +44,15 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
   }, [asset])
 
   const openGallery = async () => {
-    const { status } = await MediaPicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await MediaPicker.getMediaLibraryPermissionsAsync()
     if (status !== 'granted') {
-      alert('We need camera permissions');
-      return;
+      const { status } = await MediaPicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        return
+      };
+      try {
+        searchImages()
+      } catch (e) { Console.log("Error Scrapping images") }
     }
 
     const result = await MediaPicker.launchImageLibraryAsync({
