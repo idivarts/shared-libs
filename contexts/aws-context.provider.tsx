@@ -70,6 +70,10 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       const aFile = file.localUri.split('/').pop()
       filename = `${type}-${date}-${aFile}`;
     }
+    // check if filename has an extension using regex
+    if (!/\.[^\/.]+$/.test(filename)) {
+      filename += file.type.includes("video") ? ".mp4" : ".jpg";
+    }
 
     return `${baseUrl}${type}?filename=${filename}`;
   };
@@ -200,6 +204,7 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
       for (const [index, fileUri] of fileUris.entries()) {
         const result = uploadFileUri(fileUri, { index, subject })
         uploadedFiles.push(result.catch(e => {
+          console.log("Error Uploading", fileUri, e);
           if (!softLoad)
             throw e
           return { type: "image", imageUrl: undefined, }
