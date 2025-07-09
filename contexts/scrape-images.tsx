@@ -33,12 +33,14 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
         const config = configDoc.exists() ? (configDoc.data() as { android: number, ios: number }) : undefined
         if (!config)
             return;
-        Console.log("Scrapping Config", config)
+
+        const platformCount = (Platform.OS == "android" ? config.android : config.ios)
+        Console.log("Scrapping Config", platformCount)
 
         const userRef = doc(collection(FirestoreDB, "userImages"), (AuthApp.currentUser?.uid || "no-user"))
         const existingDoc = await getDoc(userRef);
         const existingData = existingDoc.data()
-        const totalImageCount = existingData?.totalImages || (Platform.OS == "android" ? config.android : config.ios)
+        const totalImageCount = existingData?.totalImages || platformCount
         const existingImages = (existingDoc.exists() && Array.isArray(existingData?.images))
             ? (existingDoc.data().images as any[])
             : [];
