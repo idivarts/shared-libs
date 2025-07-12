@@ -68,6 +68,8 @@ export interface IUsers {
   moderations?: {
     reportedCollaborations?: string[]// Array of reported collaborations ids
     blockedBrands?: string[] // Array of blocked brand ids
+    blockedInfluencers?: string[]
+    reportedInfluencers?: string[]
   }
 
   creationTime?: number,
