@@ -24,6 +24,7 @@ export interface IUsers {
       about?: string; // About of the user
       socialMediaHighlight?: string; // Highlight of the social media
       collaborationGoals?: string; // Collaboration goals
+      influencerConectionGoals?: string
       audienceInsights?: string; // Audience insights
       funFactAboutUser?: string; // Fun fact about the user
     };
