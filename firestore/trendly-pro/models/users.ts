@@ -65,6 +65,7 @@ export interface IUsers {
     web?: string[];
   };
 
+  connectedInfluencers?: string[]; // Array of connected influencer ids
   moderations?: {
     reportedCollaborations?: string[]// Array of reported collaborations ids
     blockedBrands?: string[] // Array of blocked brand ids

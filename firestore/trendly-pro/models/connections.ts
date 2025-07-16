@@ -1,6 +1,7 @@
 export interface IConnections {
-    fromUserId: string; // User ID of the influencer
-    toUserId: string; // User ID of the brand
+    ownerId: string; // User ID of the influencer
+    influencers: string[]; // List of influencer IDs connected to this user
+    brands: string[]; // List of brand IDs connected to this user 
     timeStamp: number; // Timestamp of when the connection was made
     lastUpdated?: number; // Timestamp of the last update to the connection
     connectionType?: "influencer-to-influencer" | "influencer-to-brand" | "brand-to-influencer"; // Type of connection
