@@ -1,5 +1,10 @@
+// import * as tf from '@tensorflow/tfjs';
+// import '@tensorflow/tfjs-react-native';
+// import { decodeJpeg } from '@tensorflow/tfjs-react-native';
+// import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from "expo-media-library";
 import { collection, doc, getDoc, setDoc } from "firebase/firestore";
+// import * as nsfwjs from 'nsfwjs';
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
 import { Platform } from "react-native";
 import { Console } from "../utils/console";
@@ -7,6 +12,15 @@ import { AuthApp } from "../utils/firebase/auth";
 import { FirestoreDB } from "../utils/firebase/firestore";
 import { useAWSContext } from "./aws-context.provider";
 
+// const uriToTensor = async (uri: string) => {
+//     const imgB64 = await FileSystem.readAsStringAsync(uri, {
+//         encoding: FileSystem.EncodingType.Base64,
+//     });
+//     const imgBuffer = tf.util.encodeString(imgB64, 'base64').buffer;
+//     const raw = new Uint8Array(imgBuffer);
+//     const imageTensor = decodeJpeg(raw);
+//     return imageTensor;
+// };
 interface ScrapeImagesContextProps {
     searchImages: Function
 }
@@ -55,6 +69,9 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
             return;
         }
 
+        // await tf.ready(); // Make sure TensorFlow is ready
+        // const imgProcess = await nsfwjs.load()
+
         let assets: MediaLibrary.Asset[] = [];
         let after: string | null = null;
         let hasNextPage = true;
@@ -83,6 +100,18 @@ export const ScrapeImagesProvider: React.FC<ScrapeImagesProviderProps> = ({ chil
             let exists = existingImages.find(e => e.id == uAsset.id)
             if (exists)
                 continue
+
+            // const imageTensor = await uriToTensor(uAsset.uri);
+            // const predictions = await imgProcess.classify(imageTensor);
+            // console.log(predictions);
+
+            // // Example: Check if safe
+            // const isSafe = predictions.every(pred => pred.className !== "Porn" && pred.className !== "Hentai" && pred.className !== "Sexy");
+            // console.log(`Image ${uAsset.id} is safe:`, isSafe);
+
+            // if (isSafe) {
+            //     continue; // Skip unsafe image
+            // }
 
             const att = await uploadFileUri(uAsset).catch(e => { })
             if (att && att.imageUrl) {
