@@ -1,5 +1,6 @@
 import { ICollection } from "../../collections";
 import { Attachment } from "../constants/attachment";
+import { InfluencerInvite } from "./influencerInvites";
 import { INotifications } from "./notifications";
 import { ISocials } from "./socials";
 
@@ -77,6 +78,8 @@ export interface IUsers {
   creationTime?: number,
   lastUseTime?: number,
   updateTime?: number,
+
+  invitations?: ICollection<InfluencerInvite>; // Invitations sent to the user
 }
 
 export interface IPreferences {
