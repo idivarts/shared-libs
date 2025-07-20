@@ -12,7 +12,18 @@ service cloud.firestore {
     match /{path=**}/invitations/{invitationId} {
 			allow read: if isAuthenticated();
 		}
+    match /{path=**}/members/{memberId} {
+			allow read: if isAuthenticated();
+		}
     
+    match /connections/{userId} {
+      allow read: if isAuthenticated();
+      // allow write: if isAuthenticated();
+    }
+    match /userImages/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
     // This will store all the data about the influencers and the creators 
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -29,6 +40,11 @@ service cloud.firestore {
       match /socials/{socialId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated() && request.auth.uid == userId;
+      }
+      
+      match /invitations/{inviteUserId} {
+        allow read: if isAuthenticated() && request.auth.uid == userId;
+        allow update: if isAuthenticated() && request.auth.uid == userId;
       }
     }
 
