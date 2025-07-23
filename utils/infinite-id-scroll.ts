@@ -21,6 +21,12 @@ export const useInfiniteIdScroll = <T>(docIds: string[], queryOrCol: CollectionR
         setLoading(true)
 
         const idSlice = docIds.slice(currentIndex, currentIndex + perPage)
+        if (idSlice.length == 0) {
+            setLoading(false)
+            setNextAvailable(false)
+            lock = false
+            return
+        }
         const qWhere = where(documentId(), "in", idSlice)
         const docs = await getDocs(query(queryOrCol, qWhere))
         const localData: typeof data = []
