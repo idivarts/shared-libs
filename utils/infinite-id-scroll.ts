@@ -20,17 +20,24 @@ export const useInfiniteIdScroll = <T>(docIds: string[], queryOrCol: CollectionR
 
         setLoading(true)
 
-        const qWhere = where(documentId(), "in", docIds.slice(currentIndex, currentIndex + perPage))
+        const idSlice = docIds.slice(currentIndex, currentIndex + perPage)
+        const qWhere = where(documentId(), "in", idSlice)
         const docs = await getDocs(query(queryOrCol, qWhere))
+        const localData: typeof data = []
         docs.forEach((doc) => {
-            data.push({
+            localData.push({
                 ...(doc.data() as T),
                 // name: doc.data().name + " : " + data.length + " - " + doc.id,
                 documentId: doc.id
             })
         })
         setCurrentIndex(currentIndex + perPage)
-        setData([...data])
+
+        localData.sort((a, b) => {
+            return idSlice.indexOf(a.documentId) - idSlice.indexOf(b.documentId);
+        });
+
+        setData([...data, ...localData])
         if (currentIndex + perPage > docIds.length) {
             setNextAvailable(false)
         }
