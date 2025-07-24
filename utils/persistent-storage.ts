@@ -14,13 +14,13 @@ export const PersistentStorage = {
         if (Platform.OS === "web") localStorage.removeItem(key);
         else await AsyncStorage.removeItem(key);
     },
-    setItemWithExpiry: async (key: string, value: string, ttlInHours = 2) => {
+    setItemWithExpiry: async (key: string, value: any, ttlInHours = 2) => {
         const now = new Date();
         const expiry = now.getTime() + ttlInHours * 60 * 60 * 1000;
         const item = JSON.stringify({ value, expiry });
         await AsyncStorage.setItem(key, item);
     },
-    getItemWithExpiry: async (key: string): Promise<string | null> => {
+    getItemWithExpiry: async (key: string): Promise<any | null> => {
         const item = await AsyncStorage.getItem(key);
         if (!item) return null;
 
