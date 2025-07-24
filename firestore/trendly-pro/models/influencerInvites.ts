@@ -8,9 +8,7 @@ export interface InfluencerInvite {
     exampleLink?: string,
     platforms?: string[],
     collabMode?: "free" | "paid",
-    budget?: {
-        min: number,
-        max: number
-    },
+    budgetMin?: number,
+    budgetMax?: number,
     status: ModelStatus,
 }
