@@ -4,9 +4,10 @@ import { Platform } from 'react-native';
 type Props = {
     children: React.ReactNode;
     force?: boolean;
+    influencerApp?: boolean
 };
 
-const UpdateProvider = ({ children, force = false }: Props) => {
+const UpdateProvider = ({ children, force = false, influencerApp = false }: Props) => {
     useEffect(() => {
         if (Platform.OS != "web")
             return;

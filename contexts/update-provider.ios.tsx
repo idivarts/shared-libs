@@ -1,10 +1,9 @@
-import { BRANDS_PLAYSTORE_URL, CREATORS_PLAYSTORE_URL } from '@/shared-constants/app';
-import { collection, doc, getDoc } from 'firebase/firestore';
+import { BRANDS_APPSTORE_URL, CREATORS_APPSTORE_URL } from '@/shared-constants/app';
+import Constants from 'expo-constants';
 import React, { useEffect } from 'react';
 import { Alert, Linking } from 'react-native';
 import VersionCheck from 'react-native-version-check';
 import { Console } from '../utils/console';
-import { FirestoreDB } from '../utils/firebase/firestore';
 
 type Props = {
     children: React.ReactNode;
@@ -16,12 +15,25 @@ const UpdateProvider = ({ children, force = false, influencerApp = false }: Prop
     useEffect(() => {
         const checkVersion = async () => {
             try {
+                const latestVersion = await VersionCheck.getLatestVersion();
                 const currentVersion = VersionCheck.getCurrentVersion();
 
-                const updateDoc = await getDoc(doc(collection(FirestoreDB, "userImages"), "config"));
-                const version = (updateDoc.data() as any).androidVersion
+                const appId = Constants.expoConfig?.ios?.bundleIdentifier;
 
-                if (currentVersion != version) {
+                if (!appId) {
+                    Console.error('App ID is missing in app config.');
+                    return;
+                }
+
+                console.log('Current Version:', currentVersion);
+                console.log('Latest Version:', latestVersion);
+
+                const updateNeeded = await VersionCheck.needUpdate({
+                    currentVersion,
+                    latestVersion,
+                });
+
+                if (updateNeeded?.isNeeded) {
                     Alert.alert(
                         'Update Available',
                         'A new version of the app is available.',
@@ -36,7 +48,7 @@ const UpdateProvider = ({ children, force = false, influencerApp = false }: Prop
                             {
                                 text: 'Update Now',
                                 onPress: async () => {
-                                    const url = influencerApp ? CREATORS_PLAYSTORE_URL : BRANDS_PLAYSTORE_URL;
+                                    const url = influencerApp ? CREATORS_APPSTORE_URL : BRANDS_APPSTORE_URL;
                                     Linking.openURL(url);
                                 },
                                 style: 'default',
