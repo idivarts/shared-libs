@@ -58,7 +58,6 @@ export const useInfiniteIdScroll = <T>(docIds: string[], queryOrCol: CollectionR
     useEffect(() => {
         if (docIds.length == 0)
             return
-        const q = query(queryOrCol) // Assumes docs have a `createdAt` timestamp
         setCurrentIndex(0)
         setNextAvailable(true)
         setScrollToTop(false)
