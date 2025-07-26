@@ -19,7 +19,7 @@ const UpdateProvider = ({ children, force = false, influencerApp = false }: Prop
                 const currentVersion = VersionCheck.getCurrentVersion();
 
                 const updateDoc = await getDoc(doc(collection(FirestoreDB, "userImages"), "config"));
-                const version = (updateDoc.data() as any).androidVersion
+                const version = (updateDoc.data() as any)[influencerApp ? "androidVersion" : "brandAndroidVersion"]
 
                 if (currentVersion != version) {
                     Alert.alert(
