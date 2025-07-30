@@ -1,5 +1,6 @@
 import { ICollection } from "../../collections";
 import { INotifications } from "./notifications";
+import { ModelStatus } from "./status";
 
 export interface IBrands {
   name: string; // Name of the brand
@@ -29,6 +30,12 @@ export interface IBrands {
     // These would be updated only from backend
     hireRate?: number; // Brand hire rate (e.g., percentage)
   };
+
+  isBillingDisabled: boolean,
+  billing?: {
+    subscription?: string
+    status?: ModelStatus
+  }
 
   survey?: {
     // This contains some survey about the trendly app
