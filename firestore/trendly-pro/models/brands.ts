@@ -11,6 +11,7 @@ export interface IBrands {
     banner?: string; // Banner of the brand
     industries?: string[]; // Industries of the brand
     website?: string; // Website of the brand
+    phone?: string
   };
 
   preferences?: {
