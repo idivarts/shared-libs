@@ -1,5 +1,6 @@
 import { ICollection } from "../../collections";
 import { INotifications } from "./notifications";
+import { ModelStatus } from "./status";
 
 export interface IBrands {
   name: string; // Name of the brand
@@ -11,6 +12,7 @@ export interface IBrands {
     banner?: string; // Banner of the brand
     industries?: string[]; // Industries of the brand
     website?: string; // Website of the brand
+    phone?: string
   };
 
   preferences?: {
@@ -28,6 +30,15 @@ export interface IBrands {
     // These would be updated only from backend
     hireRate?: number; // Brand hire rate (e.g., percentage)
   };
+
+  isBillingDisabled: boolean,
+  billing?: {
+    subscription?: string; // Subscription details
+    billingStatus?: string; // Billing status
+    isOnTrial?: boolean; // Indicates if the brand is on a trial
+    isGrowthPlan?: boolean;
+    status?: ModelStatus; // Status of the billing
+  }
 
   survey?: {
     // This contains some survey about the trendly app

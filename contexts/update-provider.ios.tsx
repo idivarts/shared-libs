@@ -24,6 +24,8 @@ const UpdateProvider = ({ children, force = false, influencerApp = false }: Prop
                     Console.error('App ID is missing in app config.');
                     return;
                 }
+                if (__DEV__)
+                    return
 
                 console.log('Current Version:', currentVersion);
                 console.log('Latest Version:', latestVersion);
