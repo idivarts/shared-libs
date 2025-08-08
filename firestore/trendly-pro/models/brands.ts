@@ -48,8 +48,8 @@ export interface IBrands {
     collaborationValue?: string; // Collaboration value
   };
 
-  members: ICollection<IBrandsMembers>; // Members of the brand
-  notifications: ICollection<INotifications>; // Notifications for the brand
+  members?: ICollection<IBrandsMembers>; // Members of the brand
+  notifications?: ICollection<INotifications>; // Notifications for the brand
 }
 
 export interface IBrandsMembers {
