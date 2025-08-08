@@ -7,6 +7,7 @@ export interface IBrands {
   age?: string;
   image?: string; // Image of the brand
   paymentMethodVerified?: boolean; // Indicates if the payment method is verified
+  paymentLinks?: string[]
 
   profile?: {
     about?: string; // About of the brand
