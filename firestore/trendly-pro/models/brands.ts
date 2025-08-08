@@ -4,6 +4,7 @@ import { ModelStatus } from "./status";
 
 export interface IBrands {
   name: string; // Name of the brand
+  age?: string;
   image?: string; // Image of the brand
   paymentMethodVerified?: boolean; // Indicates if the payment method is verified
 
