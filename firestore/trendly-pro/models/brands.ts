@@ -9,6 +9,7 @@ export interface IBrands {
   paymentMethodVerified?: boolean; // Indicates if the payment method is verified
   paymentLinks?: string[]
   creationTime: number,
+  growthBook?: any,
 
   profile?: {
     about?: string; // About of the brand
