@@ -4,5 +4,7 @@ export const analyticsLogEvent = async (
   eventName: string,
   eventParams: Record<string, any>
 ) => {
-  await analytics().logEvent(eventName, eventParams);
+  try {
+    await analytics().logEvent(eventName, eventParams);
+  } catch (e) { console.log("Analytics Error", e) }
 };
