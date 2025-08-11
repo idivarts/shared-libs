@@ -10,6 +10,7 @@ export interface IBrands {
   paymentLinks?: string[]
   creationTime: number,
   growthBook?: any,
+  hasPayWall?: boolean,
 
   profile?: {
     about?: string; // About of the brand
