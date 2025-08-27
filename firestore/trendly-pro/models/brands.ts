@@ -39,9 +39,12 @@ export interface IBrands {
   isBillingDisabled: boolean,
   billing?: {
     subscription?: string; // Subscription details
+    subscriptionUrl?: string;
     billingStatus?: string; // Billing status
     isOnTrial?: boolean; // Indicates if the brand is on a trial
-    isGrowthPlan?: boolean;
+    // isGrowthPlan?: boolean;
+    planKey?: string;
+    planCycle?: string;
     status?: ModelStatus; // Status of the billing
   }
 
