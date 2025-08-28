@@ -62,7 +62,7 @@ export interface ICollaboration {
 export interface IApplications {
   userId: string;
   collaborationId: string;
-  status: string; // "active", "rejected", "accepted"
+  status: "pending" | "shortlisted" | "rejected" | "accepted"; // "active", "rejected", "accepted"
   timeStamp: number;
   message: string;
   quotation: number;
