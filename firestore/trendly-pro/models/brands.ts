@@ -12,6 +12,9 @@ export interface IBrands {
   growthBook?: any,
   hasPayWall?: boolean,
 
+  unlockCredits?: number,
+  unlockedInfluencers?: string[],
+
   profile?: {
     about?: string; // About of the brand
     banner?: string; // Banner of the brand
