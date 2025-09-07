@@ -13,6 +13,11 @@ export interface IBrands {
   hasPayWall?: boolean,
 
   unlockedInfluencers?: string[],
+  discoveredInfluencers?: string[],
+  connectedInfluencers?: {
+    requested?: string[],
+    connected?: string[]
+  }
 
   credits?: {
     influencer?: number,
