@@ -12,8 +12,13 @@ export interface IBrands {
   growthBook?: any,
   hasPayWall?: boolean,
 
-  unlockCredits?: number,
   unlockedInfluencers?: string[],
+
+  credits?: {
+    influencer?: number,
+    discovery?: number,
+    connection?: number
+  }
 
   profile?: {
     about?: string; // About of the brand
