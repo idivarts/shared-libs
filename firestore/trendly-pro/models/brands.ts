@@ -55,6 +55,8 @@ export interface IBrands {
     subscriptionUrl?: string;
     billingStatus?: string; // Billing status
     isOnTrial?: boolean; // Indicates if the brand is on a trial
+    trialEnds?: number;
+    endsAt?: number;
     // isGrowthPlan?: boolean;
     planKey?: string;
     planCycle?: string;
