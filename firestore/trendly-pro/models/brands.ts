@@ -22,7 +22,9 @@ export interface IBrands {
   credits?: {
     influencer?: number,
     discovery?: number,
-    connection?: number
+    connection?: number,
+    collaboration?: number,
+    contract?: number
   }
 
   profile?: {
