@@ -32,7 +32,7 @@ export interface ICollaboration {
 
   externalLinks?: ExternalLink[];
   questionsToInfluencers?: string[];
-  preferences: ICollabPreferences;
+  preferences: IAdvanceFilters;
   status: string; // "active", "past", "draft", "published"
 
   applications: ICollection<IApplications>; // Proposals for the collaboration
@@ -46,7 +46,7 @@ export interface ICollaboration {
   // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
 }
 
-export interface ICollabPreferences {
+export interface IAdvanceFilters {
   // Followers range (int64)
   followerMin?: number,
   followerMax?: number,
