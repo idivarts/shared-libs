@@ -32,12 +32,7 @@ export interface ICollaboration {
 
   externalLinks?: ExternalLink[];
   questionsToInfluencers?: string[];
-  preferences: {
-    timeCommitment: string;
-    influencerNiche: string[];
-    influencerRelation: string;
-    preferredVideoType: string;
-  };
+  preferences: ICollabPreferences;
   status: string; // "active", "past", "draft", "published"
 
   applications: ICollection<IApplications>; // Proposals for the collaboration
@@ -49,6 +44,53 @@ export interface ICollaboration {
   // These data needs to come from api calls
   // aiGeneratedSuccessRate: number; // AI-generated success rate for influencer selection (e.g., percentage)
   // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
+}
+
+export interface ICollabPreferences {
+  // Followers range (int64)
+  followerMin?: number,
+  followerMax?: number,
+
+  // Content/posts count range (int)
+  contentMin?: number,
+  contentMax?: number,
+
+  // Estimated monthly views range (int64)
+  monthlyViewMin?: number,
+  monthlyViewMax?: number,
+
+  // Estimated monthly engagements range (int64)
+  monthlyEngagementMin?: number,
+  monthlyEngagementMax?: number,
+
+  // Median/average metrics ranges (int64)
+  avgViewsMin?: number,
+  avgViewsMax?: number,
+  avgLikesMin?: number,
+  avgLikesMax?: number,
+  avgCommentsMin?: number,
+  avgCommentsMax?: number,
+
+  // Quality/aesthetics slider (0..100) (int)
+  qualityMin?: number,
+  qualityMax?: number,
+
+  // Engagement rate as percent number (float64)
+  erMin?: number, // e.g., "1.5" -> 1.5
+  erMax?: number,
+
+  // Text filters
+  descKeywords?: string[],
+  name?: string,
+
+  // Flags
+  isVerified?: boolean,
+  hasContact?: boolean,
+
+  // Multi-selects
+  genders?: string[],
+  selectedNiches?: string[],
+  selectedLocations?: string[],
 }
 
 // Empty Illustration (there are none in that category)
