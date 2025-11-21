@@ -117,6 +117,8 @@ export interface IApplications {
 
 export interface IInvitations {
   userId: string;
+  isDiscover?: boolean;
+
   collaborationId: string;
   managerId: string;
   status: string; // "active", "inactive", "accepted"
