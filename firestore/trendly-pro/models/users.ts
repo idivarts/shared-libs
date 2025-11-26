@@ -25,7 +25,7 @@ export interface IUsers {
       about?: string; // About of the user
       socialMediaHighlight?: string; // Highlight of the social media
       collaborationGoals?: string; // Collaboration goals
-      influencerConectionGoals?: string
+      influencerConectionGoals?: string;
       audienceInsights?: string; // Audience insights
       funFactAboutUser?: string; // Fun fact about the user
     };
@@ -57,6 +57,8 @@ export interface IUsers {
     reach?: number; // Reach of the user
     engagement?: number; // Engagement of the user
     rating?: number; // Rating of the user
+    gender?: string;
+    quality?: number;
   };
 
   notifications: ICollection<INotifications>; // Notifications for the user
@@ -69,15 +71,15 @@ export interface IUsers {
 
   connectedInfluencers?: string[]; // Array of connected influencer ids
   moderations?: {
-    reportedCollaborations?: string[]// Array of reported collaborations ids
-    blockedBrands?: string[] // Array of blocked brand ids
-    blockedInfluencers?: string[]
-    reportedInfluencers?: string[]
-  }
+    reportedCollaborations?: string[]; // Array of reported collaborations ids
+    blockedBrands?: string[]; // Array of blocked brand ids
+    blockedInfluencers?: string[];
+    reportedInfluencers?: string[];
+  };
 
-  creationTime?: number,
-  lastUseTime?: number,
-  updateTime?: number,
+  creationTime?: number;
+  lastUseTime?: number;
+  updateTime?: number;
 
   invitations?: ICollection<InfluencerInvite>; // Invitations sent to the user
 }
