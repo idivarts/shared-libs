@@ -57,6 +57,9 @@ export interface IUsers {
     reach?: number; // Reach of the user
     engagement?: number; // Engagement of the user
     rating?: number; // Rating of the user
+
+    gender?: string;
+    quality?: number;
   };
 
   notifications: ICollection<INotifications>; // Notifications for the user
