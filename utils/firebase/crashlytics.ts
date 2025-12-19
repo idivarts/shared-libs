@@ -1,9 +1,9 @@
-import { getCrashlytics } from "@react-native-firebase/crashlytics";
-import { Platform } from "react-native";
+// import { getCrashlytics } from "@react-native-firebase/crashlytics";
 
-const crashlytics = Platform.OS != "web" ? getCrashlytics() : null;
-crashlytics?.setCrashlyticsCollectionEnabled(true);
+// const crashlytics = Platform.OS != "web" ? getCrashlytics() : null;
+// crashlytics?.setCrashlyticsCollectionEnabled(true);
 
+const crashlytics: any = null;
 export class CrashLog {
     public static log(message: string, ...optionalParams: any[]): void {
         if (optionalParams && optionalParams.length > 0) {
