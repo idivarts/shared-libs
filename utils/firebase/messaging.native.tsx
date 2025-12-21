@@ -1,4 +1,11 @@
+import * as Notifications from 'expo-notifications';
+
+
+const getToken = Notifications.getDevicePushTokenAsync
+const deleteToken = async (token?: string) => {
+
+}
+
 
 // const messaging = getMessaging(FirebaseApp);
-const x: any = {}
-export { x as deleteToken, x as getToken, x as messaging };
+export { deleteToken, getToken, Notifications as messaging };
