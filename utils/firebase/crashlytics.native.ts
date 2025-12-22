@@ -1,5 +1,3 @@
-// import { getCrashlytics } from "@react-native-firebase/crashlytics";
-
 // const crashlytics = getCrashlytics();
 // crashlytics?.setCrashlyticsCollectionEnabled(true);
 
