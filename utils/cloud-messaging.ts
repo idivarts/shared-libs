@@ -1,4 +1,3 @@
-
 import { deleteToken, getToken, messaging } from "@/shared-libs/utils/firebase/messaging";
 import {
     useEffect,
@@ -8,7 +7,6 @@ import { Platform } from "react-native";
 
 import { newToken, removeToken } from "@/shared-libs/utils/token";
 import * as Notifications from 'expo-notifications';
-import { PermissionsAndroid } from 'react-native';
 import { Console } from "./console";
 import { useMyNavigation } from "./router";
 
@@ -60,7 +58,7 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             if (Platform.OS === "web") {
                 await deleteToken(messaging);
             } else {
-                await messaging().deleteToken()
+                // await messaging().deleteToken()
             }
 
             Console.log("Token removed successfully", newUpdatedTokens);
@@ -74,14 +72,14 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
             const permission = await Notification.requestPermission();
             return permission === "granted"
         } else {
-            const authStatus = await messaging().requestPermission().catch((e) => { Console.log("Cloud Authorization Error", e) });
+            // const authStatus = await messaging().requestPermission().catch((e) => { Console.log("Cloud Authorization Error", e) });
 
-            const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-            if (enabled && Platform.OS === 'android') {
-                const perm = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-                return perm == "granted"
-            }
-            return enabled
+            // const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+            // if (enabled && Platform.OS === 'android') {
+            //     const perm = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+            //     return perm == "granted"
+            // }
+            // return enabled
         }
     }
 
@@ -124,7 +122,10 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
         const tokenVal = Platform.OS == "web" ? (await getToken(messaging, {
             vapidKey: process.env.EXPO_PUBLIC_CLOUD_MESSAGING_VALID_KEY,
-        })) : (await messaging().getToken({}));
+        })) : (
+            // await messaging().getToken({})
+            ""
+        );
         setToken(tokenVal)
 
         return tokenVal
@@ -161,50 +162,50 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
 
         if (Platform.OS != "web") {
-            messaging().getInitialNotification().then(async (remoteMessage) => {
-                if (remoteMessage) {
-                    Console.log("Notification caused app to open from quit state:", remoteMessage);
-                    const data = remoteMessage.data || {};
-                    redirectionLogic(data);
-                }
-            });
+            // messaging().getInitialNotification().then(async (remoteMessage) => {
+            //     if (remoteMessage) {
+            //         Console.log("Notification caused app to open from quit state:", remoteMessage);
+            //         const data = remoteMessage.data || {};
+            //         redirectionLogic(data);
+            //     }
+            // });
 
-            const backgroundSubscription = messaging().onNotificationOpenedApp((remoteMessage) => {
-                Console.log("Notification caused app to open from background state:", remoteMessage.notification);
-                if (remoteMessage.notification?.ios?.badge !== undefined)
-                    Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
-            });
+            // const backgroundSubscription = messaging().onNotificationOpenedApp((remoteMessage) => {
+            //     Console.log("Notification caused app to open from background state:", remoteMessage.notification);
+            //     if (remoteMessage.notification?.ios?.badge !== undefined)
+            //         Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
+            // });
 
-            messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-                Console.log("Message handled in the background:", remoteMessage);
-                if (remoteMessage.notification?.ios?.badge !== undefined)
-                    Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
-            });
+            // messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+            //     Console.log("Message handled in the background:", remoteMessage);
+            //     if (remoteMessage.notification?.ios?.badge !== undefined)
+            //         Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
+            // });
 
-            const foregroundSubscription = messaging().onMessage(async (remoteMessage) => {
-                Console.log("A new FCM message arrived!", remoteMessage);
-                Notifications.scheduleNotificationAsync({
-                    content: {
-                        title: remoteMessage.notification?.title || "New Notification",
-                        body: remoteMessage.notification?.body || "You have a new notification",
-                        data: remoteMessage.data || {},
-                        sound: "default",
-                    },
-                    trigger: null,
-                });
-                if (remoteMessage.notification?.ios?.badge !== undefined)
-                    Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
-            });
-            const subscription = Notifications.addNotificationResponseReceivedListener(response => {
-                const data = response.notification.request.content.data;
-                redirectionLogic(data);
-            });
+            // const foregroundSubscription = messaging().onMessage(async (remoteMessage) => {
+            //     Console.log("A new FCM message arrived!", remoteMessage);
+            //     Notifications.scheduleNotificationAsync({
+            //         content: {
+            //             title: remoteMessage.notification?.title || "New Notification",
+            //             body: remoteMessage.notification?.body || "You have a new notification",
+            //             data: remoteMessage.data || {},
+            //             sound: "default",
+            //         },
+            //         trigger: null,
+            //     });
+            //     if (remoteMessage.notification?.ios?.badge !== undefined)
+            //         Notifications.setBadgeCountAsync(remoteMessage.notification?.ios?.badge as any);
+            // });
+            // const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+            //     const data = response.notification.request.content.data;
+            //     redirectionLogic(data);
+            // });
 
-            return () => {
-                backgroundSubscription();
-                foregroundSubscription();
-                subscription.remove();
-            };
+            // return () => {
+            //     backgroundSubscription();
+            //     foregroundSubscription();
+            //     subscription.remove();
+            // };
         }
     }, [uid, userOrManager]);
 

@@ -1,3 +1,6 @@
-import nativeMessaging, { deleteToken, getToken } from "@react-native-firebase/messaging";
+import { deleteToken, getMessaging, getToken } from "firebase/messaging";
+import { FirebaseApp } from "./firebase";
 
-export { deleteToken, getToken, nativeMessaging as messaging };
+const messaging = getMessaging(FirebaseApp);
+
+export { deleteToken, getToken, messaging };
