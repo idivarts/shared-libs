@@ -1,6 +1,6 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { getToken } from './utils/authHelper';
+import axios from 'axios';
 import { TRENDY_API_BASE_URL } from './config';
+import { getToken } from './utils/authHelper';
 
 const trendyAxios = axios.create({
     baseURL: TRENDY_API_BASE_URL,

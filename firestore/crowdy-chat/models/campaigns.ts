@@ -2,7 +2,7 @@ import { ICollection } from "../../collections";
 import { IConversation } from "./conversations";
 
 export const getCampaignPath = (orgId: string, campaignId?: string) =>
-  `/organizations/${orgId}/campaigns/${campaignId}`;
+    `/organizations/${orgId}/campaigns/${campaignId}`;
 
 export interface ICampaigns {
     organizationId: string;
@@ -15,50 +15,50 @@ export interface ICampaigns {
     status: number;
 
     replySpeed: {
-      min: number;
-      max: number;
+        min: number;
+        max: number;
     };
     reminderTiming: {
-      min: number;
-      max: number;
+        min: number;
+        max: number;
     };
     chatgpt: {
-      prescript: string;
-      purpose: string;
-      actor: string;
-      examples: string;
+        prescript: string;
+        purpose: string;
+        actor: string;
+        examples: string;
     };
-  
+
     assistantId?: string
-  
+
     leadStages?: ICollection<ILeadStage>;
     conversations: ICollection<IConversation>;
 }
 
 export interface ILeadStage {
-  organizationId: string;
-  campaignId: string;
+    organizationId: string;
+    campaignId: string;
 
-  name: string;
-  purpose: string;
-  collectibles: ICollection<ICollectible>;
-  reminders: {
-    state: boolean;
-    reminderCount: number;
-    reminderExamples: string;
-  };
-  exampleConversations: string;
-  stopConversation: boolean;
-  leadConversion: boolean;
+    name: string;
+    purpose: string;
+    collectibles: ICollection<ICollectible>;
+    reminders: {
+        state: boolean;
+        reminderCount: number;
+        reminderExamples: string;
+    };
+    exampleConversations: string;
+    stopConversation: boolean;
+    leadConversion: boolean;
 }
 
 export interface ICollectible {
-  organizationId: string;
-  campaignId: string;
-  leadStageId: string;
+    organizationId: string;
+    campaignId: string;
+    leadStageId: string;
 
-  name: string;
-  type: string;
-  description: string;
-  mandatory: boolean;
+    name: string;
+    type: string;
+    description: string;
+    mandatory: boolean;
 }

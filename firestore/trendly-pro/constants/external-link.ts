@@ -1,4 +1,4 @@
 export type ExternalLink = {
-  name: string;
-  link: string;
+    name: string;
+    link: string;
 };

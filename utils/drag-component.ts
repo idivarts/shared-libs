@@ -5,16 +5,16 @@ export const MARGIN = 8;
 export const SIZE = Dimensions.get("window").width / COL - MARGIN * 2;
 
 export const getPosition = (index: number) => {
-  "worklet";
-  return {
-    x: (index % COL) * SIZE,
-    y: Math.floor(index / COL) * SIZE,
-  };
+    "worklet";
+    return {
+        x: (index % COL) * SIZE,
+        y: Math.floor(index / COL) * SIZE,
+    };
 };
 
 export const getOrder = (x: number, y: number) => {
-  "worklet";
-  const row = Math.round(y / SIZE);
-  const col = Math.round(x / SIZE);
-  return row * COL + col;
+    "worklet";
+    const row = Math.round(y / SIZE);
+    const col = Math.round(x / SIZE);
+    return row * COL + col;
 };

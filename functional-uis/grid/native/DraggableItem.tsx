@@ -12,153 +12,153 @@ import { ActivityIndicator } from 'react-native-paper';
 import AssetRender from './AssetRender';
 
 export type AssetItem = {
-  index: number,
-  id: number;
-  url: string;
-  type: string;
+    index: number,
+    id: number;
+    url: string;
+    type: string;
 };
 
 interface DraggableItemProps {
-  asset: AssetItem;
-  onAssetUpdate: (id: number, attachment: Attachment) => void;
+    asset: AssetItem;
+    onAssetUpdate: (id: number, attachment: Attachment) => void;
 }
 
 const DraggableItem: React.FC<DraggableItemProps> = ({
-  asset,
-  onAssetUpdate,
+    asset,
+    onAssetUpdate,
 }) => {
-  const theme = useTheme();
-  const styles = draggableGridStylesFn(theme);
+    const theme = useTheme();
+    const styles = draggableGridStylesFn(theme);
 
-  const [url, setUrl] = useState("")
-  const [type, setType] = useState("")
-  const [loading, setLoading] = useState(false)
-  const { uploadFileUri } = useAWSContext()
+    const [url, setUrl] = useState("")
+    const [type, setType] = useState("")
+    const [loading, setLoading] = useState(false)
+    const { uploadFileUri } = useAWSContext()
 
-  useEffect(() => {
-    setUrl(asset.url)
-    setType(asset.type)
-  }, [asset])
+    useEffect(() => {
+        setUrl(asset.url)
+        setType(asset.type)
+    }, [asset])
 
-  const openGallery = async () => {
-    const { status } = await MediaPicker.getMediaLibraryPermissionsAsync()
-    if (status !== 'granted') {
-      const { status } = await MediaPicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        return
-      };
+    const openGallery = async () => {
+        const { status } = await MediaPicker.getMediaLibraryPermissionsAsync()
+        if (status !== 'granted') {
+            const { status } = await MediaPicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                return
+            };
+        }
+
+        const result = await MediaPicker.launchImageLibraryAsync({
+            mediaTypes: MediaPicker.MediaTypeOptions.All,
+            allowsMultipleSelection: false,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        if (!result.canceled && result.assets[0].type === 'video') {
+            handleVideoUpload(result.assets[0].uri);
+        } else if (!result.canceled) {
+            handleImageUpload(result.assets[0].uri);
+        }
     }
 
-    const result = await MediaPicker.launchImageLibraryAsync({
-      mediaTypes: MediaPicker.MediaTypeOptions.All,
-      allowsMultipleSelection: false,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    const handleImageUpload = async (image: string) => {
+        setUrl(image)
+        setType("image")
+        setLoading(true)
+        const uploadAsset = await uploadFileUri({
+            id: image,
+            type: 'image',
+            localUri: image,
+            uri: image,
+        });
 
-    if (!result.canceled && result.assets[0].type === 'video') {
-      handleVideoUpload(result.assets[0].uri);
-    } else if (!result.canceled) {
-      handleImageUpload(result.assets[0].uri);
+        setLoading(false)
+        // uploadAsset.
+        onAssetUpdate(asset.id, uploadAsset);
     }
-  }
 
-  const handleImageUpload = async (image: string) => {
-    setUrl(image)
-    setType("image")
-    setLoading(true)
-    const uploadAsset = await uploadFileUri({
-      id: image,
-      type: 'image',
-      localUri: image,
-      uri: image,
-    });
+    const handleVideoUpload = async (video: string) => {
+        setUrl(video)
+        setType("video")
+        setLoading(true)
+        const uploadAsset = await uploadFileUri({
+            id: video,
+            type: 'video',
+            localUri: video,
+            uri: video,
+        });
 
-    setLoading(false)
-    // uploadAsset.
-    onAssetUpdate(asset.id, uploadAsset);
-  }
+        setLoading(false)
+        onAssetUpdate(asset.id, uploadAsset);
+    }
 
-  const handleVideoUpload = async (video: string) => {
-    setUrl(video)
-    setType("video")
-    setLoading(true)
-    const uploadAsset = await uploadFileUri({
-      id: video,
-      type: 'video',
-      localUri: video,
-      uri: video,
-    });
+    const handleRemoveAsset = () => {
+        setType("")
+        setUrl("")
+        onAssetUpdate(asset.id, {
+            imageUrl: "",
+            type: "image"
+        });
+    }
 
-    setLoading(false)
-    onAssetUpdate(asset.id, uploadAsset);
-  }
-
-  const handleRemoveAsset = () => {
-    setType("")
-    setUrl("")
-    onAssetUpdate(asset.id, {
-      imageUrl: "",
-      type: "image"
-    });
-  }
-
-  return (
-    <Pressable
-      style={[
-        styles.container,
-      ]}
-      onPress={openGallery}
-    >
-      {
-        url ? (
-          <AssetRender
-            asset={{
-              url: url,
-              type: type
-            }}
-          />
-        ) : (
-          <View
-            style={styles.addButton}
-          >
-            <FontAwesomeIcon
-              icon={faPlus}
-              color={Colors(theme).white}
-              size={16}
-            />
-          </View>
-        )
-      }
-      {
-        url && (
-          <Pressable
-            style={styles.removeButton}
-            onPress={handleRemoveAsset}
-          >
-            <FontAwesomeIcon
-              icon={faClose}
-              color={Colors(theme).white}
-              size={16}
-            />
-          </Pressable>
-        )
-      }
-      {
-        (url && loading) && <ActivityIndicator size={"small"} style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: [
-            { translateX: -10 }, // Shift back by half of screen width
-            { translateY: -10 }, // Shift back by half of screen height
-          ]
-          // transform: "translate(-50%, -50%)"
-        }} />
-      }
-    </Pressable>
-  );
+    return (
+        <Pressable
+            style={[
+                styles.container,
+            ]}
+            onPress={openGallery}
+        >
+            {
+                url ? (
+                    <AssetRender
+                        asset={{
+                            url: url,
+                            type: type
+                        }}
+                    />
+                ) : (
+                    <View
+                        style={styles.addButton}
+                    >
+                        <FontAwesomeIcon
+                            icon={faPlus}
+                            color={Colors(theme).white}
+                            size={16}
+                        />
+                    </View>
+                )
+            }
+            {
+                url && (
+                    <Pressable
+                        style={styles.removeButton}
+                        onPress={handleRemoveAsset}
+                    >
+                        <FontAwesomeIcon
+                            icon={faClose}
+                            color={Colors(theme).white}
+                            size={16}
+                        />
+                    </Pressable>
+                )
+            }
+            {
+                (url && loading) && <ActivityIndicator size={"small"} style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: [
+                        { translateX: -10 }, // Shift back by half of screen width
+                        { translateY: -10 }, // Shift back by half of screen height
+                    ]
+                    // transform: "translate(-50%, -50%)"
+                }} />
+            }
+        </Pressable>
+    );
 };
 
 export default DraggableItem;

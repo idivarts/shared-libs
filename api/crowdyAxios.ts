@@ -1,6 +1,6 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { getToken } from './utils/authHelper';
+import axios from 'axios';
 import { CROWDY_API_BASE_URL } from './config';
+import { getToken } from './utils/authHelper';
 
 const crowdyAxios = axios.create({
     baseURL: CROWDY_API_BASE_URL,

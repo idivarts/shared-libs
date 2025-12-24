@@ -1,4 +1,4 @@
 export enum PromotionType {
-  BARTER_COLLAB = "Barter Collab",
-  PAID_COLLAB = "Paid Collab",
+    BARTER_COLLAB = "Barter Collab",
+    PAID_COLLAB = "Paid Collab",
 }

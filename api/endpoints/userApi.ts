@@ -1,4 +1,3 @@
-import axios from 'axios';
 import crowdyAxios from '../crowdyAxios';
 
 // Define interfaces for User data
