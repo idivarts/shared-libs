@@ -7,7 +7,7 @@ if (Platform.OS === "web") {
     IS_DEV = HOST_NAME.startsWith("localhost") || HOST_NAME.startsWith("dev.")
 } else {
     // Figure out a way to know if the app is in testflight or in internal testing or in dev mode
-    IS_DEV = __DEV__ || process.env.EXPO_APP_STAGE == "dev";
+    IS_DEV = __DEV__ || process.env.EXPO_PUBLIC_APP_STAGE == "dev";
 }
 const BASE_URL = `https://be.trendly.now${IS_DEV ? "/dev" : ""}`;
 
