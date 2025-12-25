@@ -1,14 +1,6 @@
-import { Platform } from "react-native";
 import { AuthApp } from "./firebase/auth";
 
-let IS_DEV = false;
-if (Platform.OS === "web") {
-    const HOST_NAME = window.location.hostname;
-    IS_DEV = HOST_NAME.startsWith("localhost") || HOST_NAME.startsWith("dev.")
-} else {
-    // Figure out a way to know if the app is in testflight or in internal testing or in dev mode
-    IS_DEV = __DEV__ || process.env.EXPO_PUBLIC_APP_STAGE == "dev";
-}
+let IS_DEV = __DEV__ || process.env.EXPO_PUBLIC_APP_STAGE == "dev";;
 const BASE_URL = `https://be.trendly.now${IS_DEV ? "/dev" : ""}`;
 
 export class HttpWrapper {
