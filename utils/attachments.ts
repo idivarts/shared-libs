@@ -3,6 +3,8 @@ import { Platform } from "react-native";
 export interface MediaItem {
     type: string;
     url: string;
+    imageUrl?: string;
+    playUrl?: string;
 }
 
 export const processRawAttachment = (attachment: any): MediaItem => {
@@ -10,6 +12,14 @@ export const processRawAttachment = (attachment: any): MediaItem => {
         return {
             type: "",
             url: "",
+        };
+    }
+    if (attachment.type?.includes("reel")) {
+        return {
+            type: attachment.type,
+            url: attachment.imageUrl || attachment.url || "",
+            imageUrl: attachment.imageUrl,
+            playUrl: attachment.playUrl,
         };
     }
     if (attachment.type.includes("video")) {

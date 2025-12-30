@@ -1,9 +1,8 @@
 import { MARGIN, getOrder, getPosition } from '@/shared-libs/utils/drag-component';
 import React from 'react';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
     runOnJS,
-    useAnimatedGestureHandler,
     useAnimatedReaction,
     useAnimatedStyle,
     useSharedValue,
@@ -27,6 +26,8 @@ const Draggable: React.FC<DraggableProps> = ({
     const translateX = useSharedValue(position.x);
     const translateY = useSharedValue(position.y);
     const isGestureActive = useSharedValue(false);
+    const startX = useSharedValue(0);
+    const startY = useSharedValue(0);
 
     useAnimatedReaction(
         () => positions.value[id],
@@ -37,15 +38,15 @@ const Draggable: React.FC<DraggableProps> = ({
         }
     );
 
-    const panGesture = useAnimatedGestureHandler({
-        onStart: (_, ctx: { startX: number; startY: number }) => {
-            ctx.startX = translateX.value;
-            ctx.startY = translateY.value;
+    const panGesture = Gesture.Pan()
+        .onBegin(() => {
+            startX.value = translateX.value;
+            startY.value = translateY.value;
             isGestureActive.value = true;
-        },
-        onActive: (evt, ctx) => {
-            translateX.value = ctx.startX + evt.translationX;
-            translateY.value = ctx.startY + evt.translationY;
+        })
+        .onUpdate((evt) => {
+            translateX.value = startX.value + evt.translationX;
+            translateY.value = startY.value + evt.translationY;
 
             const oldOrder = positions.value[id];
             const newOrder = getOrder(translateX.value, translateY.value);
@@ -62,19 +63,18 @@ const Draggable: React.FC<DraggableProps> = ({
                     positions.value = newPositions;
                 }
             }
-        },
-        onEnd: () => {
+        })
+        .onEnd(() => {
             const destination = getPosition(positions.value[id]);
             translateX.value = withTiming(destination.x);
             translateY.value = withTiming(destination.y);
             isGestureActive.value = false;
-        },
-        onFinish: () => {
+        })
+        .onFinalize(() => {
             if (onPositionsUpdate) {
                 runOnJS(onPositionsUpdate)(positions.value);
             }
-        }
-    });
+        });
 
     const animatedStyle = useAnimatedStyle(() => {
         const zIndex = isGestureActive.value ? 1000 : 1;
@@ -93,9 +93,9 @@ const Draggable: React.FC<DraggableProps> = ({
 
     return (
         <Animated.View style={animatedStyle}>
-            <PanGestureHandler onGestureEvent={panGesture}>
+            <GestureDetector gesture={panGesture}>
                 <Animated.View>{children}</Animated.View>
-            </PanGestureHandler>
+            </GestureDetector>
         </Animated.View>
     );
 };
