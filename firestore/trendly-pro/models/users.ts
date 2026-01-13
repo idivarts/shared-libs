@@ -4,6 +4,13 @@ import { InfluencerInvite } from "./influencerInvites";
 import { INotifications } from "./notifications";
 import { ISocials } from "./socials";
 
+
+export type KYCStatus =
+  | "not_started"
+  | "in_progress"
+  | "failed"
+  | "approved";
+
 export interface IUsers {
     name: string; // Name of the user
     profileImage?: string; // Profile image of the user
@@ -12,6 +19,14 @@ export interface IUsers {
     phoneNumber?: string; // Phone number of the user
     location?: string; // Location of the user
     isVerified?: boolean; // Verification status of the user
+
+    isKYCDone?: boolean; // KYC verification status
+    kyc?: {
+    status: KYCStatus; // KYC status
+    reason?: string; // optional failure reason
+    updatedAt?: number; // Timestamp of the last update
+    [key: string]: string | number | undefined;
+  };
 
     emailVerified?: boolean; // Email verification status
     phoneVerified?: boolean; // Phone verification status
