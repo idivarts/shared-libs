@@ -6,10 +6,10 @@ import { ISocials } from "./socials";
 
 
 export type KYCStatus =
-  | "not_started"
-  | "in_progress"
-  | "failed"
-  | "approved";
+    | "not_started"
+    | "in_progress"
+    | "failed"
+    | "approved";
 
 export interface IUsers {
     name: string; // Name of the user
@@ -22,11 +22,38 @@ export interface IUsers {
 
     isKYCDone?: boolean; // KYC verification status
     kyc?: {
-    status: KYCStatus; // KYC status
-    reason?: string; // optional failure reason
-    updatedAt?: number; // Timestamp of the last update
-    [key: string]: string | number | undefined;
-  };
+        status: KYCStatus; // KYC status
+        reason?: string; // optional failure reason
+        updatedAt?: number; // Timestamp of the last update
+        [key: string]: string | number | undefined;
+    };
+
+    panDetails?: {
+        panNumber: string;              // e.g. INYPS4790X
+        nameAsPerPAN: string;           // Rahul Sinha
+        isVerified?: boolean;           // verified by KYC provider
+        updatedAt?: number;
+    };
+
+    currentAddress?: {
+        line1: string;                  // Address Line 1
+        line2?: string;                 // Address Line 2
+        city: string;
+        state: string;
+        postalCode: string;
+        country?: string;               // Optional (default: India)
+        updatedAt?: number;
+    };
+
+    bankDetails?: {
+        accountNumber: string;          // 14 digits
+        ifsc: string;
+        accountHolderName: string;
+        isVerified?: boolean;           // bank verification result
+        updatedAt?: number;
+    };
+
+
 
     emailVerified?: boolean; // Email verification status
     phoneVerified?: boolean; // Phone verification status
