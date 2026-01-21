@@ -37,7 +37,7 @@ export interface ICollaboration {
     platform: string[];
     numberOfInfluencersNeeded: number;
 
-    /** 🔁 UPDATED location */
+    /* UPDATED location */
     location: {
         type:
             | "on_site"          // Influencer visits store
