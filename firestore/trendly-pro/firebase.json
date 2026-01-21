@@ -2,5 +2,11 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
-  }
+  },
+  "storage": [
+    {
+      "bucket": "trendly-b94c5.appspot.com",
+      "rules": "storage.rules"
+    }
+  ]
 }
