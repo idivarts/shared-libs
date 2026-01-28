@@ -21,6 +21,11 @@ export interface ICollaboration {
     contentFormat: string[]; // E.g. Posts, Stories, Reels, Live, Product Reviews
     platform: string[]; // E.g. Facebook, Instagram, Twitter
     numberOfInfluencersNeeded: number;
+    promotionSubject?: "physical_product" | "services" | "others"; // What the brand is promoting
+    productDetails?: {
+        name?: string; // Product/service name
+        cost?: number; // Product cost (optional)
+    };
     location: {
         type: string; // E.g. On-Site, Remote
         name?: string; // Location name - applicable for on-site locations
