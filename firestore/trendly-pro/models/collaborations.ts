@@ -3,65 +3,52 @@ import { Attachment } from "../constants/attachment";
 import { ExternalLink } from "../constants/external-link";
 import { PromotionType } from "../constants/promotion-type";
 
-
-export enum PromotionSubject {
-    PhysicalProduct = "physical_product",  // Product/service shipped
-    Services = "services",                  // Professional services
-    Others = "others",                      // Other promotions (food, store, etc.)
-}
-
-export interface IPromotionSubjectItem {
-    name: string;   // e.g. "Instagram Reel", "Store Visit"
-    cost: number;   // cost per subject
-}
-
 export interface ICollaboration {
-    name: string;
-    brandId: string;
-    managerId: string;
+    name: string; // Name of the collaboration
+    brandId: string; // Brand details
+    managerId: string; // Manager who created the collaboration
 
     attachments?: Attachment[];
-    description?: string;
+    description?: string; // Description of the ad campaigns and objectives
 
-    promotionType: PromotionType;
-    promotionSubject: PromotionSubject;
-    subjects: IPromotionSubjectItem[];
-
+    promotionType: PromotionType; // Type of promotion (e.g., paid, barter)
     budget?: {
+        // Applicable for paid promotions
         min?: number;
         max?: number;
     };
-
-    preferredContentLanguage: string[];
-    contentFormat: string[];
-    platform: string[];
+    preferredContentLanguage: string[]; // E.g. English, Hindi, Bengali, Marathi
+    contentFormat: string[]; // E.g. Posts, Stories, Reels, Live, Product Reviews
+    platform: string[]; // E.g. Facebook, Instagram, Twitter
     numberOfInfluencersNeeded: number;
-
-    /** 🔁 UPDATED location */
+    promotionSubject?: "physical_product" | "services" | "others"; // What the brand is promoting
+    productDetails?: {
+        name?: string; // Product/service name
+        cost?: number; // Product cost (optional)
+    };
     location: {
-        type:
-            | "on_site"          // Influencer visits store
-            | "remote"           // Digital / Remote
-            | "physical_mode";   // Product shipped to influencer
-        name?: string;
+        type: string; // E.g. On-Site, Remote
+        name?: string; // Location name - applicable for on-site locations
         latlong?: {
             lat: number;
             long: number;
-        };
+        }; // Latitude and longitude - applicable for on-site locations
     };
 
     externalLinks?: ExternalLink[];
     questionsToInfluencers?: string[];
     preferences: IAdvanceFilters;
+    status: string; // "active", "past", "draft", "published"
 
-    status: "active" | "past" | "draft" | "published";
+    applications: ICollection<IApplications>; // Proposals for the collaboration
+    invitations: ICollection<IInvitations>; // Invitations for the collaboration
 
-    applications: ICollection<IApplications>;
-    invitations: ICollection<IInvitations>;
-
-    timeStamp: number;
-    viewsLastHour?: number;
-    lastReviewedTimeStamp?: number | null;
+    timeStamp: number; // Posted date and time
+    viewsLastHour?: number; // Number of influencers who viewed this in the last 1 hour
+    lastReviewedTimeStamp?: number | null; // Last time the brand reviewed the influencers
+    // These data needs to come from api calls
+    // aiGeneratedSuccessRate: number; // AI-generated success rate for influencer selection (e.g., percentage)
+    // aiGeneratedResponseTime: string; // AI-generated estimate of how soon to expect the brand to respond (e.g., "2-3 days")
 }
 
 export interface IAdvanceFilters {
