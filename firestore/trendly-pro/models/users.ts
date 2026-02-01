@@ -39,13 +39,13 @@ export interface IUsers {
             street: string;                  // Address Line 1
             city: string;
             state: string;
-            postal_code: string;
+            postalCode: string;
         };
 
         bankDetails?: {
             account_number: string;          // 14 digits
             ifsc: string;
-            beneficiary_name: string;
+            beneficiaryName: string;
         };
     };
 
