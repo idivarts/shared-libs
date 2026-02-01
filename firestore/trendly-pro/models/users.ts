@@ -33,26 +33,19 @@ export interface IUsers {
         panDetails?: {
             panNumber: string;              // e.g. INYPS4790X
             nameAsPerPAN: string;           // Rahul Sinha
-            isVerified?: boolean;           // verified by KYC provider
-            updatedAt?: number;
         };
 
         currentAddress?: {
-            line1: string;                  // Address Line 1
-            line2?: string;                 // Address Line 2
+            street: string;                  // Address Line 1
             city: string;
             state: string;
             postalCode: string;
-            country?: string;               // Optional (default: India)
-            updatedAt?: number;
         };
 
         bankDetails?: {
             accountNumber: string;          // 14 digits
             ifsc: string;
             accountHolderName: string;
-            isVerified?: boolean;           // bank verification result
-            updatedAt?: number;
         };
     };
 
