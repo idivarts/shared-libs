@@ -43,7 +43,7 @@ export interface IUsers {
         };
 
         bankDetails?: {
-            account_number: string;          // 14 digits
+            accountNumber: string;          // 14 digits
             ifsc: string;
             beneficiaryName: string;
         };
