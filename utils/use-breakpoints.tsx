@@ -1,4 +1,4 @@
-import { useWindowDimensions } from "react-native";
+import { useWindowDimensions, Platform } from "react-native";
 
 type useBreakpointsType = {
     'xl3': boolean;
@@ -17,7 +17,7 @@ const useBreakpoints = (): useBreakpointsType => {
     return {
         'xl3': dimensions.width >= 1536,
         'xl2': dimensions.width >= 1280,
-        xl: dimensions.width >= 1024,
+        xl: Platform.OS === 'web' ? false : dimensions.width >= 1024,
         lg: dimensions.width >= 768,
         md: dimensions.width >= 640,
         sm: dimensions.width >= 480,
