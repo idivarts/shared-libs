@@ -5,7 +5,7 @@ const BASE_URL = `https://be.trendly.now${IS_DEV ? "/dev" : ""}`;
 
 export class HttpWrapper {
     public static fetch = async (urlPath: string, init?: RequestInit, idToken = ""): Promise<Response> => {
-        if (AuthApp && AuthApp.currentUser) {
+        if (!idToken && AuthApp && AuthApp.currentUser) {
             idToken = await AuthApp.currentUser.getIdToken();
         }
         const response = await fetch(BASE_URL + urlPath, {
