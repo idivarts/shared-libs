@@ -1,4 +1,5 @@
 import { CollectionReference, DocumentData, DocumentSnapshot, getDocs, limit, onSnapshot, query, Query, startAfter } from "firebase/firestore"
+import { Platform } from "react-native"
 import { useEffect, useState } from "react"
 import { Console } from "./console"
 
@@ -46,6 +47,14 @@ export const useInfiniteScroll = <T>(queryOrCol: CollectionReference<DocumentDat
 
     useEffect(() => {
         const q = query(queryOrCol) // Assumes docs have a `createdAt` timestamp
+        
+        if (Platform.OS === "web") {
+            // On web, skip real-time listener (avoid CORS issues)
+            // Data will be refreshed on demand via manual actions
+            return () => {};
+        }
+        
+        // On native platforms, use real-time listeners
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const newDocs: T[] = []
             snapshot.docChanges().forEach((change) => {

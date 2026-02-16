@@ -69,9 +69,17 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
     const requestUserPermission = async () => {
         if (Platform.OS == "web") {
-            const permission = await Notification.requestPermission();
-            return permission === "granted"
+            try {
+                const permission = await (Notification as any)?.requestPermission();
+                return permission === "granted"
+            } catch (e: any) {
+                Console.error("Error requesting notification permission on web:");
+                Console.error(e instanceof Error ? e.message : String(e));
+                return false;
+            }
         } else {
+            // On native platforms, assume notifications are available
+            return true;
             // const authStatus = await messaging().requestPermission().catch((e) => { Console.log("Cloud Authorization Error", e) });
 
             // const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
@@ -158,10 +166,13 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     useEffect(() => {
         if (!uid || !userOrManager) return;
 
-        initNotification();
-
-
         if (Platform.OS != "web") {
+            try {
+                initNotification();
+            } catch (e: any) {
+                Console.error("Error initializing notifications:");
+                Console.error(e instanceof Error ? e.message : String(e));
+            }
             // messaging().getInitialNotification().then(async (remoteMessage) => {
             //     if (remoteMessage) {
             //         Console.log("Notification caused app to open from quit state:", remoteMessage);

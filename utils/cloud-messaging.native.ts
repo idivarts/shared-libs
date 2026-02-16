@@ -175,7 +175,11 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
     useEffect(() => {
         if (!uid || !userOrManager) return;
 
-        initNotification();
+        try {
+            initNotification();
+        } catch (e) {
+            Console.error("Error initializing notifications:", e);
+        }
 
         // messaging().getInitialNotification().then(async (remoteMessage) => {
         //     if (remoteMessage) {
