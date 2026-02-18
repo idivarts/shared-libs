@@ -24,18 +24,20 @@ export const useMyNavigation = () => {
         router.back()
     }
     const resetAndNavigate = (newPath: Href) => {
-        console.log("Reset and Navigate back Stack", backStack, newPath);
-        if (router.canDismiss() && backStack.length > 0) {
+        if (router.canDismiss()) {
             try {
                 router.dismissAll();
-                console.log("dismissAll executed successfully");
             } catch (e) {
                 Console.log("resetAndNavigate - dismissAll failed", e);
             }
         }
 
-        router.replace(newPath);
-        setbackStack([]); // Clear the back stack
+        // Defer replace to the next tick so dismissAll's state change
+        // is fully processed before we navigate to the new path.
+        setTimeout(() => {
+            router.replace(newPath);
+        }, 0);
+        setbackStack([]);
     };
 
 
