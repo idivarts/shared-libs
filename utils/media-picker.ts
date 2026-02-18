@@ -28,8 +28,8 @@ export async function pickMedia(
     const mediaTypes: MediaPicker.MediaType[] = isImageOnly
         ? ["images", "livePhotos"]
         : isVideoOnly
-          ? ["videos"]
-          : ["images", "videos", "livePhotos"];
+            ? ["videos"]
+            : ["images", "videos", "livePhotos"];
 
     const result = await MediaPicker.launchImageLibraryAsync({
         mediaTypes,
