@@ -36,7 +36,7 @@ export const useMyNavigation = () => {
         // is fully processed before we navigate to the new path.
         setTimeout(() => {
             router.replace(newPath);
-        }, 0);
+        }, 50);
         setbackStack([]);
     };
 
