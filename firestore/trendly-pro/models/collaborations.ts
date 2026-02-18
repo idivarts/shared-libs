@@ -76,7 +76,7 @@ export interface IAdvanceFilters {
     avgCommentsMin?: number,
     avgCommentsMax?: number,
 
-    // Quality/aesthetics slider (0..100) (int)
+    // Quality/aesthetics (0..10, displayed as 0-5 stars)
     qualityMin?: number,
     qualityMax?: number,
 
