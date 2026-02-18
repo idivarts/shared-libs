@@ -131,8 +131,8 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
     const getBlob = async (fileUri: AssetItem): Promise<Blob> => {
         if (fileUri.type === "video") {
-            const videoInfo = await FileSystem.getInfoAsync(fileUri.localUri);
-            if (!videoInfo.exists) {
+            const videoFile = new FileSystem.File(fileUri.localUri);
+            if (!videoFile.exists) {
                 throw new Error("Video file does not exist");
             }
 
