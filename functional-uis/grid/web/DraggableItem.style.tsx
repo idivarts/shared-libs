@@ -1,8 +1,8 @@
+import { getConstrainedWidth } from "@/shared-libs/contexts/mobile-layout-context.provider";
 import { MAX_WIDTH_WEB } from "@/shared-uis/components/carousel/carousel-util";
 import { CSSProperties } from "react";
-import { Dimensions } from "react-native";
 
-const screenWidth = Dimensions.get("screen").width
+const screenWidth = getConstrainedWidth();
 const cardDim = (MAX_WIDTH_WEB < screenWidth) ? MAX_WIDTH_WEB / 4 : screenWidth / 4
 
 export const DraggableItemStyle: { [k: string]: CSSProperties } = {
