@@ -1,15 +1,21 @@
+import Constants from "expo-constants";
 import React, { createContext, useContext } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
 
 export const MOBILE_MAX_WIDTH = 480;
 
+const APP_SLUG = Constants.expoConfig?.slug ?? "";
+const IS_MOBILE_CONSTRAINED = APP_SLUG === "trendly-creators";
+
 /**
  * Non-hook utility for module-level code that can't use React hooks.
- * On web, caps the width at MOBILE_MAX_WIDTH. On native, returns real width.
+ * On web, caps the width at MOBILE_MAX_WIDTH when the app is trendly-creators.
  */
 export const getConstrainedWidth = () => {
     const realWidth = Dimensions.get("window").width;
-    return Platform.OS === "web" ? Math.min(realWidth, MOBILE_MAX_WIDTH) : realWidth;
+    return (Platform.OS === "web" && IS_MOBILE_CONSTRAINED)
+        ? Math.min(realWidth, MOBILE_MAX_WIDTH)
+        : realWidth;
 };
 
 export const getConstrainedHeight = () => {
@@ -22,7 +28,7 @@ interface MobileLayoutContextType {
 }
 
 const MobileLayoutContext = createContext<MobileLayoutContextType>({
-    isMobileLayout: false,
+    isMobileLayout: IS_MOBILE_CONSTRAINED,
     maxWidth: MOBILE_MAX_WIDTH,
 });
 
@@ -32,11 +38,11 @@ export const MobileLayoutProvider: React.FC<{ children: React.ReactNode }> = ({
     const isWeb = Platform.OS === "web";
 
     const value: MobileLayoutContextType = {
-        isMobileLayout: true,
+        isMobileLayout: IS_MOBILE_CONSTRAINED,
         maxWidth: MOBILE_MAX_WIDTH,
     };
 
-    if (!isWeb) {
+    if (!isWeb || !IS_MOBILE_CONSTRAINED) {
         return (
             <MobileLayoutContext.Provider value={value}>
                 {children}
