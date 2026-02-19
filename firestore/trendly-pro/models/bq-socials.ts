@@ -5,7 +5,10 @@ interface ILink {
 
 interface IReel {
     id: string;
-    thumbnail_url: string;
+    /** @deprecated Use display_url instead - API response structure changed */
+    thumbnail_url?: string;
+    /** Image URL for reel thumbnail (current API field) */
+    display_url?: string;
     url: string;
     caption: string;
     pinned: boolean;
