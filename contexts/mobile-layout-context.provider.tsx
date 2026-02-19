@@ -1,7 +1,20 @@
 import React, { createContext, useContext } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Dimensions, Platform, StyleSheet, View } from "react-native";
 
-const MOBILE_MAX_WIDTH = 480;
+export const MOBILE_MAX_WIDTH = 480;
+
+/**
+ * Non-hook utility for module-level code that can't use React hooks.
+ * On web, caps the width at MOBILE_MAX_WIDTH. On native, returns real width.
+ */
+export const getConstrainedWidth = () => {
+    const realWidth = Dimensions.get("window").width;
+    return Platform.OS === "web" ? Math.min(realWidth, MOBILE_MAX_WIDTH) : realWidth;
+};
+
+export const getConstrainedHeight = () => {
+    return Dimensions.get("window").height;
+};
 
 interface MobileLayoutContextType {
     isMobileLayout: boolean;
