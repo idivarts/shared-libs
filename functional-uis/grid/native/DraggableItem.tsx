@@ -5,7 +5,7 @@ import Colors from '@/shared-uis/constants/Colors';
 import { faClose, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useTheme } from '@react-navigation/native';
-import * as MediaPicker from "expo-image-picker";
+import { promptAndPickMedia } from "@/shared-libs/utils/media-picker";
 import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
@@ -40,28 +40,14 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
         setType(asset.type)
     }, [asset])
 
-    const openGallery = async () => {
-        const { status } = await MediaPicker.getMediaLibraryPermissionsAsync()
-        if (status !== 'granted') {
-            const { status } = await MediaPicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
-                return
-            };
-        }
-
-        const result = await MediaPicker.launchImageLibraryAsync({
-            mediaTypes: MediaPicker.MediaTypeOptions.All,
-            allowsMultipleSelection: false,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
+    const openGallery = () => {
+        promptAndPickMedia((asset) => {
+            if (asset.type === 'video') {
+                handleVideoUpload(asset.uri);
+            } else {
+                handleImageUpload(asset.uri);
+            }
         });
-
-        if (!result.canceled && result.assets[0].type === 'video') {
-            handleVideoUpload(result.assets[0].uri);
-        } else if (!result.canceled) {
-            handleImageUpload(result.assets[0].uri);
-        }
     }
 
     const handleImageUpload = async (image: string) => {
