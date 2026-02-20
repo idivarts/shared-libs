@@ -22,10 +22,10 @@ export interface ICollaboration {
     platform: string[]; // E.g. Facebook, Instagram, Twitter
     numberOfInfluencersNeeded: number;
     promotionSubject?: "physical_product" | "services" | "others"; // What the brand is promoting
-    productDetails?: {
+    products?: {
         name?: string; // Product/service name
         cost?: number; // Product cost (optional)
-    };
+    }[];
     location: {
         type: string; // E.g. On-Site, Remote
         name?: string; // Location name - applicable for on-site locations
