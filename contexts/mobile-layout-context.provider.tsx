@@ -1,3 +1,4 @@
+import { ColorsStatic } from "@/shared-uis/constants/Colors";
 import Constants from "expo-constants";
 import React, { createContext, useContext } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: MOBILE_MAX_WIDTH,
         flex: 1,
-        backgroundColor: "#ffffff",
+        backgroundColor: ColorsStatic.white,
         overflow: "hidden",
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 0 },
