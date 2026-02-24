@@ -3,7 +3,7 @@ interface ILink {
     text: string;
 }
 
-interface IReel {
+export interface IReel {
     id: string;
     /** @deprecated Use display_url instead - API response structure changed */
     thumbnail_url?: string;
@@ -11,8 +11,16 @@ interface IReel {
     display_url?: string;
     url: string;
     caption: string;
-    pinned: boolean;
-    views_count: number | null;
+    /** @deprecated Use is_pinned instead - API response structure changed */
+    pinned?: boolean;
+    /** Current API field for pinned state */
+    is_pinned?: boolean;
+    /** @deprecated Use video_view_count or video_play_count - API response structure changed */
+    views_count?: number | null;
+    /** Current API field: view count for the reel */
+    video_view_count?: number | null;
+    /** Current API field: play count (can include replays) */
+    video_play_count?: number | null;
     likes_count: number | null;
     comments_count: number | null;
 }
