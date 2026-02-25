@@ -1,6 +1,8 @@
 import Constants from "expo-constants";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import { Dimensions, Platform, StyleSheet, View } from "react-native";
+import { useTheme } from "@react-navigation/native";
+import Colors from "@/shared-uis/constants/Colors";
 
 export const MOBILE_MAX_WIDTH = 480;
 
@@ -36,6 +38,32 @@ export const MobileLayoutProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
     const isWeb = Platform.OS === "web";
+    const theme = useTheme();
+    const colors = Colors(theme);
+    const styles = useMemo(
+        () =>
+            StyleSheet.create({
+                outerContainer: {
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    backgroundColor: colors.border,
+                },
+                mobileContainer: {
+                    width: "100%",
+                    maxWidth: MOBILE_MAX_WIDTH,
+                    flex: 1,
+                    backgroundColor: colors.background,
+                    overflow: "hidden",
+                    shadowColor: colors.text,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 12,
+                    elevation: 8,
+                },
+            }),
+        [colors]
+    );
 
     const value: MobileLayoutContextType = {
         isMobileLayout: IS_MOBILE_CONSTRAINED,
@@ -62,24 +90,3 @@ export const MobileLayoutProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export const useMobileLayout = () => useContext(MobileLayoutContext);
-
-const styles = StyleSheet.create({
-    outerContainer: {
-        flex: 1,
-        flexDirection: "row",
-        justifyContent: "center",
-        backgroundColor: "#e5e5e5",
-    },
-    mobileContainer: {
-        width: "100%",
-        maxWidth: MOBILE_MAX_WIDTH,
-        flex: 1,
-        backgroundColor: "#ffffff",
-        overflow: "hidden",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 8,
-    },
-});
