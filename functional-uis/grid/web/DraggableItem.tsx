@@ -1,6 +1,8 @@
 import { WebAssetItem } from "@/shared-libs/types/Asset";
+import { useTheme } from "@react-navigation/native";
+import { useMemo } from "react";
 import { ActivityIndicator } from "react-native-paper";
-import { DraggableItemStyle } from "./DraggableItem.style";
+import { getDraggableItemStyle } from "./DraggableItem.style";
 
 interface DraggableItemProps {
     id: string;
@@ -14,6 +16,12 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
     listeners = {},
     attributes = {},
 }) => {
+    const theme = useTheme();
+    const DraggableItemStyle = useMemo(
+        () => getDraggableItemStyle(theme),
+        [theme]
+    );
+
     return (
         <div
             style={DraggableItemStyle.card}
