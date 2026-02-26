@@ -10,6 +10,8 @@ type useBreakpointsType = {
     sm: boolean;
     xs: boolean;
     width: number;
+    height: number;
+    scale: number;
 };
 
 const useBreakpoints = (): useBreakpointsType => {
@@ -26,6 +28,8 @@ const useBreakpoints = (): useBreakpointsType => {
         sm: width >= 480,
         xs: width < 480,
         width,
+        height: dimensions.height,
+        scale: dimensions.scale,
     }
 };
 

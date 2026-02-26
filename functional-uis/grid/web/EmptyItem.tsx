@@ -1,7 +1,13 @@
-import React from 'react'
-import { DraggableItemStyle } from './DraggableItem.style'
+import React, { useMemo } from 'react'
+import { useTheme } from '@react-navigation/native'
+import { getDraggableItemStyle } from './DraggableItem.style'
+import Colors from '@/shared-uis/constants/Colors'
 
 const EmptyItem: React.FC<{ index: number, handleAddAsset: any }> = ({ index, handleAddAsset }) => {
+    const theme = useTheme();
+    const DraggableItemStyle = useMemo(() => getDraggableItemStyle(theme), [theme]);
+    const colors = useMemo(() => Colors(theme), [theme]);
+
     return (
         <div
             key={`empty-${index}`}
@@ -9,8 +15,8 @@ const EmptyItem: React.FC<{ index: number, handleAddAsset: any }> = ({ index, ha
                 ...DraggableItemStyle.card,
                 alignItems: 'center',
                 aspectRatio: '1',
-                backgroundColor: '#f5f5f5',
-                border: '2px solid #15293f',
+                backgroundColor: colors.gray200,
+                border: `2px solid ${colors.primary}`,
                 borderRadius: '10px',
                 display: 'flex',
                 justifyContent: 'center',
@@ -30,7 +36,7 @@ const EmptyItem: React.FC<{ index: number, handleAddAsset: any }> = ({ index, ha
             >
                 <span
                     style={{
-                        color: '#15293f',
+                        color: colors.primary,
                         fontSize: '32px',
                     }}
                 >

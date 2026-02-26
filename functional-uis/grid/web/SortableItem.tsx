@@ -3,8 +3,10 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { faClose } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { useTheme } from '@react-navigation/native';
+import { useMemo } from 'react';
 import DraggableItem from './DraggableItem';
-import { DraggableItemStyle } from './DraggableItem.style';
+import { getDraggableItemStyle } from './DraggableItem.style';
 
 interface SortableItemProps {
     id: string;
@@ -17,6 +19,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
     asset,
     onRemove,
 }) => {
+    const theme = useTheme();
+    const DraggableItemStyle = useMemo(() => getDraggableItemStyle(theme), [theme]);
+
     const {
         attributes,
         listeners,
@@ -47,7 +52,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
             >
                 <FontAwesomeIcon
                     icon={faClose}
-                    color="white"
+                    color={DraggableItemStyle.button.color}
                 />
             </button>}
         </div>
