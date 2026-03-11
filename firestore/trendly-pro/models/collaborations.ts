@@ -96,6 +96,9 @@ export interface IAdvanceFilters {
     genders?: string[],
     selectedNiches?: string[],
     selectedLocations?: string[],
+
+    // Sort preference (e.g. "followers" | "engagement" | "views" | "engagement_rate")
+    sort?: string,
 }
 
 // Empty Illustration (there are none in that category)
