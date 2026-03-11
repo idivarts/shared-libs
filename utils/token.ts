@@ -15,8 +15,8 @@ export const newToken = (
     };
 
     const updatedPushNotificationToken = {
-        ...user?.pushNotificationToken,
-        [os]: createOrUpdateToken(user?.pushNotificationToken[os]),
+        ...(user?.pushNotificationToken ?? {}),
+        [os]: createOrUpdateToken(user?.pushNotificationToken?.[os]),
     };
 
     return updatedPushNotificationToken[os] ? updatedPushNotificationToken : null;
@@ -37,8 +37,8 @@ export const removeToken = (
     };
 
     const updatedPushNotificationToken = {
-        ...user?.pushNotificationToken,
-        [os]: deleteToken(user?.pushNotificationToken[os]),
+        ...(user?.pushNotificationToken ?? {}),
+        [os]: deleteToken(user?.pushNotificationToken?.[os]),
     };
 
     return updatedPushNotificationToken[os] ? updatedPushNotificationToken : null;

@@ -98,6 +98,7 @@ export interface SocialsBrief {
     creation_time?: number;
     last_update_time?: number;
     quality_score?: number; // quality score of the influencer between 0 and 10
+    gender?: string;
 
     isDiscover?: boolean;
 }
