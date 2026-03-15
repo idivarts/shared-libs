@@ -1,9 +1,23 @@
+export enum ContractStatus {
+    Pending = 0,
+    Started = 1,
+    PaymentFailed = 2,
+    Paid = 3,
+    Shipped = 4,
+    Delivered = 5,
+    Received = 6,
+    DeliverableSent = 7,
+    PostScheduled = 8,
+    PostDone = 9,
+    Settled = 10,
+}
+
 export interface IContracts {
     brandId: string;
     managerId: string;
     userId: string;
     collaborationId: string;
-    status: number; // 0: pending, 1: active, 2: Feedback, 3: completed
+    status: ContractStatus;
     streamChannelId: string;
     feedbackFromBrand?: {
         ratings?: number;
