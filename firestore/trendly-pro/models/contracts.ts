@@ -1,15 +1,16 @@
 export enum ContractStatus {
     Pending = 0,
-    Started = 1,
-    PaymentFailed = 2,
-    Paid = 3,
-    Shipped = 4,
-    Delivered = 5,
-    Received = 6,
-    DeliverableSent = 7,
-    PostScheduled = 8,
-    PostDone = 9,
-    Settled = 10,
+    Started = 1, // promotionSubject == "physical_product" ? Shipment Pending state : Video Pending state
+    PaymentFailed = 2, // Payment Pending state
+    // Paid = 3,
+    Shipped = 4, // Deliver pending state
+    Delivered = 5, // Delivery Acknowledgement pending state
+    Received = 6, // Video Pending State
+    DeliverableSent = 7, // Review Pending state
+    DeliverableApproved = 7.5, // Schedule Pending state
+    PostScheduled = 8, // Posting Pending state
+    PostDone = 9, // Settlement Pending state - Feedback Open State
+    Settled = 10, // Settlement Done state - Contract Closes state
 }
 
 export interface IContracts {
