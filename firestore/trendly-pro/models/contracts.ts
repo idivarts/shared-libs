@@ -7,7 +7,7 @@ export enum ContractStatus {
     Delivered = 5, // Delivery Acknowledgement pending state
     Received = 6, // Video Pending State
     DeliverableSent = 7, // Review Pending state
-    DeliverableApproved = 7.5, // Schedule Pending state
+    // DeliverableApproved = 7.5, // Schedule Pending state - Not needed as approve and schedule is atomic action
     PostScheduled = 8, // Posting Pending state
     PostDone = 9, // Settlement Pending state - Feedback Open State
     Settled = 10, // Settlement Done state - Contract Closes state
