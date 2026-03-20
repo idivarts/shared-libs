@@ -6,11 +6,11 @@ export enum ContractStatus {
     Pending = 0,
     Started = 1,
     PaymentFailed = 2,
-    Paid = 3,
-    Shipped = 4,
-    Delivered = 5,
-    Received = 6,
-    DeliverableSent = 7,
+    ShipmentPending = 3,
+    DeliveryPending = 4,
+    VideoPending = 5,
+    ReviewPending = 6,
+    PlanRelease = 7,
     PostScheduled = 8,
     PostDone = 9,
     Settled = 10,
@@ -69,6 +69,8 @@ export interface Shipment {
     status?: string;
     notes?: string;
     receivedNotes?: string;
+    /** URL of proof-of-delivery image when brand marks as delivered */
+    proofOfDeliveryUrl?: string;
 }
 
 /**
@@ -79,6 +81,11 @@ export interface ShipmentFormInput {
     courierName?: string;
     trackingNumber?: string;
     shipmentLink?: string;
+    /**
+     * Expected delivery date (ms since epoch). Required by the "mark shipment" backend API.
+     * If not provided, UI should set a reasonable default before calling the API.
+     */
+    expectedDate?: number;
 }
 
 export interface Deliverable {
@@ -97,6 +104,8 @@ export interface Posting {
     proofScreenshot?: string;
     postUrl?: string;
     notes?: string;
+    /** When true, brand opted to boost post on Trendly's Instagram (for free). */
+    trendlyBoost?: boolean;
 }
 
 export interface Analytics {
