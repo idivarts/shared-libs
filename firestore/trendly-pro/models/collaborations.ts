@@ -5,9 +5,9 @@ import { PromotionType } from "../constants/promotion-type";
 
 /** Stored string values for `collaboration.location.type` (single source of truth). */
 export enum CollaborationLocationType {
-    PhysicalMode = "Physical-Mode",
-    Remote = "Remote",
-    OnSite = "On-Site",
+    PhysicalMode = "physical-mode",
+    Remote = "remote",
+    OnSite = "on-site",
 }
 
 /** Normalize Firestore / legacy values to {@link CollaborationLocationType}. */
@@ -16,6 +16,7 @@ export function normalizeCollaborationLocationType(
 ): CollaborationLocationType {
     if (!raw) return CollaborationLocationType.Remote;
     if (raw === "On_Site") return CollaborationLocationType.OnSite;
+    if (raw === "Remote") return CollaborationLocationType.Remote;
     if (
         raw === CollaborationLocationType.PhysicalMode ||
         raw === CollaborationLocationType.Remote ||
