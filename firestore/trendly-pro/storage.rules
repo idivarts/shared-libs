@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Default deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Allow authenticated users to upload contract-related files
+    match /contracts/{contractId}/{allPaths=**} {
+      // Allow read to authenticated users
+      allow read: if request.auth != null;
+      
+      // Allow write (upload) to authenticated users
+      allow write: if request.auth != null;
+    }
+
+    // Allow users to upload and manage profile images
+    match /users/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow brand images
+    match /brands/{brandId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Allow collaboration assets
+    match /collaborations/{collaborationId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

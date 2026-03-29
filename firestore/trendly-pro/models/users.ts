@@ -45,6 +45,16 @@ export interface IUsers {
         updatedAt?: number;
     };
 
+    shippingAddress?: {
+        line1: string;                  // Address Line 1
+        line2?: string;                 // Address Line 2
+        city: string;
+        state: string;
+        postalCode: string;
+        country?: string;               // Optional (default: India)
+        updatedAt?: number;
+    };
+
     bankDetails?: {
         accountNumber: string;          // 14 digits
         ifsc: string;
