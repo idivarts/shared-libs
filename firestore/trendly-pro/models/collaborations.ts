@@ -3,6 +3,46 @@ import { Attachment } from "../constants/attachment";
 import { ExternalLink } from "../constants/external-link";
 import { PromotionType } from "../constants/promotion-type";
 
+/** Stored string values for `collaboration.location.type` (single source of truth). */
+export enum CollaborationLocationType {
+    PhysicalMode = "Physical-Mode",
+    Remote = "Remote",
+    OnSite = "On_Site",
+}
+
+/** Normalize Firestore / legacy values to {@link CollaborationLocationType}. */
+export function normalizeCollaborationLocationType(
+    raw: string | undefined | null
+): CollaborationLocationType {
+    if (!raw) return CollaborationLocationType.Remote;
+    if (raw === "On-Site") return CollaborationLocationType.OnSite;
+    if (
+        raw === CollaborationLocationType.PhysicalMode ||
+        raw === CollaborationLocationType.Remote ||
+        raw === CollaborationLocationType.OnSite
+    ) {
+        return raw;
+    }
+    return CollaborationLocationType.Remote;
+}
+
+/** Short label for chips and overview (not the raw enum string). */
+export function getCollaborationLocationDisplayLabel(
+    type?: string | null
+): string {
+    const t = normalizeCollaborationLocationType(type);
+    switch (t) {
+        case CollaborationLocationType.PhysicalMode:
+            return "Physical shipment";
+        case CollaborationLocationType.Remote:
+            return "Remote";
+        case CollaborationLocationType.OnSite:
+            return "On-site";
+        default:
+            return CollaborationLocationType.Remote;
+    }
+}
+
 export interface ICollaboration {
     name: string; // Name of the collaboration
     brandId: string; // Brand details
@@ -27,7 +67,7 @@ export interface ICollaboration {
         cost?: number; // Product cost (optional)
     }[];
     location: {
-        type: string; // E.g. On-Site, Remote
+        type: CollaborationLocationType;
         name?: string; // Location name - applicable for on-site locations
         latlong?: {
             lat: number;
