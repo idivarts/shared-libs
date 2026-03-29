@@ -62,7 +62,7 @@ export interface ICollaboration {
     contentFormat: string[]; // E.g. Posts, Stories, Reels, Live, Product Reviews
     platform: string[]; // E.g. Facebook, Instagram, Twitter
     numberOfInfluencersNeeded: number;
-    promotionSubject?: "physical_product" | "services" | "others"; // What the brand is promoting
+    promotionSubject?: "physical-product" | "services" | "others"; // What the brand is promoting
     products?: {
         name?: string; // Product/service name
         cost?: number; // Product cost (optional)
