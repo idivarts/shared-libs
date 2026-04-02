@@ -1,6 +1,14 @@
 import { ICollection } from "../../collections";
+import { IAdvanceFilters } from "./collaborations";
 import { INotifications } from "./notifications";
 import { ModelStatus } from "./status";
+
+export enum CRMStatus {
+    NEW_LEADS = "new_leads",
+    IN_PROGRESS_LEADS = "in_progress_leads",
+    ACTIVE_LEADS = "active_leads",
+    CHURNED_LEADS = "churned_leads",
+}
 
 export interface IBrands {
     name: string; // Name of the brand
@@ -46,6 +54,8 @@ export interface IBrands {
         contentVideoType?: string[]
     };
 
+    discoverPreferences?: IAdvanceFilters;
+
     backend?: {
         // These would be updated only from backend
         hireRate?: number; // Brand hire rate (e.g., percentage)
@@ -64,6 +74,8 @@ export interface IBrands {
         planCycle?: string;
         status?: ModelStatus; // Status of the billing
     }
+
+    crmStatus?: CRMStatus; // CRM status for lead management
 
     survey?: {
         // This contains some survey about the trendly app
