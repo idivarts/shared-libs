@@ -4,7 +4,7 @@
  */
 export enum ContractStatus {
     Pending = 0,
-    StartedOrVideoPending = 1, // promotionSubject == "physical_product" ? Shipment Pending state : Video Pending state
+    Started = 1, // promotionSubject == "physical_product" ? Shipment Pending state : Video Pending state
     PaymentFailed = 2,
     ShipmentPending = 3,
     DeliveryPending = 4,
