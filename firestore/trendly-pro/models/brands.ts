@@ -1,4 +1,5 @@
 import { ICollection } from "../../collections";
+import { IAdvanceFilters } from "./collaborations";
 import { INotifications } from "./notifications";
 import { ModelStatus } from "./status";
 
@@ -52,6 +53,8 @@ export interface IBrands {
         timeCommitments?: string[],
         contentVideoType?: string[]
     };
+
+    discoverPreferences?: IAdvanceFilters;
 
     backend?: {
         // These would be updated only from backend

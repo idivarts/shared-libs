@@ -3,6 +3,47 @@ import { Attachment } from "../constants/attachment";
 import { ExternalLink } from "../constants/external-link";
 import { PromotionType } from "../constants/promotion-type";
 
+/** Stored string values for `collaboration.location.type` (single source of truth). */
+export enum CollaborationLocationType {
+    PhysicalMode = "physical-mode",
+    Remote = "remote",
+    OnSite = "on-site",
+}
+
+/** Normalize Firestore / legacy values to {@link CollaborationLocationType}. */
+export function normalizeCollaborationLocationType(
+    raw: string | undefined | null
+): CollaborationLocationType {
+    if (!raw) return CollaborationLocationType.Remote;
+    if (raw === "On_Site") return CollaborationLocationType.OnSite;
+    if (raw === "Remote") return CollaborationLocationType.Remote;
+    if (
+        raw === CollaborationLocationType.PhysicalMode ||
+        raw === CollaborationLocationType.Remote ||
+        raw === CollaborationLocationType.OnSite
+    ) {
+        return raw;
+    }
+    return CollaborationLocationType.Remote;
+}
+
+/** Short label for chips and overview (not the raw enum string). */
+export function getCollaborationLocationDisplayLabel(
+    type?: string | null
+): string {
+    const t = normalizeCollaborationLocationType(type);
+    switch (t) {
+        case CollaborationLocationType.PhysicalMode:
+            return "Physical shipment";
+        case CollaborationLocationType.Remote:
+            return "Remote";
+        case CollaborationLocationType.OnSite:
+            return "On-site";
+        default:
+            return CollaborationLocationType.Remote;
+    }
+}
+
 export interface ICollaboration {
     name: string; // Name of the collaboration
     brandId: string; // Brand details
@@ -21,13 +62,13 @@ export interface ICollaboration {
     contentFormat: string[]; // E.g. Posts, Stories, Reels, Live, Product Reviews
     platform: string[]; // E.g. Facebook, Instagram, Twitter
     numberOfInfluencersNeeded: number;
-    promotionSubject?: "physical_product" | "services" | "others"; // What the brand is promoting
-    productDetails?: {
+    promotionSubject?: "physical-product" | "services" | "others"; // What the brand is promoting
+    products?: {
         name?: string; // Product/service name
         cost?: number; // Product cost (optional)
-    };
+    }[];
     location: {
-        type: string; // E.g. On-Site, Remote
+        type: CollaborationLocationType;
         name?: string; // Location name - applicable for on-site locations
         latlong?: {
             lat: number;
@@ -76,7 +117,7 @@ export interface IAdvanceFilters {
     avgCommentsMin?: number,
     avgCommentsMax?: number,
 
-    // Quality/aesthetics slider (0..100) (int)
+    // Quality/aesthetics (0..10, displayed as 0-5 stars)
     qualityMin?: number,
     qualityMax?: number,
 
@@ -96,6 +137,9 @@ export interface IAdvanceFilters {
     genders?: string[],
     selectedNiches?: string[],
     selectedLocations?: string[],
+
+    // Sort preference (e.g. "followers" | "engagement" | "views" | "engagement_rate")
+    sort?: string,
 }
 
 // Empty Illustration (there are none in that category)

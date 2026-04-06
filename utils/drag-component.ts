@@ -1,8 +1,8 @@
-import { Dimensions } from "react-native";
+import { getConstrainedWidth } from "@/shared-libs/contexts/mobile-layout-context.provider";
 
 const COL = 3;
 export const MARGIN = 8;
-export const SIZE = Dimensions.get("window").width / COL - MARGIN * 2;
+export const SIZE = getConstrainedWidth() / COL - MARGIN * 2;
 
 export const getPosition = (index: number) => {
     "worklet";

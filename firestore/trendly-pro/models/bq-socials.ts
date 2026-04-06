@@ -3,13 +3,24 @@ interface ILink {
     text: string;
 }
 
-interface IReel {
+export interface IReel {
     id: string;
-    thumbnail_url: string;
+    /** @deprecated Use display_url instead - API response structure changed */
+    thumbnail_url?: string;
+    /** Image URL for reel thumbnail (current API field) */
+    display_url?: string;
     url: string;
     caption: string;
-    pinned: boolean;
-    views_count: number | null;
+    /** @deprecated Use is_pinned instead - API response structure changed */
+    pinned?: boolean;
+    /** Current API field for pinned state */
+    is_pinned?: boolean;
+    /** @deprecated Use video_view_count or video_play_count - API response structure changed */
+    views_count?: number | null;
+    /** Current API field: view count for the reel */
+    video_view_count?: number | null;
+    /** Current API field: play count (can include replays) */
+    video_play_count?: number | null;
     likes_count: number | null;
     comments_count: number | null;
 }
@@ -86,6 +97,8 @@ export interface SocialsBrief {
     profile_verified?: boolean;
     creation_time?: number;
     last_update_time?: number;
+    quality_score?: number; // quality score of the influencer between 0 and 10
+    gender?: string;
 
     isDiscover?: boolean;
 }
