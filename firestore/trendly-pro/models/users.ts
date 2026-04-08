@@ -9,7 +9,7 @@ export type KYCStatus =
     | "not_started"
     | "in_progress"
     | "failed"
-    | "approved";
+    | "activated";
 
 export interface IUsers {
     name: string; // Name of the user
