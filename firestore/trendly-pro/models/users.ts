@@ -5,11 +5,15 @@ import { INotifications } from "./notifications";
 import { ISocials } from "./socials";
 
 
-export type KYCStatus =
-    | "not_started"
-    | "in_progress"
-    | "failed"
-    | "approved";
+/** Matches backend `KYCStatus` string values. */
+export enum KYCStatus {
+    NotStarted = "not_started",
+    InProgress = "in_progress",
+    UnderReview = "under_review",
+    NeedsClarification = "needs_clarification",
+    Activated = "activated",
+    Rejected = "rejected",
+}
 
 export interface IUsers {
     name: string; // Name of the user
