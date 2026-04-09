@@ -1,19 +1,60 @@
 /**
- * Contract status as stored in Firestore.
- * Used by both Trendly-Brands and Trendly-Users when reading/writing contracts.
+ * Contract and monetization enums aligned with backend:
+ * `backend-sls/internal/models/trendlymodels/monetization_enums.go`
+ *
+ * `ContractStatus` numeric values match the backend; member names are frontend-oriented for readability.
+ * Used by Trendly frontends when reading/writing contracts in Firestore.
  */
 export enum ContractStatus {
     Pending = 0,
-    Started = 1, // promotionSubject == "physical_product" ? Shipment Pending state : Video Pending state
+    /** Same as backend `OrderCreated` (1). */
+    Started = 1,
     PaymentFailed = 2,
     ShipmentPending = 3,
+    /** Same as backend `Shipped` (4). */
     DeliveryPending = 4,
+    /** Same as backend `Delivered` (5). */
     DeliveryAcknowledgementPending = 5,
+    /** Same as backend `DeliverablePending` (6). */
     VideoPending = 6,
+    /** Same as backend `DeliverableSent` (7). */
     ReviewPending = 7,
+    /** Same as backend `PostScheduled` (8). */
     PostingPending = 8,
-    SettlementPending = 9, // Settlement Pending state - Feedback Open State
+    /** Same as backend `PostDone` (9). */
+    SettlementPending = 9,
     Settled = 10,
+}
+
+export enum PaymentStatus {
+    WaitingForPayment = "waiting-for-payment",
+    Failed = "failed",
+    Paid = "paid",
+    TransferProcessed = "transfer-processed",
+    TransferFailed = "transfer-failed",
+}
+
+export enum ShipmentStatus {
+    Shipped = "shipped",
+    Delivered = "delivered",
+    Received = "received",
+}
+
+export enum DeliverableStatus {
+    RevisionRequested = "revision-requested",
+    Submitted = "submitted",
+}
+
+export enum PostingStatus {
+    Approved = "approved",
+    Rescheduled = "rescheduled",
+    Posted = "posted",
+}
+
+export enum PostingScenario {
+    InfluencerWillPost = "influencer-will-post",
+    InfluencerAndBrandCollabPost = "influencer-and-brand-collab-post",
+    BrandWillUseVideoIndependently = "brand-will-use-video-independently",
 }
 
 export interface IContracts {
@@ -49,8 +90,8 @@ export interface IContracts {
 export interface Payment {
     /** orderId is used on Razorpay to fetch the payment details */
     orderId?: string;
-    /** status is updated from frontend */
-    status?: string;
+    /** Mirrors backend `PaymentStatus` on the contract payment sub-object */
+    status?: PaymentStatus;
     paymentId?: string;
     transferId?: string;
     /** shortUrl can be used to make the payment */
@@ -65,13 +106,13 @@ export interface Shipment {
     expectedDate?: number;
     packageScreenshots?: string[];
     addressShippedTo?: unknown;
-    status?: string;
+    status?: ShipmentStatus;
     notes?: string;
     receivedNotes?: string;
 }
 
 export interface Deliverable {
-    status?: string;
+    status?: DeliverableStatus;
     deliverableLinks?: string[];
     notes?: string;
     revisionCount?: number;
@@ -80,9 +121,9 @@ export interface Deliverable {
 
 export interface Posting {
     scheduledDate?: number;
-    status?: string;
+    status?: PostingStatus;
     postedLinks?: string[];
-    postingScenario?: string;
+    postingScenario?: PostingScenario;
     proofScreenshot?: string;
     postUrl?: string;
     notes?: string;
