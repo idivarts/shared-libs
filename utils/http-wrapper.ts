@@ -1,6 +1,7 @@
+import { IS_DEV } from "./environment";
 import { AuthApp } from "./firebase/auth";
 
-let IS_DEV = __DEV__ || process.env.EXPO_PUBLIC_APP_STAGE == "dev";;
+
 const BASE_URL = `https://be.trendly.now${IS_DEV ? "/dev" : ""}`;
 
 export class HttpWrapper {
