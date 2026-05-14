@@ -24,6 +24,10 @@ export enum ContractStatus {
     /** Same as backend `PostDone` (9). */
     SettlementPending = 9,
     Settled = 10,
+    /** Contract was cancelled by mutual agreement (11). */
+    Cancelled = 11,
+    /** Contract is frozen pending dispute resolution (12). */
+    Disputed = 12,
 }
 
 export enum PaymentStatus {
@@ -85,6 +89,9 @@ export interface IContracts {
     posting?: Posting;
     analytics?: Analytics;
     activity?: Activity[];
+    dispute?: DisputeDetails;
+    cancellationRequest?: CancellationRequest;
+    slaWarnings?: SLAWarning[];
 }
 
 export interface Payment {
@@ -142,4 +149,33 @@ export interface Activity {
     time?: number;
     detail?: string;
     payload?: unknown;
+}
+
+export interface DisputeDetails {
+    raisedBy?: string;
+    raisedByRole?: "influencer" | "brand";
+    type?: string;
+    description?: string;
+    evidence?: string[];
+    status?: "open" | "under_review" | "resolved" | "closed";
+    raisedAt?: number;
+    resolvedAt?: number;
+    resolution?: string;
+    adminId?: string;
+}
+
+export interface CancellationRequest {
+    requestedBy?: string;
+    requestedByRole?: "influencer" | "brand";
+    reason?: string;
+    status?: "pending" | "approved" | "rejected";
+    requestedAt?: number;
+    respondedAt?: number;
+    refundAmount?: number;
+}
+
+export interface SLAWarning {
+    type?: string;
+    level?: "nudge" | "support_escalation";
+    sentAt?: number;
 }

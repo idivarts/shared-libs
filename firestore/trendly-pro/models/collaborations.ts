@@ -78,6 +78,7 @@ export interface ICollaboration {
 
     externalLinks?: ExternalLink[];
     questionsToInfluencers?: string[];
+    maxRevisions?: number;
     preferences: IAdvanceFilters;
     status: string; // "active", "past", "draft", "published"
 
