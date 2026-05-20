@@ -11,6 +11,7 @@ export enum CRMStatus {
 }
 
 export interface IBrands {
+    id?: string;
     name: string; // Name of the brand
     age?: string;
     image?: string; // Image of the brand
