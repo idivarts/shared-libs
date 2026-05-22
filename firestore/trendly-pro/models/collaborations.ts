@@ -49,6 +49,7 @@ export interface ICollaboration {
     brandId: string; // Brand details
     managerId: string; // Manager who created the collaboration
 
+    /** @deprecated No longer used in the v2 content-driven collaboration flow. */
     attachments?: Attachment[];
     description?: string; // Description of the ad campaigns and objectives
 
@@ -61,29 +62,40 @@ export interface ICollaboration {
     preferredContentLanguage: string[]; // E.g. English, Hindi, Bengali, Marathi
     contentFormat: string[]; // E.g. Posts, Stories, Reels, Live, Product Reviews
     platform: string[]; // E.g. Facebook, Instagram, Twitter
+    /** @deprecated No longer surfaced in the v2 flow; always written as 1. Use accepted application count instead. */
     numberOfInfluencersNeeded: number;
     promotionSubject?: "physical-product" | "services" | "others"; // What the brand is promoting
     products?: {
         name?: string; // Product/service name
         cost?: number; // Product cost (optional)
     }[];
-    location: {
-        type: CollaborationLocationType;
-        name?: string; // Location name - applicable for on-site locations
+
+    location?: {
+        /** @deprecated Fulfilment type moved to `collaborationFulfillmentType`. Location fields only applied to on-site collabs and are unused in the v2 flow. */
+        // type moved to collaborationFulfillmentType
+        // type: CollaborationLocationType;
+        name?: string;
         latlong?: {
             lat: number;
             long: number;
-        }; // Latitude and longitude - applicable for on-site locations
+        };
     };
 
+    /** @deprecated No longer used in the v2 content-driven collaboration flow. */
     externalLinks?: ExternalLink[];
     questionsToInfluencers?: string[];
+    /** @deprecated No longer used in the v2 content-driven collaboration flow. */
     maxRevisions?: number;
     preferences: IAdvanceFilters;
     status: string; // "active", "past", "draft", "published"
 
     applications: ICollection<IApplications>; // Proposals for the collaboration
     invitations: ICollection<IInvitations>; // Invitations for the collaboration
+
+    collaborationFulfillmentType?: CollaborationLocationType; // How the collaboration will be fulfilled (e.g., product-shipment, remote, on-site)
+
+    version?: number; // Schema version — v2 collabs are created via the new content-driven flow
+    contentId?: string; // Reference to the IContent model from which this collab was created
 
     timeStamp: number; // Posted date and time
     viewsLastHour?: number; // Number of influencers who viewed this in the last 1 hour
