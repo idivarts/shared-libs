@@ -42,6 +42,10 @@ export interface IStrategy {
 
     numberOfInfluencers?: number; // How many influencers this strategy aims to work with
 
+    // AI-generated or manually written markdown strategy document.
+    // This is the full rich-text body shown in the strategy editor panel.
+    markdownContent?: string;
+
     // IDs of collaborations that execute on this strategy — populated as collabs are created
     collaborationIds?: string[];
 

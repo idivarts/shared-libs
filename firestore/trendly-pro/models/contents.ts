@@ -2,12 +2,12 @@ import { Attachment } from "../constants/attachment";
 import { ExternalLink } from "../constants/external-link";
 
 export enum ContentStatus {
-    Draft = "draft",                   // Content is being drafted by the manager/influencer
-    PendingReview = "pending_review",  // Submitted for brand review before scheduling
-    Approved = "approved",             // Brand approved — ready to be scheduled or posted
-    Scheduled = "scheduled",           // postingTimeStamp is set; will go live at that time
-    Posted = "posted",                 // Content has been published on the platform
-    Rejected = "rejected",             // Brand rejected this revision — needs rework
+    Draft = "draft",                     // Content is being drafted by the manager/influencer
+    PendingReview = "review_pending",    // Submitted for brand review before scheduling
+    Approved = "approved",               // Brand approved — ready to be scheduled or posted
+    Scheduled = "scheduled",             // postingTimeStamp is set; will go live at that time
+    Posted = "posted",                   // Content has been published on the platform
+    Rejected = "rejected",               // Brand rejected this revision — needs rework
 }
 
 export interface IContent {
@@ -43,11 +43,21 @@ export interface IContent {
 
     notes?: string; // Manager notes or creative direction for the influencer
 
+    // Social copy fields — filled out once the content is being produced
+    caption?: string;      // Social media caption text for the post
+    hashtags?: string;     // Hashtag string (e.g. "#IndianBrand #D2C #Reel")
+    timeOfPosting?: string; // Time of day for posting precision, "HH:MM" 24-hour format
+    script?: string;       // Full script or copy for video/reel content
+    imagePrompt?: string;  // AI image generation prompt for visual content planning
+
     // History of revision requests — appended each time a rejection is issued
     revisionNotes?: string[];
 
     // URL of the live post once status reaches Posted
     postedUrl?: string;
+
+    // Whether this content piece has been manually archived by the brand
+    isArchived: boolean;
 
     // Performance metrics captured after the content goes live
     metrics?: ContentMetrics;
