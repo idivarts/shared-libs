@@ -7,22 +7,22 @@ service cloud.firestore {
     }
 
     match /{path=**}/applications/{applicationId} {
-			allow read: if isAuthenticated();
-		}
+      allow read: if isAuthenticated();
+    }
     match /{path=**}/invitations/{invitationId} {
-			allow read: if isAuthenticated();
-		}
+      allow read: if isAuthenticated();
+    }
     match /{path=**}/members/{memberId} {
-			allow read: if isAuthenticated();
-		}
-    
-   	match /scrapped-socials/{socialId} {
-  		allow read: if isAuthenticated();
-  		allow write: if isAuthenticated() && isAdmin();
-		}
+      allow read: if isAuthenticated();
+    }
+
+    match /scrapped-socials/{socialId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isAdmin();
+    }
     match /agency-hires/{hireId} {
-  		allow read, write: if isAuthenticated();
-		}
+      allow read, write: if isAuthenticated();
+    }
     match /collaborations-invites/{collabUserId} {
       allow read, write: if isAuthenticated() && isAdmin();
     }
@@ -34,49 +34,45 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && request.auth.uid == userId;
     }
-    // This will store all the data about the influencers and the creators 
+
+    // Stores data about influencers and creators
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.auth.uid == userId && !doesManagerExists(userId);
       allow update, delete: if isAuthenticated() && request.auth.uid == userId && validateUserUpdate();
-      
-      // This will store all the notifications for the specific user
+
       match /notifications/{notificationId} {
         allow read: if isAuthenticated() && request.auth.uid == userId;
         allow write: if isAuthenticated();
       }
-
-      // This subcollection will store all the social media related data for the specific user
       match /socials/{socialId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated() && request.auth.uid == userId;
       }
-      
       match /invitations/{inviteUserId} {
         allow read: if isAuthenticated();
         allow update: if isAuthenticated() && request.auth.uid == userId;
       }
     }
 
-    // This collection will store all the managers of the brands
+    // Stores all brand managers
     match /managers/{managerId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.auth.uid == managerId && !doesUserExists(managerId);
       allow update, delete: if isAuthenticated() && request.auth.uid == managerId;
 
-      // This subcollection will store all the notifications for the specific manager
       match /notifications/{notificationId} {
         allow read: if isAuthenticated() && request.auth.uid == managerId;
         allow write: if isAuthenticated();
       }
     }
 
-    // This collection will store all the brands
+    // Stores all brands
     match /brands/{brandId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated();
-	
-  		match /socials/{socialId} {
+
+      match /socials/{socialId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
@@ -88,62 +84,52 @@ service cloud.firestore {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
-
-      // This subcollection will store all the managers referencer and its privileges of the specific brand
       match /members/{managerId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
-      // This subcollection will store all the notifications from a specific brand
       match /notifications/{notificationId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
     }
 
-
-    // This collection will store all the collaborations
+    // Stores all collaborations
     match /collaborations/{collaborationId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated();
 
-      // This subcollection will store all the applications for the specific collaboration
       match /applications/{applicationId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
-      // This subcollection will store all the invitations that the brands sends for the specific collaboration
       match /invitations/{invitationId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
     }
 
-    // // This collection will store all the groups that got created for collaborations 
+    // // Stores groups created for collaborations
     // match /groups/{groupId} {
     //   allow read: if isAuthenticated();
     //   allow write: if isAuthenticated();
-
-    //   // This subcollection will store all the messages for the specific group
     //   match /messages/{messageId} {
     //     allow read: if isAuthenticated();
     //     allow write: if isAuthenticated();
     //   }
     // }
 
-    // This collection will store all the contracts that got created for the specific collaboration
+    // Stores contracts created for collaborations
     match /contracts/{contractId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated();
 
-      // // This subcollection will store all the deliverables for the specific contract
-      // match /deliverables/{deliverableId} {
-      //   allow read, write: if isAuthenticated();
-      // }
-      // // This subcollection will store all the payments for the specific contract
-      // match /payments/{paymentId} {
-      //   allow read, write: if isAuthenticated();
-      // }
+      // // match /deliverables/{deliverableId} {
+      // //   allow read, write: if isAuthenticated();
+      // // }
+      // // match /payments/{paymentId} {
+      // //   allow read, write: if isAuthenticated();
+      // // }
     }
 
     function isAuthenticated() {
@@ -153,15 +139,20 @@ service cloud.firestore {
     function isAdmin() {
       return true;
     }
-    
+
     function doesManagerExists(uid) {
       return exists(/databases/$(database)/documents/managers/$(uid));
     }
+
     function doesUserExists(uid) {
       return exists(/databases/$(database)/documents/users/$(uid));
     }
+
     function validateUserUpdate() {
-      return (request.resource.data.isChatConnected == resource.data.isChatConnected || !(resource.data.keys().hasAll(['isChatConnected'])));
+      return (
+        request.resource.data.isChatConnected == resource.data.isChatConnected ||
+        !(resource.data.keys().hasAll(['isChatConnected']))
+      );
     }
   }
 }
