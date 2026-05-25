@@ -1,9 +1,9 @@
 import { ICollection } from "../../collections";
 import { IAdvanceFilters } from "./collaborations";
+import { IContent } from "./contents";
 import { INotifications } from "./notifications";
 import { ModelStatus } from "./status";
 import { IStrategy } from "./strategies";
-import { IContent } from "./contents";
 
 export enum CRMStatus {
     NEW_LEADS = "new_leads",
@@ -95,6 +95,8 @@ export interface IBrands {
     // Subcollections for individual content pieces — stored under brands/{brandId}/contents
     // postingTimeStamp on each IContent drives calendar placement (no separate calendar model)
     contents?: ICollection<IContent>;
+
+    calendarComments?: ICollection<IContent>;
 }
 
 export interface IBrandsMembers {

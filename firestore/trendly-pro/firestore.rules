@@ -76,14 +76,53 @@ service cloud.firestore {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
       }
+
+      // ── Strategies ───────────────────────────────────────────────────────
+      // Tightened: only brand members can read/write strategies.
       match /strategies/{strategyId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated();
+        allow read:            if isAuthenticated() && isBrandMember(brandId);
+        allow create:          if isAuthenticated() && isBrandMember(brandId);
+        allow update, delete:  if isAuthenticated() && isBrandMember(brandId);
+
+        // Strategy document-level and snippet comments
+        match /comments/{commentId} {
+          allow read:   if isAuthenticated() && isBrandMember(brandId);
+          allow create: if isAuthenticated() && isBrandMember(brandId);
+          // Only the comment author can edit or delete their own comment
+          allow update, delete: if isAuthenticated() && isBrandMember(brandId) && isCommentAuthor();
+        }
+
+        // Presence heartbeats — each manager can only write their own doc
+        match /presence/{managerId} {
+          allow read:  if isAuthenticated() && isBrandMember(brandId);
+          allow write: if isAuthenticated() && isBrandMember(brandId)
+                         && request.auth.uid == managerId;
+        }
       }
+
+      // ── Contents ─────────────────────────────────────────────────────────
+      // Tightened: only brand members can read/write content items.
       match /contents/{contentId} {
-        allow read: if isAuthenticated();
-        allow write: if isAuthenticated();
+        allow read:            if isAuthenticated() && isBrandMember(brandId);
+        allow create:          if isAuthenticated() && isBrandMember(brandId);
+        allow update, delete:  if isAuthenticated() && isBrandMember(brandId);
+
+        // Content comments — shared between Calendar and Content detail page
+        match /comments/{commentId} {
+          allow read:   if isAuthenticated() && isBrandMember(brandId);
+          allow create: if isAuthenticated() && isBrandMember(brandId);
+          allow update, delete: if isAuthenticated() && isBrandMember(brandId) && isCommentAuthor();
+        }
       }
+
+      // ── Calendar month-level comments ────────────────────────────────────
+      // Stored at brands/{brandId}/calendarComments/{YYYY-MM}/comments/{commentId}
+      match /calendarComments/{month}/comments/{commentId} {
+        allow read:   if isAuthenticated() && isBrandMember(brandId);
+        allow create: if isAuthenticated() && isBrandMember(brandId);
+        allow update, delete: if isAuthenticated() && isBrandMember(brandId) && isCommentAuthor();
+      }
+
       match /members/{managerId} {
         allow read: if isAuthenticated();
         allow write: if isAuthenticated();
@@ -132,6 +171,8 @@ service cloud.firestore {
       // // }
     }
 
+    // ── Helper functions ────────────────────────────────────────────────────
+
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -146,6 +187,24 @@ service cloud.firestore {
 
     function doesUserExists(uid) {
       return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    /**
+     * Returns true if the calling user is a registered member of the given brand.
+     * Checks for the manager doc under brands/{brandId}/members/{uid}.
+     */
+    function isBrandMember(brandId) {
+      return exists(
+        /databases/$(database)/documents/brands/$(brandId)/members/$(request.auth.uid)
+      );
+    }
+
+    /**
+     * Returns true if the calling user authored the comment being updated/deleted.
+     * Used to enforce that managers can only edit or delete their own comments.
+     */
+    function isCommentAuthor() {
+      return request.auth.uid == resource.data.authorId;
     }
 
     function validateUserUpdate() {

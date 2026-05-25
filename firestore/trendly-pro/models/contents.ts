@@ -1,5 +1,7 @@
+import { ICollection } from "../../collections";
 import { Attachment } from "../constants/attachment";
 import { ExternalLink } from "../constants/external-link";
+import { IComment } from "./comments";
 
 export enum ContentStatus {
     Draft = "draft",                     // Content is being drafted by the manager/influencer
@@ -59,11 +61,20 @@ export interface IContent {
     // Whether this content piece has been manually archived by the brand
     isArchived: boolean;
 
+    /**
+     * Cached count of comments on this content item.
+     * Incremented client-side when a comment is added so calendar item badges
+     * can display the count without querying the comments subcollection.
+     */
+    commentCount?: number;
+
     // Performance metrics captured after the content goes live
     metrics?: ContentMetrics;
 
     createdAt: number; // Epoch timestamp of initial record creation
     updatedAt: number; // Epoch timestamp updated on every write to this document
+
+    comments?: ICollection<IComment>; // Comments on the content piece (for feedback and discussion)
 }
 
 export interface ContentMetrics {

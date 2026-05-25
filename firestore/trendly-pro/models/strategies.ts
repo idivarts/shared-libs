@@ -1,6 +1,7 @@
 import { ICollection } from "../../collections";
-import { IAdvanceFilters } from "./collaborations";
 import { PromotionType } from "../constants/promotion-type";
+import { IAdvanceFilters } from "./collaborations";
+import { IComment } from "./comments";
 
 export enum StrategyStatus {
     Draft = "draft",           // Strategy is being planned, not yet active
@@ -52,8 +53,47 @@ export interface IStrategy {
     // IDs of content pieces created under this strategy
     contents?: ICollection<IStrategyContent>;
 
+    // ── Collaboration ──────────────────────────────────────────────────────
+    /**
+     * Manager IDs (in addition to `managerId`) who have been granted co-edit
+     * access to this strategy. Added via the CollaboratorsModal in the UI.
+     */
+    collaboratorIds?: string[];
+
+    /**
+     * Tracks who last edited the document body (markdown) and when.
+     * Updated on every `updateStrategyContent` call alongside `updatedAt`.
+     */
+    lastEditedBy?: string;  // Manager ID
+    lastEditedAt?: number;  // Epoch timestamp
+
+    // ── Review / Approval flow ─────────────────────────────────────────────
+    /**
+     * Current review state of this strategy document.
+     *
+     * - "draft"             (default) — being authored, not yet sent for review
+     * - "in_review"         — sent for review, awaiting a decision from collaborators
+     * - "approved"          — at least one collaborator has approved it
+     * - "changes_requested" — a reviewer has requested changes; author must revise
+     */
+    reviewStatus?: "draft" | "in_review" | "approved" | "changes_requested";
+
+    /** Manager ID who sent the strategy for review */
+    reviewRequestedBy?: string;
+
+    /** Epoch timestamp when the review was requested */
+    reviewRequestedAt?: number;
+
+    /** Manager ID who made the final approve/reject decision */
+    reviewedBy?: string;
+
+    /** Epoch timestamp of the approve/reject decision */
+    reviewedAt?: number;
+
     createdAt: number; // Epoch timestamp of when this strategy was created
     updatedAt: number; // Epoch timestamp of the last edit — update on every write
+
+    comments?: ICollection<IComment>; // Comments on the strategy document (for feedback and discussion)
 }
 
 // Lightweight reference stored as a subcollection on the strategy to track linked content
