@@ -16,6 +16,16 @@ service cloud.firestore {
 			allow read: if isAuthenticated();
 		}
     
+   	match /scrapped-socials/{socialId} {
+  		allow read: if isAuthenticated();
+  		allow write: if isAuthenticated() && isAdmin();
+		}
+    match /agency-hires/{hireId} {
+  		allow read, write: if isAuthenticated();
+		}
+    match /collaborations-invites/{collabUserId} {
+      allow read, write: if isAuthenticated() && isAdmin();
+    }
     match /connections/{userId} {
       allow read: if isAuthenticated();
       // allow write: if isAuthenticated();
@@ -43,7 +53,7 @@ service cloud.firestore {
       }
       
       match /invitations/{inviteUserId} {
-        allow read: if isAuthenticated() && request.auth.uid == userId;
+        allow read: if isAuthenticated();
         allow update: if isAuthenticated() && request.auth.uid == userId;
       }
     }
@@ -65,6 +75,19 @@ service cloud.firestore {
     match /brands/{brandId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated();
+	
+  		match /socials/{socialId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+      match /strategies/{strategyId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+      match /contents/{contentId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
 
       // This subcollection will store all the managers referencer and its privileges of the specific brand
       match /members/{managerId} {
@@ -126,6 +149,11 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
+
+    function isAdmin() {
+      return true;
+    }
+    
     function doesManagerExists(uid) {
       return exists(/databases/$(database)/documents/managers/$(uid));
     }
