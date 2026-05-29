@@ -77,6 +77,11 @@ service cloud.firestore {
         allow write: if isAuthenticated();
       }
 
+      match /socialAccounts/{accountId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+
       // ── Strategies ───────────────────────────────────────────────────────
       // Tightened: only brand members can read/write strategies.
       match /strategies/{strategyId} {
