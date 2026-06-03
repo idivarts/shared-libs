@@ -5,6 +5,9 @@ export type PickedAsset = {
     type: "image" | "video";
     uri: string;
     assetId: string | null;
+    /** Pixel dimensions from the picker, when available (used for aspect checks). */
+    width?: number;
+    height?: number;
 };
 
 async function ensureMediaLibraryPermission(): Promise<boolean> {
@@ -45,6 +48,8 @@ export async function pickMedia(
         type: asset.type === "video" ? "video" : "image",
         uri: asset.uri,
         assetId: asset.assetId ?? null,
+        width: asset.width,
+        height: asset.height,
     };
 }
 

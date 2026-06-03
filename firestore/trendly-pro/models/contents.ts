@@ -55,6 +55,26 @@ export interface IContent {
     // History of revision requests — appended each time a rejection is issued
     revisionNotes?: string[];
 
+    // Connected social accounts this content will be published / scheduled to.
+    destinations?: ContentDestination[];
+
+    // Publish immediately ("now") or at `scheduledAt` ("scheduled").
+    scheduleMode?: "now" | "scheduled";
+
+    // Epoch ms when a scheduled post should go live (precise publish time —
+    // distinct from `postingTimeStamp`, which is the date used for calendar placement).
+    scheduledAt?: number;
+
+    // Step Functions execution ARN for the scheduled-publish job (from delayed_sqs).
+    // Stored so the schedule can be cancelled / rescheduled via StopExecutions.
+    scheduleExecutionArn?: string;
+
+    // Per-platform published post IDs, keyed by platform (e.g. { instagram: "...", facebook: "..." }).
+    publishedIds?: Record<string, string>;
+
+    // Failure reason set by the publish consumer when status transitions to a failed publish.
+    publishError?: string;
+
     // URL of the live post once status reaches Posted
     postedUrl?: string;
 
@@ -75,6 +95,13 @@ export interface IContent {
     updatedAt: number; // Epoch timestamp updated on every write to this document
 
     comments?: ICollection<IComment>; // Comments on the content piece (for feedback and discussion)
+}
+
+/** A connected social account a content piece is published / scheduled to. */
+export interface ContentDestination {
+    socialAccountId: string;
+    platform: string;
+    username?: string;
 }
 
 export interface ContentMetrics {
