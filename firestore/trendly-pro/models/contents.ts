@@ -5,6 +5,7 @@ import { IComment } from "./comments";
 
 export enum ContentStatus {
     Draft = "draft",                     // Content is being drafted by the manager/influencer
+    InProgress = "in_progress",          // Actively being worked on (between Draft and review)
     PendingReview = "review_pending",    // Submitted for brand review before scheduling
     Approved = "approved",               // Brand approved — ready to be scheduled or posted
     Scheduled = "scheduled",             // postingTimeStamp is set; will go live at that time
