@@ -21,6 +21,10 @@ export interface IBrands {
     creationTime: number,
     growthBook?: any,
     hasPayWall?: boolean,
+    // false for a draft brand created at the start of AI onboarding; flipped to
+    // true once onboarding finishes and the brand is provisioned. Draft brands
+    // are hidden from brand lists and skip the paywall until this is true.
+    onboardingComplete?: boolean,
 
     unlockedInfluencers?: string[],
     discoveredInfluencers?: string[],
