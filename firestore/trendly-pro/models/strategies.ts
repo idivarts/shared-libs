@@ -83,7 +83,7 @@ export interface IStrategy {
     // ── Collaboration ──────────────────────────────────────────────────────
     /**
      * Manager IDs (in addition to `managerId`) who have been granted co-edit
-     * access to this strategy. Added via the CollaboratorsModal in the UI.
+     * access to this strategy. Added via the ShareModal in the UI.
      */
     collaboratorIds?: string[];
 
