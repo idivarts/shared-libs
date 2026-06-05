@@ -41,6 +41,11 @@ export interface IContent {
 
     attachments?: Attachment[]; // Media files: reference images, drafts, final videos
 
+    // Live state of an AI image-generation job, written by the backend websocket
+    // handler. Lets the app render progress + the finished image from its
+    // Firestore subscription, independent of the websocket that started the job.
+    imageGeneration?: IImageGeneration;
+
     // External links relevant to this content (moodboard, brief docs, competitor examples)
     externalLinks?: ExternalLink[];
 
@@ -103,6 +108,17 @@ export interface ContentDestination {
     socialAccountId: string;
     platform: string;
     username?: string;
+}
+
+/** Live state of a backend-driven AI image-generation job for a content piece. */
+export interface IImageGeneration {
+    status: "generating" | "done" | "error";
+    prompt?: string;
+    error?: string;
+    requestedCount?: number;
+    completedCount?: number;
+    startedAt?: number; // epoch ms
+    updatedAt?: number; // epoch ms
 }
 
 export interface ContentMetrics {
