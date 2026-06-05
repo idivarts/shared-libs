@@ -2,6 +2,7 @@ import { ICollection } from "../../collections";
 import { Attachment } from "../constants/attachment";
 import { ExternalLink } from "../constants/external-link";
 import { IComment } from "./comments";
+import { IPublicShareRef } from "./share-links";
 
 export enum ContentStatus {
     Draft = "draft",                     // Content is being drafted by the manager/influencer
@@ -99,6 +100,15 @@ export interface IContent {
 
     createdAt: number; // Epoch timestamp of initial record creation
     updatedAt: number; // Epoch timestamp updated on every write to this document
+
+    // ── Public sharing ─────────────────────────────────────────────────────
+    /**
+     * Set when this content piece is published as a public, view-only share
+     * link. When `publicShare.enabled` is true, Firestore rules permit
+     * anonymous reads of this document (and its comments, for logged-in
+     * non-members). `token` maps back to the `shareLinks/{token}` doc.
+     */
+    publicShare?: IPublicShareRef;
 
     comments?: ICollection<IComment>; // Comments on the content piece (for feedback and discussion)
 }

@@ -2,6 +2,7 @@ import { ICollection } from "../../collections";
 import { PromotionType } from "../constants/promotion-type";
 import { IAdvanceFilters } from "./collaborations";
 import { IComment } from "./comments";
+import { IPublicShareRef } from "./share-links";
 
 export enum StrategyStatus {
     Draft = "draft",           // Strategy is being planned, not yet active
@@ -118,6 +119,15 @@ export interface IStrategy {
 
     createdAt: number; // Epoch timestamp of when this strategy was created
     updatedAt: number; // Epoch timestamp of the last edit — update on every write
+
+    // ── Public sharing ─────────────────────────────────────────────────────
+    /**
+     * Set when this strategy is published as a public, view-only share link.
+     * When `publicShare.enabled` is true, Firestore rules permit anonymous
+     * reads of this document (and its comments, for logged-in non-members).
+     * `token` maps back to the `shareLinks/{token}` doc.
+     */
+    publicShare?: IPublicShareRef;
 
     comments?: ICollection<IComment>; // Comments on the strategy document (for feedback and discussion)
 }
