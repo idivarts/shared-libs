@@ -45,7 +45,33 @@ export interface IStrategy {
 
     // AI-generated or manually written markdown strategy document.
     // This is the full rich-text body shown in the strategy editor panel.
+    //
+    // NOTE (real-time collaboration, Phase 2): once a strategy is co-edited on
+    // web, the Yjs CRDT (stored under the `yupdates` subcollection) becomes the
+    // source of truth for the live document, and `markdownContent` is a *derived
+    // cache* — refreshed from the converged CRDT state so native, AI, export and
+    // search keep reading a plain HTML field. Native (single-writer) still writes
+    // it directly.
     markdownContent?: string;
+
+    // ── Real-time collaboration (Phase 2 — Yjs CRDT) ───────────────────────
+    /**
+     * One-time guard: set to true (transactionally) the first time a Yjs doc is
+     * bootstrapped for this strategy from `markdownContent`. Prevents two clients
+     * seeding the CRDT simultaneously and duplicating the document body.
+     */
+    crdtInitialized?: boolean;
+
+    /**
+     * Soft single-writer lock arbitrating the native ↔ web boundary (Phase 3).
+     * While held, the other surface mounts read-only. `heartbeatAt` lets a stale
+     * lock (crashed/closed editor) expire so the doc never gets stuck locked.
+     */
+    editLock?: {
+        managerId: string;
+        name: string;
+        heartbeatAt: number; // epoch ms — refreshed while the holder is active
+    } | null;
 
     // IDs of collaborations that execute on this strategy — populated as collabs are created
     collaborationIds?: string[];
