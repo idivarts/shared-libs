@@ -15,6 +15,10 @@ export enum CRMStatus {
 export interface IBrands {
     name: string; // Name of the brand
     age?: string;
+    // ISO-3166 alpha-2 country code (e.g. "IN", "US") captured silently at
+    // onboarding. Source of truth for India-only gating. Never shown in the UI.
+    // Missing => treat as India (see isIndiaCountry()).
+    country?: string;
     image?: string; // Image of the brand
     paymentMethodVerified?: boolean; // Indicates if the payment method is verified
     paymentLinks?: string[]
