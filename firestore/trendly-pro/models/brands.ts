@@ -2,7 +2,6 @@ import { ICollection } from "../../collections";
 import { IAdvanceFilters } from "./collaborations";
 import { IContent } from "./contents";
 import { INotifications } from "./notifications";
-import { ModelStatus } from "./status";
 import { IStrategy } from "./strategies";
 
 export enum CRMStatus {
@@ -30,19 +29,17 @@ export interface IBrands {
     // are hidden from brand lists and skip the paywall until this is true.
     onboardingComplete?: boolean,
 
+    // Parent organization this brand belongs to (billing/plan live on the org).
+    // Absent on brands created before the Organization rollout until backfilled.
+    organizationId?: string,
+    // Soft-delete marker (epoch ms). Non-null => brand is deleted/archived.
+    deletedAt?: number,
+
     unlockedInfluencers?: string[],
     discoveredInfluencers?: string[],
     connectedInfluencers?: {
         requested?: string[],
         connected?: string[]
-    }
-
-    credits?: {
-        influencer?: number,
-        discovery?: number,
-        connection?: number,
-        collaboration?: number,
-        contract?: number
     }
 
     profile?: {
@@ -70,20 +67,6 @@ export interface IBrands {
         // These would be updated only from backend
         hireRate?: number; // Brand hire rate (e.g., percentage)
     };
-
-    isBillingDisabled: boolean,
-    billing?: {
-        subscription?: string; // Subscription details
-        subscriptionUrl?: string;
-        billingStatus?: string; // Billing status
-        isOnTrial?: boolean; // Indicates if the brand is on a trial
-        trialEnds?: number;
-        endsAt?: number;
-        // isGrowthPlan?: boolean;
-        planKey?: string;
-        planCycle?: string;
-        status?: ModelStatus; // Status of the billing
-    }
 
     crmStatus?: CRMStatus; // CRM status for lead management
 
