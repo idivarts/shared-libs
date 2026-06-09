@@ -1,7 +1,8 @@
 import { ICollection } from "../../collections";
 import { IAdvanceFilters } from "./collaborations";
+import { IContent } from "./contents";
 import { INotifications } from "./notifications";
-import { ModelStatus } from "./status";
+import { IStrategy } from "./strategies";
 
 export enum CRMStatus {
     NEW_LEADS = "new_leads",
@@ -13,26 +14,32 @@ export enum CRMStatus {
 export interface IBrands {
     name: string; // Name of the brand
     age?: string;
+    // ISO-3166 alpha-2 country code (e.g. "IN", "US") captured silently at
+    // onboarding. Source of truth for India-only gating. Never shown in the UI.
+    // Missing => treat as India (see isIndiaCountry()).
+    country?: string;
     image?: string; // Image of the brand
     paymentMethodVerified?: boolean; // Indicates if the payment method is verified
     paymentLinks?: string[]
     creationTime: number,
     growthBook?: any,
     hasPayWall?: boolean,
+    // false for a draft brand created at the start of AI onboarding; flipped to
+    // true once onboarding finishes and the brand is provisioned. Draft brands
+    // are hidden from brand lists and skip the paywall until this is true.
+    onboardingComplete?: boolean,
+
+    // Parent organization this brand belongs to (billing/plan live on the org).
+    // Absent on brands created before the Organization rollout until backfilled.
+    organizationId?: string,
+    // Soft-delete marker (epoch ms). Non-null => brand is deleted/archived.
+    deletedAt?: number,
 
     unlockedInfluencers?: string[],
     discoveredInfluencers?: string[],
     connectedInfluencers?: {
         requested?: string[],
         connected?: string[]
-    }
-
-    credits?: {
-        influencer?: number,
-        discovery?: number,
-        connection?: number,
-        collaboration?: number,
-        contract?: number
     }
 
     profile?: {
@@ -61,20 +68,6 @@ export interface IBrands {
         hireRate?: number; // Brand hire rate (e.g., percentage)
     };
 
-    isBillingDisabled: boolean,
-    billing?: {
-        subscription?: string; // Subscription details
-        subscriptionUrl?: string;
-        billingStatus?: string; // Billing status
-        isOnTrial?: boolean; // Indicates if the brand is on a trial
-        trialEnds?: number;
-        endsAt?: number;
-        // isGrowthPlan?: boolean;
-        planKey?: string;
-        planCycle?: string;
-        status?: ModelStatus; // Status of the billing
-    }
-
     crmStatus?: CRMStatus; // CRM status for lead management
 
     survey?: {
@@ -86,6 +79,15 @@ export interface IBrands {
 
     members?: ICollection<IBrandsMembers>; // Members of the brand
     notifications?: ICollection<INotifications>; // Notifications for the brand
+
+    // Subcollections for content planning — stored under brands/{brandId}/strategies
+    strategies?: ICollection<IStrategy>;
+
+    // Subcollections for individual content pieces — stored under brands/{brandId}/contents
+    // postingTimeStamp on each IContent drives calendar placement (no separate calendar model)
+    contents?: ICollection<IContent>;
+
+    calendarComments?: ICollection<IContent>;
 }
 
 export interface IBrandsMembers {

@@ -67,13 +67,14 @@ export interface ICollaboration {
         name?: string; // Product/service name
         cost?: number; // Product cost (optional)
     }[];
-    location: {
-        type: CollaborationLocationType;
-        name?: string; // Location name - applicable for on-site locations
+
+    location?: {
+        type?: CollaborationLocationType; // Fulfilment / location type (remote, on-site, physical shipment)
+        name?: string;
         latlong?: {
             lat: number;
             long: number;
-        }; // Latitude and longitude - applicable for on-site locations
+        };
     };
 
     externalLinks?: ExternalLink[];
