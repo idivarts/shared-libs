@@ -64,6 +64,18 @@ export interface IStrategy {
     crdtInitialized?: boolean;
 
     /**
+     * Monotonic counter bumped whenever the backend (AI action) or a native
+     * editor rewrites `markdownContent` wholesale and resets the CRDT. Every
+     * yupdate is tagged with the generation it was written under; clients
+     * ignore yupdates whose generation doesn't match the strategy's current
+     * `crdtGeneration`. This eliminates the race between the doc Update that
+     * sets `crdtInitialized: false` and the (async) deletion of stale
+     * yupdates — the re-bootstrapped editor simply ignores any leftover
+     * old-gen updates instead of waiting for them to be pruned.
+     */
+    crdtGeneration?: number;
+
+    /**
      * Soft single-writer lock arbitrating the native ↔ web boundary (Phase 3).
      * While held, the other surface mounts read-only. `heartbeatAt` lets a stale
      * lock (crashed/closed editor) expire so the doc never gets stuck locked.
