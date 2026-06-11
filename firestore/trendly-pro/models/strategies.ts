@@ -7,6 +7,10 @@ import { IPublicShareRef } from "./share-links";
 export enum StrategyStatus {
     Draft = "draft",           // Strategy is being planned, not yet active
     Active = "active",         // Strategy is currently being executed
+    // Pushed to the content calendar and locked. The document and the AI chat
+    // become read-only; to iterate further the strategy must be duplicated.
+    // Set by the backend when "Push to Calendar" completes successfully.
+    Finalized = "finalized",
     Completed = "completed",   // Strategy has been completed
     Archived = "archived",     // Strategy is no longer relevant
 }
