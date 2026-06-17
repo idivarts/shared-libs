@@ -60,6 +60,11 @@ export interface IContent {
     // Firestore subscription, independent of the websocket that started the job.
     imageGeneration?: IImageGeneration;
 
+    // Dedicated AI thread (ai_conversations doc, module="media") for this
+    // content's image generate/enhance iterations. Stamped by the backend on the
+    // first generation; enables context-aware "Enhance" on subsequent prompts.
+    mediaConversationId?: string;
+
     // External links relevant to this content (moodboard, brief docs, competitor examples)
     externalLinks?: ExternalLink[];
 
