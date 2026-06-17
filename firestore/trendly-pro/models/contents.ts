@@ -1,6 +1,8 @@
 import { ICollection } from "../../collections";
 import { Attachment } from "../constants/attachment";
+import { ContentFormat } from "../constants/content-format";
 import { ExternalLink } from "../constants/external-link";
+import { Platform } from "../constants/platform";
 import { IComment } from "./comments";
 import { IPublicShareRef } from "./share-links";
 
@@ -28,8 +30,19 @@ export interface IContent {
     // Optionally linked to a strategy this content is part of
     strategyId?: string;
 
-    platform: string;       // Target platform (e.g. "Instagram", "YouTube")
-    contentFormat: string;  // Format of content (e.g. "Reel", "Story", "Post", "Video")
+    // Platforms this content is planned for (the publishing INTENT). Chosen at
+    // creation; `destinations` below are the concrete connected accounts picked
+    // at publish time and must each target one of these platforms.
+    platforms: Platform[];
+
+    /**
+     * @deprecated Legacy single-platform field (capitalised string, e.g.
+     * "Instagram"). Superseded by `platforms`. Still read for backward-compat
+     * coercion of old documents — never written by new code.
+     */
+    platform?: string;
+
+    contentFormat: ContentFormat; // One format per content piece (see ContentFormatEnum)
 
     status: ContentStatus;
 
@@ -116,7 +129,7 @@ export interface IContent {
 /** A connected social account a content piece is published / scheduled to. */
 export interface ContentDestination {
     socialAccountId: string;
-    platform: string;
+    platform: Platform;
     username?: string;
 }
 
