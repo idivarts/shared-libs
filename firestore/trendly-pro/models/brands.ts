@@ -77,6 +77,15 @@ export interface IBrands {
         collaborationValue?: string; // Collaboration value
     };
 
+    // AI-maintained, per-brand long-term memory: durable brand facts the AI
+    // captures from chat (via the update_brand_memory tool) and pre-feeds into
+    // every AI conversation so the user never re-explains context. Editable by
+    // the user on the brand-profile page. Scoped strictly to this brand — never
+    // shared across brands or organizations. Kept under a char cap (compacted by
+    // the backend when it grows too large).
+    aiMemory?: string;
+    aiMemoryUpdatedAt?: number; // epoch ms of the last memory write
+
     members?: ICollection<IBrandsMembers>; // Members of the brand
     notifications?: ICollection<INotifications>; // Notifications for the brand
 
