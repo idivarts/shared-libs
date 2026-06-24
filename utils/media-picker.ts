@@ -54,6 +54,49 @@ export async function pickMedia(
 }
 
 /**
+ * Pick one or more assets in a single gallery session. Used by multi-asset
+ * surfaces (e.g. carousels) so the user can select several images at once
+ * instead of uploading one at a time.
+ *
+ * Note: `allowsEditing` is intentionally omitted — the native picker does not
+ * support per-asset cropping alongside multi-selection.
+ *
+ * @param selectionLimit 0 (default) = unlimited; otherwise caps the selection.
+ */
+export async function pickMediaMulti(
+    mediaType: "image" | "video" | "all",
+    selectionLimit = 0
+): Promise<PickedAsset[]> {
+    const granted = await ensureMediaLibraryPermission();
+    if (!granted) return [];
+
+    const isImageOnly = mediaType === "image";
+    const isVideoOnly = mediaType === "video";
+
+    const mediaTypes: MediaPicker.MediaType[] = isImageOnly
+        ? ["images", "livePhotos"]
+        : isVideoOnly
+            ? ["videos"]
+            : ["images", "videos", "livePhotos"];
+
+    const result = await MediaPicker.launchImageLibraryAsync({
+        mediaTypes,
+        allowsMultipleSelection: true,
+        selectionLimit,
+    });
+
+    if (result.canceled) return [];
+
+    return result.assets.map((asset) => ({
+        type: asset.type === "video" ? "video" : "image",
+        uri: asset.uri,
+        assetId: asset.assetId ?? null,
+        width: asset.width,
+        height: asset.height,
+    }));
+}
+
+/**
  * On iOS, prompts the user to choose Photo or Video first (to avoid
  * the known UIImagePickerController bug with allowsEditing + videos).
  * On Android/web, opens the gallery directly with all media types.

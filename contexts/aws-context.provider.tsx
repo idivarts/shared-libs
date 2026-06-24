@@ -49,6 +49,20 @@ const getExtensionFromDataUri = (dataUri: string): string => {
     return parts.length > 1 ? parts[1] : "";
 };
 
+/**
+ * Per-upload unique token. `Date.now()` alone collides when several uploads are
+ * kicked off in the same millisecond (e.g. multi-select carousel uploads run
+ * through `Promise.all`) — identical filenames map to the same S3 key, so the
+ * parallel uploads overwrite each other and every attachment ends up pointing
+ * at the same image. Mixing in a monotonic counter + random suffix guarantees a
+ * distinct key for every call.
+ */
+let uploadCounter = 0;
+const uniqueUploadToken = (): string => {
+    uploadCounter = (uploadCounter + 1) % Number.MAX_SAFE_INTEGER;
+    return `${uploadCounter.toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+};
+
 export const AWSContextProvider: React.FC<PropsWithChildren> = ({
     children,
 }) => {
@@ -57,18 +71,19 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
     const preUploadRequestUrl = (file: File | AssetItem): string => {
         const date = Date.now();
+        const token = uniqueUploadToken();
         const baseUrl = "/s3/v1/";
         const type = file.type.includes("video") ? "videos" : "images";
         let filename: string = "";
 
         if (file instanceof File) {
-            filename = `${type}-${date}-${file.name}`;
+            filename = `${type}-${date}-${token}-${file.name}`;
         } else if (Platform.OS == "web") {
             const ext = getExtensionFromDataUri(file.uri) //file.uri
-            filename = `${type}-${date}.${ext}`;
+            filename = `${type}-${date}-${token}.${ext}`;
         } else {
             const aFile = file.localUri.split('/').pop()
-            filename = `${type}-${date}-${aFile}`;
+            filename = `${type}-${date}-${token}-${aFile}`;
         }
         // check if filename has an extension using regex
         if (!/\.[^\/.]+$/.test(filename)) {
@@ -80,13 +95,14 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
     const preUploadRequestUrlForAttachment = (file: File | AssetItem): string => {
         const date = new Date().getTime();
+        const token = uniqueUploadToken();
         const baseUrl = "/s3/v1/";
         let filename: string = "";
 
         if (Platform.OS === "web") {
-            filename = `${date}.${file.type.split("/")[1]}`;
+            filename = `${date}-${token}.${file.type.split("/")[1]}`;
         } else {
-            filename = `${date}.${`pdf`}`;
+            filename = `${date}-${token}.${`pdf`}`;
         }
 
         return `${baseUrl}${`attachments`}?filename=${filename}`;
