@@ -83,6 +83,18 @@ export interface IContent {
     // Connected social accounts this content will be published / scheduled to.
     destinations?: ContentDestination[];
 
+    // Per-platform publishing extras (YouTube title/visibility, Reddit subreddit
+    // /title/flair). Mirrors the backend ContentPlatformOptions (content.go).
+    platformOptions?: {
+        youtubeTitle?: string;
+        youtubePrivacy?: string;
+        youtubeMadeForKids?: boolean;
+        redditSubreddit?: string;
+        redditTitle?: string;
+        redditFlairId?: string;
+        redditNsfw?: boolean;
+    };
+
     // Publish immediately ("now") or at `scheduledAt` ("scheduled").
     scheduleMode?: "now" | "scheduled";
 

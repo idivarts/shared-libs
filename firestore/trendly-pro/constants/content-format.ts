@@ -43,22 +43,22 @@ export const CONTENT_FORMAT_LABELS: Record<ContentFormat, string> = {
  * `internal/models/trendlymodels/content_format.go` — keep the two in sync.
  *
  * Confirmed matrix (2026-06-17):
- *  - post:     all except YouTube
- *  - reel:     all (YouTube = Shorts)
+ *  - post:     all except YouTube (Reddit = link/image submission)
+ *  - reel:     all video platforms (YouTube = Shorts)
  *  - video:    all (Instagram = feed video, not a Reel)
  *  - story:    Instagram + Facebook only
- *  - carousel: Instagram, Facebook, LinkedIn
- *  - live:     all except X/Twitter
- *  - text:     Facebook, LinkedIn, X/Twitter (Instagram cannot do a text post)
+ *  - carousel: Instagram, Facebook, LinkedIn, LinkedIn Page
+ *  - live:     all except X/Twitter and Reddit
+ *  - text:     Facebook, LinkedIn, LinkedIn Page, X/Twitter, Reddit (Instagram cannot do a text post)
  */
 export const FORMAT_PLATFORM_SUPPORT: Record<ContentFormat, Platform[]> = {
-    post: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.LinkedIn, PlatformEnum.Twitter],
-    reel: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.YouTube, PlatformEnum.LinkedIn, PlatformEnum.Twitter],
-    video: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.YouTube, PlatformEnum.LinkedIn, PlatformEnum.Twitter],
+    post: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.LinkedIn, PlatformEnum.LinkedInPage, PlatformEnum.Twitter, PlatformEnum.Reddit],
+    reel: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.YouTube, PlatformEnum.LinkedIn, PlatformEnum.LinkedInPage, PlatformEnum.Twitter],
+    video: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.YouTube, PlatformEnum.LinkedIn, PlatformEnum.LinkedInPage, PlatformEnum.Twitter],
     story: [PlatformEnum.Instagram, PlatformEnum.Facebook],
-    carousel: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.LinkedIn],
-    live: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.YouTube, PlatformEnum.LinkedIn],
-    text: [PlatformEnum.Facebook, PlatformEnum.LinkedIn, PlatformEnum.Twitter],
+    carousel: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.LinkedIn, PlatformEnum.LinkedInPage],
+    live: [PlatformEnum.Instagram, PlatformEnum.Facebook, PlatformEnum.YouTube, PlatformEnum.LinkedIn, PlatformEnum.LinkedInPage],
+    text: [PlatformEnum.Facebook, PlatformEnum.LinkedIn, PlatformEnum.LinkedInPage, PlatformEnum.Twitter, PlatformEnum.Reddit],
 };
 
 /** Platforms that support the given content format. */
