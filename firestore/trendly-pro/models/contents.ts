@@ -16,6 +16,60 @@ export enum ContentStatus {
     Rejected = "rejected",               // Brand rejected this revision — needs rework
 }
 
+/**
+ * Per-platform publishing extras that don't fit the shared caption/attachment
+ * model. A FLAT, namespaced-by-prefix bag (not a nested map) so it stays
+ * backward-compatible with the original youtube / reddit fields and maps 1:1 to
+ * the backend `ContentPlatformOptions` struct (content.go).
+ *
+ * These live on a content's generic `platformOptions` AND on each per-platform
+ * variation (see {@link IContentVariation}). At publish time the variation's
+ * options win over the generic ones for that platform.
+ *
+ * The set of fields the UI actually renders per platform is driven by the
+ * registry in `constants/platform-fields.ts` — keep the two in sync.
+ */
+export interface IPlatformOptions {
+    // ── Instagram ──────────────────────────────────────────────────────────
+    instagramLocation?: string;     // free-text location label (location_id resolved server-side)
+    instagramAltText?: string;      // accessibility alt text for the first image
+    instagramFirstComment?: string; // auto-posted first comment (common hashtag stash)
+
+    // ── Facebook ───────────────────────────────────────────────────────────
+    facebookFirstComment?: string;
+
+    // ── LinkedIn (personal + page share the same option keys) ──────────────
+    linkedinVisibility?: "PUBLIC" | "CONNECTIONS" | "LOGGED_IN";
+    linkedinFirstComment?: string;
+    linkedinAltText?: string;
+
+    // ── Twitter / X ────────────────────────────────────────────────────────
+    // When `twitterThread` has >1 entry the post goes out as a self-reply chain.
+    // Empty/absent → the shared caption is auto-split at publish time.
+    twitterThread?: string[];
+    twitterReplySettings?: "everyone" | "following" | "mentionedUsers" | "subscribers";
+    twitterQuoteTweetId?: string;
+    twitterAltText?: string;
+
+    // ── YouTube ────────────────────────────────────────────────────────────
+    youtubeTitle?: string;
+    youtubeDescription?: string;
+    youtubeTags?: string[];
+    youtubeCategoryId?: string;
+    youtubePrivacy?: "public" | "private" | "unlisted";
+    youtubeMadeForKids?: boolean;
+    youtubePlaylistId?: string;
+
+    // ── Reddit ─────────────────────────────────────────────────────────────
+    redditSubreddit?: string;
+    redditTitle?: string;
+    redditFlairId?: string;
+    redditFlairText?: string;
+    redditNsfw?: boolean;
+    redditSpoiler?: boolean;
+    redditSendReplies?: boolean;
+}
+
 export interface IContent {
     title: string;     // Short label for the content piece (e.g., "Diwali unboxing reel")
     managerId: string; // Manager who created or owns this content record
@@ -84,16 +138,9 @@ export interface IContent {
     destinations?: ContentDestination[];
 
     // Per-platform publishing extras (YouTube title/visibility, Reddit subreddit
-    // /title/flair). Mirrors the backend ContentPlatformOptions (content.go).
-    platformOptions?: {
-        youtubeTitle?: string;
-        youtubePrivacy?: string;
-        youtubeMadeForKids?: boolean;
-        redditSubreddit?: string;
-        redditTitle?: string;
-        redditFlairId?: string;
-        redditNsfw?: boolean;
-    };
+    // /title/flair, Twitter thread, LinkedIn visibility, …). Mirrors the backend
+    // ContentPlatformOptions (content.go). See {@link IPlatformOptions}.
+    platformOptions?: IPlatformOptions;
 
     // Publish immediately ("now") or at `scheduledAt` ("scheduled").
     scheduleMode?: "now" | "scheduled";
