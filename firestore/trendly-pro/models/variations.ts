@@ -18,6 +18,14 @@ import { Attachment } from "../constants/attachment";
 import { Platform } from "../constants/platform";
 import { IPlatformOptions } from "./contents";
 
+/** The shared content fields, resolved for a single platform. */
+export interface EffectiveContentFields {
+    caption: string;
+    hashtags: string;
+    attachments: Attachment[];
+    platformOptions?: IPlatformOptions;
+}
+
 /** Shared content fields a variation may override (inherited from generic otherwise). */
 export type VariationOverridableField = "caption" | "hashtags" | "attachments";
 
@@ -54,4 +62,46 @@ export function isFieldOverridden(
     field: VariationOverridableField
 ): boolean {
     return !!variation?.overriddenFields?.includes(field);
+}
+
+/**
+ * Resolve the content that will actually publish to a platform by merging the
+ * generic content with that platform's variation — the frontend mirror of the
+ * backend `Content.EffectiveForPlatform` (content_variation.go).
+ *
+ * Fields the variation hasn't overridden inherit live from `generic`. Platform
+ * options come wholesale from the variation when it has any (they have no
+ * generic-inherit semantics), else fall back to the generic options.
+ */
+export function effectiveContentForPlatform(
+    generic: EffectiveContentFields,
+    variation:
+        | Pick<
+              IContentVariation,
+              "caption" | "hashtags" | "attachments" | "overriddenFields" | "platformOptions"
+          >
+        | null
+        | undefined
+): EffectiveContentFields {
+    if (!variation) return generic;
+    const overridden = new Set(variation.overriddenFields ?? []);
+    return {
+        caption: overridden.has("caption") ? variation.caption ?? "" : generic.caption,
+        hashtags: overridden.has("hashtags") ? variation.hashtags ?? "" : generic.hashtags,
+        attachments: overridden.has("attachments")
+            ? variation.attachments ?? []
+            : generic.attachments,
+        platformOptions: variation.platformOptions ?? generic.platformOptions,
+    };
+}
+
+/** Whether a variation actually customizes anything (an override or any platform option). */
+export function variationHasCustomizations(
+    variation: Pick<IContentVariation, "overriddenFields" | "platformOptions"> | null | undefined
+): boolean {
+    if (!variation) return false;
+    if ((variation.overriddenFields?.length ?? 0) > 0) return true;
+    return Object.values(variation.platformOptions ?? {}).some(
+        (v) => v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
+    );
 }
