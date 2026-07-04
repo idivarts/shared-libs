@@ -147,9 +147,16 @@ export const AWSContextProvider: React.FC<PropsWithChildren> = ({
 
     const getBlob = async (fileUri: AssetItem): Promise<Blob> => {
         if (fileUri.type === "video") {
-            const videoFile = new FileSystem.File(fileUri.localUri);
-            if (!videoFile.exists) {
-                throw new Error("Video file does not exist");
+            // `FileSystem.File` is the native-only expo-file-system API. On web the
+            // picker returns a blob:/data: URL that it can't stat (`exists` is
+            // false), so the check must be skipped there — otherwise it throws
+            // "Video file does not exist" and the whole upload fails. Fetching the
+            // URI directly yields the blob on every platform.
+            if (Platform.OS !== "web") {
+                const videoFile = new FileSystem.File(fileUri.localUri);
+                if (!videoFile.exists) {
+                    throw new Error("Video file does not exist");
+                }
             }
 
             const response = await fetch(fileUri.localUri);
