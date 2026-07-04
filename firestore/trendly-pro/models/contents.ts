@@ -12,8 +12,35 @@ export enum ContentStatus {
     PendingReview = "review_pending",    // Submitted for brand review before scheduling
     Approved = "approved",               // Brand approved — ready to be scheduled or posted
     Scheduled = "scheduled",             // postingTimeStamp is set; will go live at that time
-    Posted = "posted",                   // Content has been published on the platform
+    Publishing = "publishing",           // Publish-now job in flight — per-social results filling in
+    Posted = "posted",                   // Published on every targeted platform
+    PartiallyFailed = "partially_failed",// Published on some platforms; at least one failed
+    Failed = "failed",                   // Every targeted platform failed to publish
     Rejected = "rejected",               // Brand rejected this revision — needs rework
+}
+
+/**
+ * Per-destination outcome of a publish run, written by the backend publish
+ * worker onto the content doc. One entry per targeted destination; the brand app
+ * renders these rows live via its Firestore subscription. Mirrors the backend
+ * `ContentPublishResult` struct (content.go).
+ */
+export interface IContentPublishResult {
+    /** The connected account this row is for (matches `ContentDestination.socialAccountId`). */
+    socialAccountId?: string;
+    platform: string;
+    username?: string;
+    status: "publishing" | "published" | "failed" | "skipped";
+    /** Platform post/media id once published. */
+    postId?: string;
+    /** Permalink to the live post, when the platform returns one. */
+    url?: string;
+    /** Human-readable failure reason (shown inline on the failed row). */
+    error?: string;
+    /** Recovery hint for the UI: fix the content, retry, or reconnect the account. */
+    errorKind?: "validation" | "transient" | "auth";
+    /** Epoch ms this row resolved. */
+    at?: number;
 }
 
 /**
@@ -158,6 +185,11 @@ export interface IContent {
 
     // Failure reason set by the publish consumer when status transitions to a failed publish.
     publishError?: string;
+
+    // Per-destination publish outcome (in-flight / published / failed with a
+    // reason), one entry per targeted destination. Source of truth for the brand
+    // app's per-social publish status UI. See {@link IContentPublishResult}.
+    publishResults?: IContentPublishResult[];
 
     // URL of the live post once status reaches Posted
     postedUrl?: string;
