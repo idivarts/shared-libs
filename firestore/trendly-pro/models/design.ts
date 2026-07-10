@@ -40,9 +40,31 @@ export interface IContentDesignRevision {
 export interface IContentAudio {
     musicId?: string;
     musicUrl?: string;
-    musicVolume?: number;
+    musicTitle?: string;
+    musicVolume?: number; // 0..1
+    musicFade?: boolean;
     voiceoverId?: string;
     voiceoverUrl?: string;
+    voiceoverVolume?: number; // 0..1
     duckMusic?: boolean;
     captionSource?: string;
+}
+
+/** A curated music-library track (musicLibrary catalog). */
+export interface IMusicTrack {
+    id: string;
+    title: string;
+    moods: string[];
+    url: string;
+    durationMs: number;
+    provider: string;
+}
+
+/** An ElevenLabs voice for the voiceover picker. */
+export interface IVoice {
+    voice_id: string;
+    name: string;
+    category?: string;
+    labels?: Record<string, string>;
+    preview_url?: string;
 }
