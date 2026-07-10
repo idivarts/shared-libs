@@ -54,6 +54,21 @@ export interface IComment {
      */
     calendarMonth?: string;
 
+    // ── Media / scene-element anchoring (AI Studio) ────────────────────────
+    /**
+     * When a comment is pinned to a specific element on the Studio canvas (a
+     * scene element) or an attachment, this describes what it's anchored to so
+     * the pin can be re-drawn and the AI knows which element to act on.
+     */
+    mediaAnchor?: ICommentMediaAnchor;
+
+    /**
+     * True when the author promoted this pinned comment into an AI directive
+     * ("Ask AI to apply"). Directives get translated into scene edit-ops; plain
+     * pinned comments stay human-to-human notes.
+     */
+    isDirective?: boolean;
+
     // ── Threading ──────────────────────────────────────────────────────────
     /**
      * ID of the parent comment if this is a reply.
@@ -73,4 +88,19 @@ export interface IComment {
 
     /** Epoch timestamp updated on every edit to the comment body */
     updatedAt: number;
+}
+
+/**
+ * ICommentMediaAnchor pins a comment to a place on the media/scene so the pin can
+ * be re-drawn and the AI knows which element to edit.
+ */
+export interface ICommentMediaAnchor {
+    /** Scene element id the comment targets (Studio canvas). */
+    elementId?: string;
+    /** Attachment index the comment targets (uploaded-media gallery). */
+    attachmentIndex?: number;
+    /** Normalized [0,1] bounding box of the anchor, for drawing the pin. */
+    norm?: { x: number; y: number; w: number; h: number };
+    /** Short human label for the anchor (e.g. "headline", "logo"). */
+    label?: string;
 }

@@ -4,6 +4,7 @@ import { ContentFormat } from "../constants/content-format";
 import { ExternalLink } from "../constants/external-link";
 import { Platform } from "../constants/platform";
 import { IComment } from "./comments";
+import { IContentAudio, IContentDesignRef } from "./design";
 import { IPublicShareRef } from "./share-links";
 
 export enum ContentStatus {
@@ -145,6 +146,18 @@ export interface IContent {
     // content's image generate/enhance iterations. Stamped by the backend on the
     // first generation; enables context-aware "Enhance" on subsequent prompts.
     mediaConversationId?: string;
+
+    // ── AI Studio (HTML design editor) ─────────────────────────────────────
+    // How the current media was produced. "ai" = HTML design (render via
+    // designRef); "upload"; "canva"; undefined = legacy gallery.
+    source?: "ai" | "upload" | "canva";
+    // Pointer to the current HTML design revision + its captured render.
+    designRef?: IContentDesignRef;
+    // Generated music/voiceover attached to a video content (muxed at render).
+    audio?: IContentAudio;
+    // Canva deep-edit bridge references.
+    canvaDesignId?: string;
+    exportedAssetRef?: string;
 
     // External links relevant to this content (moodboard, brief docs, competitor examples)
     externalLinks?: ExternalLink[];
