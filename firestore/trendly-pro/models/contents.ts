@@ -112,6 +112,11 @@ export interface IContent {
     // Optionally linked to a strategy this content is part of
     strategyId?: string;
 
+    // AI-write-only: populated when content is authored by AI (push-to-calendar
+    // or the calendar chat's create_content tool). No UI may let a user add or
+    // edit this field.
+    contentPillars?: string[];
+
     // Platforms this content is planned for (the publishing INTENT). Chosen at
     // creation; `destinations` below are the concrete connected accounts picked
     // at publish time and must each target one of these platforms.
