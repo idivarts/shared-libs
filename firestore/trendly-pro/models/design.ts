@@ -14,6 +14,8 @@ export interface IContentDesignRef {
     height: number; // per-slide height
     /** Number of carousel slides (1 for a single post). */
     slideCount: number;
+    /** Animation length in ms for a video design (0 for images). */
+    durationMs?: number;
     /** First frontend-captured PNG (cover) used for publish/Canva. */
     renderUrl?: string;
     updatedAt: number;
@@ -26,6 +28,7 @@ export interface IContentDesignRevision {
     width: number; // per-slide width
     height: number; // per-slide height
     slideCount: number;
+    durationMs?: number;
     docType: DesignDocType;
     origin?: "generate" | "edit" | "text" | "revert";
     parentRevisionId?: string;
