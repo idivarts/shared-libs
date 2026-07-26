@@ -20,12 +20,15 @@ export interface IOrgBilling {
     planCycle?: string;
     status?: number;
     // ── Org-level USD billing state machine (Credit ticket §5a/§6) ──
-    provider?: string;                 // "razorpay" now; future MoR
+    provider?: string;                 // "razorpay" (web) | "revenuecat" (native IAP); future MoR
     accessState?: IOrgAccessState;     // app-level access control
     billingMode?: "recurring" | "invoice";
     billingAnchorDay?: number;         // always 1
-    periodEnd?: number;                // end of current paid month (next 1st)
+    periodEnd?: number;                // end of current paid month (next 1st, or IAP expiry)
     proratedFirstMonth?: boolean;
+    // ── Native In-App Purchase (RevenueCat) fields (provider === "revenuecat") ──
+    store?: "apple" | "google";        // where the subscription is managed (cancel/manage deep-links there)
+    providerRef?: string;              // store original transaction id
 }
 
 // IOrgEntitlements is the denormalized plan capability set (resolved from the
