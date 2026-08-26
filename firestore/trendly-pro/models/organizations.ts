@@ -67,6 +67,20 @@ export interface IOrganizations {
     creationTime: number;
     // Soft-delete marker (epoch ms). Non-null => org is deleted.
     deletedAt?: number;
+    // Set when this org attempted to purchase/restore a native IAP
+    // subscription a store receipt shows as already owned by a DIFFERENT org
+    // — subscriptions are not transferable between orgs. This org's plan is
+    // left untouched (typically free); the frontend paywall reads this to show
+    // an explanatory popup naming the org that already owns it. Cleared via
+    // the dismiss-restore-conflict endpoint once shown.
+    iapRestoreConflict?: IIapRestoreConflict;
+}
+
+export interface IIapRestoreConflict {
+    conflictingOrgId: string;
+    conflictingOrgName: string;
+    conflictingOwnerEmail: string;
+    occurredAt: number;
 }
 
 export type OrgRole = "org_owner" | "org_admin" | "member";
