@@ -1,3 +1,4 @@
+import { getClientPlatform } from "./client-platform";
 import { IS_DEV } from "./environment";
 import { AuthApp } from "./firebase/auth";
 
@@ -14,6 +15,10 @@ export class HttpWrapper {
             headers: {
                 ...init?.headers,
                 ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+                // Lets the backend record which client the user is on (see
+                // middlewares.ClientPlatformHeader). Purely informational — no
+                // endpoint behaviour depends on it.
+                "X-Client-Platform": getClientPlatform(),
             },
         });
         if (response.status >= 300) {
