@@ -20,7 +20,12 @@ async function ensureMediaLibraryPermission(): Promise<boolean> {
 }
 
 export async function pickMedia(
-    mediaType: "image" | "video" | "all"
+    mediaType: "image" | "video" | "all",
+    /**
+     * Aspect ratio to lock the native crop UI to, e.g. [1, 1] or [4, 5].
+     * Omit for a free-form crop (no forced ratio). Ignored for video.
+     */
+    aspect?: [number, number]
 ): Promise<PickedAsset | null> {
     const granted = await ensureMediaLibraryPermission();
     if (!granted) return null;
@@ -38,7 +43,7 @@ export async function pickMedia(
         mediaTypes,
         allowsMultipleSelection: false,
         allowsEditing: !isVideoOnly,
-        aspect: !isVideoOnly ? [4, 3] : undefined,
+        aspect: !isVideoOnly ? aspect : undefined,
     });
 
     if (result.canceled) return null;
