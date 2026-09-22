@@ -12,7 +12,11 @@ export enum PlatformEnum {
     Facebook = "facebook",
     YouTube = "youtube",
     LinkedIn = "linkedin",
+    // LinkedIn Company/Showcase Page — a DISTINCT provider from personal LinkedIn
+    // (dedicated Community Management API app; org posting + comments + insights).
+    LinkedInPage = "linkedin_page",
     Twitter = "twitter",
+    Reddit = "reddit",
 }
 
 /** String-literal union of every {@link PlatformEnum} value. */

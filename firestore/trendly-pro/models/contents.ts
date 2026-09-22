@@ -4,6 +4,7 @@ import { ContentFormat } from "../constants/content-format";
 import { ExternalLink } from "../constants/external-link";
 import { Platform } from "../constants/platform";
 import { IComment } from "./comments";
+import { IContentAudio, IContentDesignRef } from "./design";
 import { IPublicShareRef } from "./share-links";
 
 export enum ContentStatus {
@@ -12,8 +13,89 @@ export enum ContentStatus {
     PendingReview = "review_pending",    // Submitted for brand review before scheduling
     Approved = "approved",               // Brand approved — ready to be scheduled or posted
     Scheduled = "scheduled",             // postingTimeStamp is set; will go live at that time
-    Posted = "posted",                   // Content has been published on the platform
+    Publishing = "publishing",           // Publish-now job in flight — per-social results filling in
+    Posted = "posted",                   // Published on every targeted platform
+    PartiallyFailed = "partially_failed",// Published on some platforms; at least one failed
+    Failed = "failed",                   // Every targeted platform failed to publish
     Rejected = "rejected",               // Brand rejected this revision — needs rework
+}
+
+/**
+ * Per-destination outcome of a publish run, written by the backend publish
+ * worker onto the content doc. One entry per targeted destination; the brand app
+ * renders these rows live via its Firestore subscription. Mirrors the backend
+ * `ContentPublishResult` struct (content.go).
+ */
+export interface IContentPublishResult {
+    /** The connected account this row is for (matches `ContentDestination.socialAccountId`). */
+    socialAccountId?: string;
+    platform: string;
+    username?: string;
+    status: "publishing" | "published" | "failed" | "skipped";
+    /** Platform post/media id once published. */
+    postId?: string;
+    /** Permalink to the live post, when the platform returns one. */
+    url?: string;
+    /** Human-readable failure reason (shown inline on the failed row). */
+    error?: string;
+    /** Recovery hint for the UI: fix the content, retry, or reconnect the account. */
+    errorKind?: "validation" | "transient" | "auth";
+    /** Epoch ms this row resolved. */
+    at?: number;
+}
+
+/**
+ * Per-platform publishing extras that don't fit the shared caption/attachment
+ * model. A FLAT, namespaced-by-prefix bag (not a nested map) so it stays
+ * backward-compatible with the original youtube / reddit fields and maps 1:1 to
+ * the backend `ContentPlatformOptions` struct (content.go).
+ *
+ * These live on a content's generic `platformOptions` AND on each per-platform
+ * variation (see {@link IContentVariation}). At publish time the variation's
+ * options win over the generic ones for that platform.
+ *
+ * The set of fields the UI actually renders per platform is driven by the
+ * registry in `constants/platform-fields.ts` — keep the two in sync.
+ */
+export interface IPlatformOptions {
+    // ── Instagram ──────────────────────────────────────────────────────────
+    instagramLocation?: string;     // free-text location label (location_id resolved server-side)
+    instagramAltText?: string;      // accessibility alt text for the first image
+    instagramFirstComment?: string; // auto-posted first comment (common hashtag stash)
+
+    // ── Facebook ───────────────────────────────────────────────────────────
+    facebookFirstComment?: string;
+
+    // ── LinkedIn (personal + page share the same option keys) ──────────────
+    linkedinVisibility?: "PUBLIC" | "CONNECTIONS" | "LOGGED_IN";
+    linkedinFirstComment?: string;
+    linkedinAltText?: string;
+
+    // ── Twitter / X ────────────────────────────────────────────────────────
+    // When `twitterThread` has >1 entry the post goes out as a self-reply chain.
+    // Empty/absent → the shared caption is auto-split at publish time.
+    twitterThread?: string[];
+    twitterReplySettings?: "everyone" | "following" | "mentionedUsers" | "subscribers";
+    twitterQuoteTweetId?: string;
+    twitterAltText?: string;
+
+    // ── YouTube ────────────────────────────────────────────────────────────
+    youtubeTitle?: string;
+    youtubeDescription?: string;
+    youtubeTags?: string[];
+    youtubeCategoryId?: string;
+    youtubePrivacy?: "public" | "private" | "unlisted";
+    youtubeMadeForKids?: boolean;
+    youtubePlaylistId?: string;
+
+    // ── Reddit ─────────────────────────────────────────────────────────────
+    redditSubreddit?: string;
+    redditTitle?: string;
+    redditFlairId?: string;
+    redditFlairText?: string;
+    redditNsfw?: boolean;
+    redditSpoiler?: boolean;
+    redditSendReplies?: boolean;
 }
 
 export interface IContent {
@@ -29,6 +111,11 @@ export interface IContent {
 
     // Optionally linked to a strategy this content is part of
     strategyId?: string;
+
+    // AI-write-only: populated when content is authored by AI (push-to-calendar
+    // or the calendar chat's create_content tool). No UI may let a user add or
+    // edit this field.
+    contentPillars?: string[];
 
     // Platforms this content is planned for (the publishing INTENT). Chosen at
     // creation; `destinations` below are the concrete connected accounts picked
@@ -65,6 +152,18 @@ export interface IContent {
     // first generation; enables context-aware "Enhance" on subsequent prompts.
     mediaConversationId?: string;
 
+    // ── AI Studio (HTML design editor) ─────────────────────────────────────
+    // How the current media was produced. "ai" = HTML design (render via
+    // designRef); "upload"; "canva"; undefined = legacy gallery.
+    source?: "ai" | "upload" | "canva";
+    // Pointer to the current HTML design revision + its captured render.
+    designRef?: IContentDesignRef;
+    // Generated music/voiceover attached to a video content (muxed at render).
+    audio?: IContentAudio;
+    // Canva deep-edit bridge references.
+    canvaDesignId?: string;
+    exportedAssetRef?: string;
+
     // External links relevant to this content (moodboard, brief docs, competitor examples)
     externalLinks?: ExternalLink[];
 
@@ -83,6 +182,11 @@ export interface IContent {
     // Connected social accounts this content will be published / scheduled to.
     destinations?: ContentDestination[];
 
+    // Per-platform publishing extras (YouTube title/visibility, Reddit subreddit
+    // /title/flair, Twitter thread, LinkedIn visibility, …). Mirrors the backend
+    // ContentPlatformOptions (content.go). See {@link IPlatformOptions}.
+    platformOptions?: IPlatformOptions;
+
     // Publish immediately ("now") or at `scheduledAt` ("scheduled").
     scheduleMode?: "now" | "scheduled";
 
@@ -99,6 +203,11 @@ export interface IContent {
 
     // Failure reason set by the publish consumer when status transitions to a failed publish.
     publishError?: string;
+
+    // Per-destination publish outcome (in-flight / published / failed with a
+    // reason), one entry per targeted destination. Source of truth for the brand
+    // app's per-social publish status UI. See {@link IContentPublishResult}.
+    publishResults?: IContentPublishResult[];
 
     // URL of the live post once status reaches Posted
     postedUrl?: string;

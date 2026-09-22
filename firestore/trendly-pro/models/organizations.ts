@@ -20,12 +20,15 @@ export interface IOrgBilling {
     planCycle?: string;
     status?: number;
     // ── Org-level USD billing state machine (Credit ticket §5a/§6) ──
-    provider?: string;                 // "razorpay" now; future MoR
+    provider?: string;                 // "razorpay" (web) | "revenuecat" (native IAP); future MoR
     accessState?: IOrgAccessState;     // app-level access control
     billingMode?: "recurring" | "invoice";
     billingAnchorDay?: number;         // always 1
-    periodEnd?: number;                // end of current paid month (next 1st)
+    periodEnd?: number;                // end of current paid month (next 1st, or IAP expiry)
     proratedFirstMonth?: boolean;
+    // ── Native In-App Purchase (RevenueCat) fields (provider === "revenuecat") ──
+    store?: "apple" | "google";        // where the subscription is managed (cancel/manage deep-links there)
+    providerRef?: string;              // store original transaction id
 }
 
 // IOrgEntitlements is the denormalized plan capability set (resolved from the
@@ -64,6 +67,20 @@ export interface IOrganizations {
     creationTime: number;
     // Soft-delete marker (epoch ms). Non-null => org is deleted.
     deletedAt?: number;
+    // Set when this org attempted to purchase/restore a native IAP
+    // subscription a store receipt shows as already owned by a DIFFERENT org
+    // — subscriptions are not transferable between orgs. This org's plan is
+    // left untouched (typically free); the frontend paywall reads this to show
+    // an explanatory popup naming the org that already owns it. Cleared via
+    // the dismiss-restore-conflict endpoint once shown.
+    iapRestoreConflict?: IIapRestoreConflict;
+}
+
+export interface IIapRestoreConflict {
+    conflictingOrgId: string;
+    conflictingOrgName: string;
+    conflictingOwnerEmail: string;
+    occurredAt: number;
 }
 
 export type OrgRole = "org_owner" | "org_admin" | "member";

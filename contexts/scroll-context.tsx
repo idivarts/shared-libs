@@ -4,7 +4,7 @@ import { ScrollView, ScrollViewProps } from "react-native";
 import { IOScrollView } from "react-native-intersection-observer";
 
 type ScrollContextType = {
-    scrollRef: React.RefObject<ScrollView>;
+    scrollRef: React.RefObject<ScrollView | null>;
     scrollHeight?: number,
     setScrollHeight?: React.Dispatch<React.SetStateAction<number>>;
 };
