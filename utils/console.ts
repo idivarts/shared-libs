@@ -1,31 +1,30 @@
+import { getErrorReporter } from "./error-reporter";
 import { analyticsLogEvent } from "./firebase/analytics";
-import { CrashLog } from "./firebase/crashlytics";
 
 export const Console = {
     log: (message: string, ...optionalParams: any[]) => {
         if (__DEV__) {
             console.log(message, ...optionalParams);
         }
+        // Recorded as a breadcrumb, so it shows up as context on the next error
+        // rather than as an event of its own.
+        //
+        // This previously emitted an analytics event on EVERY log call. That
+        // buried real funnels under log noise and ate into GA4's 500
+        // distinct-event-name cap, so it is deliberately gone — use
+        // Console.analytics() for anything that is genuinely an analytics event.
         try {
-            CrashLog.log(message, ...optionalParams);
-            analyticsLogEvent("log", {
-                message,
-                optionalParams: optionalParams.join(" ")
-            });
+            getErrorReporter()?.addBreadcrumb(message, optionalParams);
         } catch (error) {
-            console.error("Error logging message to Crashlytics or Analytics", error);
+            console.error("Error recording log breadcrumb", error);
         }
     },
     error: (error: any, tag?: string) => {
         console.error((tag || "General Error"), error);
         try {
-            CrashLog.error(error, tag);
-            analyticsLogEvent("error", {
-                message: error instanceof Error ? error.message : String(error),
-                tag: tag || "General Error"
-            });
+            getErrorReporter()?.captureException(error, tag);
         } catch (e) {
-            console.error("Error logging error to Crashlytics or Analytics", e);
+            console.error("Error reporting error", e);
         }
     },
     analytics: (
