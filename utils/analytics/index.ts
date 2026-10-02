@@ -22,17 +22,48 @@ export interface AnalyticsSink {
     readonly name: string;
     track: (event: string, props: Record<string, any>) => void;
     identify?: (userId: string, traits: Record<string, any>) => void;
+    /**
+     * Receive the session context whenever it changes, for vendors whose SDK
+     * can hold it itself (PostHog's `register`, for instance).
+     *
+     * `track` already spreads the super-properties onto every event it sends,
+     * so a sink needs this ONLY to reach the events it never sees: the ones the
+     * vendor SDK raises on its own — `$exception`, app lifecycle, session
+     * replay. Those are exactly the events where knowing the screen and the
+     * plan matters most, which is why this exists rather than leaving the
+     * props spread to do the job.
+     *
+     * Receives the full merged context, not the delta, so a sink registered
+     * after some of it was already set still gets the whole picture.
+     */
+    setContext?: (props: AnalyticsSuperProperties) => void;
     reset?: () => void;
 }
 
 const sinks: AnalyticsSink[] = [];
 let superProperties: AnalyticsSuperProperties = {};
 
+/** One vendor throwing must never break another, nor the UI that emitted the event. */
+const safely = (sinkName: string, op: string, fn: () => void): void => {
+    try {
+        fn();
+    } catch (error) {
+        console.warn(`[analytics] ${sinkName}.${op} failed`, error);
+    }
+};
+
 /** Registered once per sink during app startup. Re-registering a name replaces it. */
 export const registerSink = (sink: AnalyticsSink): void => {
     const existing = sinks.findIndex((s) => s.name === sink.name);
     if (existing >= 0) sinks[existing] = sink;
     else sinks.push(sink);
+
+    // Sink registration and context can arrive in either order — attribution
+    // resolves off a promise, org/brand mount deeper in the tree. Replaying
+    // what is already known means a sink is never left behind whichever won.
+    if (sink.setContext && Object.keys(superProperties).length > 0) {
+        safely(sink.name, "setContext", () => sink.setContext!(getSuperProperties()));
+    }
 };
 
 export const clearSinks = (): void => {
@@ -46,18 +77,14 @@ export const clearSinks = (): void => {
  */
 export const setSuperProperties = (props: AnalyticsSuperProperties): void => {
     superProperties = { ...superProperties, ...props };
+    for (const sink of sinks) {
+        if (sink.setContext) {
+            safely(sink.name, "setContext", () => sink.setContext!(getSuperProperties()));
+        }
+    }
 };
 
 export const getSuperProperties = (): AnalyticsSuperProperties => ({ ...superProperties });
-
-/** One vendor throwing must never break another, nor the UI that emitted the event. */
-const safely = (sinkName: string, op: string, fn: () => void): void => {
-    try {
-        fn();
-    } catch (error) {
-        console.warn(`[analytics] ${sinkName}.${op} failed`, error);
-    }
-};
 
 /**
  * Emit an event to every registered sink.
