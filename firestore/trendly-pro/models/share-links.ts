@@ -4,6 +4,9 @@
  *
  *   https://brands.trendly.now/share/{token}
  *
+ * and, once minted, a Branch deep link that resolves to the same place but opens
+ * the app when it is installed (see `deepLink` below).
+ *
  * Stored at the top-level collection `shareLinks/{token}`. The token is the
  * document id (an unguessable random string), so resolving a link is a single
  * doc read with no query/index.
@@ -45,6 +48,19 @@ export interface IShareLink {
 
     createdAt: number; // epoch ms
     updatedAt: number; // epoch ms
+
+    /**
+     * Branch deep link for this token, minted and cached server-side by
+     * `POST /api/v2/brands/{brandId}/share-links/{token}/deep-link`
+     * (backend-sls `pkg/branch`). Prefer it over building the web URL by hand:
+     * it opens the app when installed — including after a fresh install, which a
+     * plain universal link cannot do — and carries the unfurl preview.
+     *
+     * Absent until first requested, and absent on stages with no Branch key
+     * configured, where the web URL remains the only share URL.
+     */
+    deepLink?: string;
+    deepLinkCreatedAt?: number; // epoch ms
 }
 
 /**
