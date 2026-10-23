@@ -153,9 +153,16 @@ export interface IContent {
     mediaConversationId?: string;
 
     // ── AI Studio (HTML design editor) ─────────────────────────────────────
-    // How the current media was produced. "ai" = HTML design (render via
-    // designRef); "upload"; "canva"; undefined = legacy gallery.
-    source?: "ai" | "upload" | "canva";
+    // How the current media was produced — the authoritative "media lane" of a
+    // content, driving which creation surface the app shows:
+    //   "ai"       → HTML design authored in the Design Studio (render via designRef)
+    //   "ai-image" → photoreal image(s) from AI image generation (see imageGeneration)
+    //   "upload"   → asset(s) the user picked themselves
+    //   "canva"    → designed in Canva via the deep-edit bridge
+    //   undefined  → legacy content written before this field was stamped; the
+    //                app falls back to deriving the lane from designRef/attachments.
+    // Keep in sync with backend content.go `Source`.
+    source?: "ai" | "ai-image" | "upload" | "canva";
     // Pointer to the current HTML design revision + its captured render.
     designRef?: IContentDesignRef;
     // Generated music/voiceover attached to a video content (muxed at render).
