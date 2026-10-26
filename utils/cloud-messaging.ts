@@ -69,6 +69,25 @@ export const useCloudMessaging = (streamClient: any, uid: any, userOrManager: an
 
     const requestUserPermission = async () => {
         if (Platform.OS == "web") {
+            // `Platform.OS === "web"` does NOT imply the Notification API
+            // exists. On iOS, WebKit exposes it only to an installed PWA — and
+            // not at all before iOS 16.4 — so in Mobile Safari and in every
+            // iOS in-app webview (which are all WebKit, Chrome for iOS
+            // included) the bare reference threw
+            //
+            //     ReferenceError: Can't find variable: Notification
+            //
+            // "Can't find variable" is JavaScriptCore's wording, and Sentry
+            // confirmed it: 100% iOS, on brands.trendly.now/onboarding,
+            // /contents and /content-strategies.
+            //
+            // Returning false is the honest answer — push cannot be granted
+            // here — and initNotification already bails on a falsy result, so
+            // the rest of the app carries on without push.
+            if (typeof Notification === "undefined" || !Notification?.requestPermission) {
+                Console.log("Notification API unavailable on this browser; skipping push setup");
+                return false;
+            }
             const permission = await Notification.requestPermission();
             return permission === "granted"
         } else {
