@@ -23,18 +23,48 @@
  *   [data-carousel]              flex strip holding every scene
  *     [data-slide="N"]           one complete frame; for video, also
  *       data-duration="3000"     how long that scene is on screen, in ms
+ *       data-transition="fade"   how this scene ENTERS: cut | fade | push | slide
+ *       data-transition-ms="400" how long that entry overlaps the scene before
  *     [data-el="id"]             an addressable element (editing + comments)
  *
  * A single post is one slide. A carousel is N slides. A video is N scenes with
- * their own CSS animations, played in sequence — only one is ever visible.
+ * their own CSS animations, played in sequence.
+ *
+ * ── Overlapping scenes ──────────────────────────────────────────────────────
+ * Scenes used to hard-cut: the strip jumped by exactly one slide width and only
+ * one scene was ever on screen. Every scene boundary was therefore a cut, which
+ * is why multi-scene videos read as a slideshow however good the scenes were.
+ *
+ * A scene with an entry transition now STARTS EARLY — `data-transition-ms`
+ * before the previous one ends — so the two are on screen together for that
+ * window and the runtime composites them. That is the whole mechanism: the
+ * overlap lives in the TIMELINE, not in a special playback mode, so seeking to
+ * any instant inside a transition is exactly as deterministic as any other
+ * instant, and the server render and the preview stay identical for free.
+ *
+ * Because the overlap is subtracted, the total is SHORTER than the sum of the
+ * scene durations. `total` is the truth; nothing should add the durations up.
+ *
+ * ⚠️ The runtime OWNS `transform` and `opacity` on every [data-slide] element
+ * and on [data-carousel] — compositing writes them on every seek and clears
+ * them on the next. A design must not set either inline on a slide section
+ * (animate children instead); the backend's design validator rejects one that
+ * does, so this is enforced rather than hoped for.
  */
+
+/** How a scene enters. Anything unrecognised is treated as a cut. */
+export type TransitionKind = "cut" | "fade" | "push" | "slide";
 
 export interface DesignMeasurement {
     /** Number of [data-slide] scenes (at least 1). */
     count: number;
-    /** Start time of each scene in ms, cumulative. */
+    /** Start time of each scene in ms. Overlaps make these NON-cumulative. */
     offsets: number[];
-    /** Total animation length in ms (sum of scene durations). */
+    /** Each scene's own on-screen duration in ms. */
+    durations: number[];
+    /** Each scene's entry transition. Index 0 is always a cut. */
+    transitions: { kind: TransitionKind; ms: number }[];
+    /** Total length in ms — sum of durations MINUS the overlaps. */
     total: number;
     /** Per-slide layout size in CSS px — what a capture should be clipped to. */
     width: number;
@@ -45,23 +75,58 @@ export interface DesignMeasurement {
  * Measure the design: scene count, per-scene start offsets, total duration and
  * the per-slide box. Durations come from `data-duration`; a scene without one
  * falls back to 3000 ms, matching what the AI is told to emit.
+ *
+ * ⚠️ The timeline block below is DUPLICATED verbatim in `seekAt` and
+ * `paintTransitionAt`. That is not an oversight: each function in this file is
+ * serialized into the page on its own (`page.evaluate(fn)` / `fn.toString()`),
+ * so a call to a sibling would be a ReferenceError inside the frame. Change one
+ * copy and you must change all three — they are the same arithmetic, and a
+ * measurement that disagrees with a seek is precisely the drift this file
+ * exists to prevent.
+ *
+ * The clamp is the part worth reading: an overlap may never exceed HALF of the
+ * shorter of the two scenes it joins. Without it a transition longer than the
+ * outgoing scene would push the next scene's start back past it, the offsets
+ * would stop increasing, and a seek would become a coin flip over which scene
+ * is current. Half is also about where a cross-fade stops reading as a
+ * transition and starts reading as a mistake.
  */
 export function measureDesign(): DesignMeasurement {
     const scenes = Array.prototype.slice.call(
         document.querySelectorAll("[data-slide]")
     ) as HTMLElement[];
     const list = scenes.length ? scenes : [document.body];
-    const offsets: number[] = [];
-    let total = 0;
+
+    const durations: number[] = [];
+    const transitions: { kind: TransitionKind; ms: number }[] = [];
     for (let i = 0; i < list.length; i++) {
-        offsets.push(total);
         const raw = parseInt(list[i].getAttribute("data-duration") || "", 10);
-        total += raw > 0 ? raw : 3000;
+        durations.push(raw > 0 ? raw : 3000);
+        const named = (list[i].getAttribute("data-transition") || "").toLowerCase();
+        const kind = (
+            named === "fade" || named === "push" || named === "slide" ? named : "cut"
+        ) as TransitionKind;
+        const declared = parseInt(list[i].getAttribute("data-transition-ms") || "", 10);
+        let ms = kind === "cut" || i === 0 ? 0 : declared > 0 ? declared : 400;
+        if (ms > 0) {
+            const half = Math.floor(Math.min(durations[i - 1], durations[i]) / 2);
+            if (ms > half) ms = half;
+        }
+        transitions.push({ kind: (i === 0 ? "cut" : kind) as TransitionKind, ms });
     }
+    const offsets: number[] = [];
+    for (let i = 0; i < list.length; i++) {
+        offsets.push(i === 0 ? 0 : offsets[i - 1] + durations[i - 1] - transitions[i].ms);
+    }
+    const last = list.length - 1;
+    const total = offsets[last] + durations[last];
+
     const first = list[0];
     return {
         count: list.length,
         offsets,
+        durations,
+        transitions,
         total: total > 0 ? total : 3000,
         width: first ? first.offsetWidth : 0,
         height: first ? first.offsetHeight : 0,
@@ -89,6 +154,13 @@ export function sceneAt(offsets: number[], ms: number): number {
  * currentTime set explicitly, so the frame depends only on the time asked for —
  * never on when the call happened or how long the previous frame took. That is
  * what makes a server render reproducible and a scrubbed preview exact.
+ *
+ * ⚠️ STILLS AND CAROUSELS ONLY — for a video use `seekAt`. This function places
+ * exactly ONE scene and snaps the strip to a whole slide index, which is right
+ * for paging a carousel and right for a video whose scenes all hard-cut. It
+ * cannot render a transition: an overlap means two scenes composited, and this
+ * does not know the previous scene exists. Reaching for it on a video design
+ * silently produces frames with every cross-fade missing.
  */
 export function seekScene(args: { index: number; localMs: number }): void {
     const index = args.index;
@@ -111,6 +183,218 @@ export function seekScene(args: { index: number; localMs: number }): void {
             /* an animation that refuses to seek is left where it is */
         }
     }
+}
+
+/**
+ * Put the design at `args.ms` on the WHOLE video's timeline, transitions and
+ * all. This is the function a renderer should seek with.
+ *
+ * `seekScene` positions one scene and knows nothing about its neighbours, which
+ * is all a hard cut ever needed. A transition needs both scenes placed and
+ * composited against each other, so it needs the global clock — hence a second
+ * entry point rather than more arguments on the first.
+ *
+ * How the compositing works, given a strip of slides laid out left to right at
+ * x = i·w: the carousel is translated so the OUTGOING scene sits in the capture
+ * box, and the incoming scene — which the browser paints on top of it, being a
+ * later sibling — is pulled left by one slide width to land on the same spot.
+ * From there each kind is a different interpolation:
+ *
+ *   fade   the incoming scene's opacity ramps 0 → 1 over the overlap
+ *   slide  it travels in from the right edge; the outgoing scene stays put
+ *   push   both move together — the carousel sits at a FRACTIONAL slide index,
+ *          which is the whole effect, so no per-scene transform is needed
+ *
+ * Deterministic, like `seekScene`: every animation on both scenes is paused and
+ * its currentTime set, and the transition state is a pure function of `ms`. The
+ * same instant always produces the same pixels.
+ */
+export function seekAt(args: { ms: number }): void {
+    const scenes = Array.prototype.slice.call(
+        document.querySelectorAll("[data-slide]")
+    ) as HTMLElement[];
+    const list = scenes.length ? scenes : [document.body];
+
+    // ⚠️ Duplicated verbatim from measureDesign — see the note there.
+    const durations: number[] = [];
+    const transitions: { kind: TransitionKind; ms: number }[] = [];
+    for (let i = 0; i < list.length; i++) {
+        const raw = parseInt(list[i].getAttribute("data-duration") || "", 10);
+        durations.push(raw > 0 ? raw : 3000);
+        const named = (list[i].getAttribute("data-transition") || "").toLowerCase();
+        const kind = (
+            named === "fade" || named === "push" || named === "slide" ? named : "cut"
+        ) as TransitionKind;
+        const declared = parseInt(list[i].getAttribute("data-transition-ms") || "", 10);
+        let ms = kind === "cut" || i === 0 ? 0 : declared > 0 ? declared : 400;
+        if (ms > 0) {
+            const half = Math.floor(Math.min(durations[i - 1], durations[i]) / 2);
+            if (ms > half) ms = half;
+        }
+        transitions.push({ kind: (i === 0 ? "cut" : kind) as TransitionKind, ms });
+    }
+    const offsets: number[] = [];
+    for (let i = 0; i < list.length; i++) {
+        offsets.push(i === 0 ? 0 : offsets[i - 1] + durations[i - 1] - transitions[i].ms);
+    }
+
+    const now = args.ms;
+    let index = 0;
+    for (let i = 0; i < offsets.length; i++) {
+        if (now >= offsets[i]) index = i;
+        else break;
+    }
+
+    // The runtime owns transform/opacity on slides: clear last frame's
+    // compositing before writing this one, or a scrub backwards would leave a
+    // half-faded scene behind.
+    for (let i = 0; i < list.length; i++) {
+        list[i].style.transform = "";
+        list[i].style.opacity = "";
+    }
+
+    const width = list[index] ? list[index].offsetWidth : 0;
+    const entry = transitions[index];
+    const inTransition = entry && entry.ms > 0 && index > 0 && now < offsets[index] + entry.ms;
+
+    // ease-in-out cubic, so a transition accelerates away and settles in rather
+    // than running at a constant speed, which always reads as mechanical.
+    let eased = 1;
+    if (inTransition) {
+        const p = Math.max(0, Math.min(1, (now - offsets[index]) / entry.ms));
+        eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    }
+
+    const carousel = document.querySelector("[data-carousel]") as HTMLElement | null;
+    if (carousel) {
+        carousel.style.transition = "none";
+        // During a push the strip rests between two slides; otherwise it sits on
+        // the outgoing scene (mid-transition) or the current one (everywhere else).
+        const at =
+            inTransition && entry.kind === "push"
+                ? index - 1 + eased
+                : inTransition
+                  ? index - 1
+                  : index;
+        carousel.style.transform = "translateX(" + -at * width + "px)";
+    }
+
+    if (inTransition && entry.kind !== "push") {
+        const incoming = list[index];
+        if (entry.kind === "fade") {
+            incoming.style.transform = "translateX(" + -width + "px)";
+            incoming.style.opacity = String(eased);
+        } else {
+            // slide: travels from the right edge onto the outgoing scene.
+            incoming.style.transform = "translateX(" + -eased * width + "px)";
+        }
+    }
+
+    // Seek the active scene, and the outgoing one too while both are on screen —
+    // a frozen scene under a cross-fade is as wrong as no cross-fade at all.
+    const seekOne = function (i: number) {
+        const scene = list[i];
+        if (!scene || !scene.getAnimations) return;
+        const anims = scene.getAnimations({ subtree: true });
+        for (let k = 0; k < anims.length; k++) {
+            try {
+                anims[k].pause();
+                anims[k].currentTime = now - offsets[i];
+            } catch (e) {
+                /* an animation that refuses to seek is left where it is */
+            }
+        }
+    };
+    if (inTransition) seekOne(index - 1);
+    seekOne(index);
+}
+
+/**
+ * Composite the transition at `args.ms` WITHOUT touching any animation clock.
+ *
+ * Playback and seeking need different things here. A seek owns time completely
+ * and pins every animation; playback lets the browser run the animations at
+ * wall-clock speed and must not interfere, but still has to draw the overlap
+ * itself, because an overlap is not something CSS can express — it is two
+ * sibling scenes being placed on top of each other.
+ *
+ * So the preview calls `playSceneFrom` when a scene becomes active and this on
+ * every frame. Returns the active scene index, which saves the caller
+ * recomputing it.
+ */
+export function paintTransitionAt(args: { ms: number }): number {
+    const scenes = Array.prototype.slice.call(
+        document.querySelectorAll("[data-slide]")
+    ) as HTMLElement[];
+    const list = scenes.length ? scenes : [document.body];
+
+    // ⚠️ Duplicated verbatim from measureDesign — see the note there.
+    const durations: number[] = [];
+    const transitions: { kind: TransitionKind; ms: number }[] = [];
+    for (let i = 0; i < list.length; i++) {
+        const raw = parseInt(list[i].getAttribute("data-duration") || "", 10);
+        durations.push(raw > 0 ? raw : 3000);
+        const named = (list[i].getAttribute("data-transition") || "").toLowerCase();
+        const kind = (
+            named === "fade" || named === "push" || named === "slide" ? named : "cut"
+        ) as TransitionKind;
+        const declared = parseInt(list[i].getAttribute("data-transition-ms") || "", 10);
+        let ms = kind === "cut" || i === 0 ? 0 : declared > 0 ? declared : 400;
+        if (ms > 0) {
+            const half = Math.floor(Math.min(durations[i - 1], durations[i]) / 2);
+            if (ms > half) ms = half;
+        }
+        transitions.push({ kind: (i === 0 ? "cut" : kind) as TransitionKind, ms });
+    }
+    const offsets: number[] = [];
+    for (let i = 0; i < list.length; i++) {
+        offsets.push(i === 0 ? 0 : offsets[i - 1] + durations[i - 1] - transitions[i].ms);
+    }
+
+    const now = args.ms;
+    let index = 0;
+    for (let i = 0; i < offsets.length; i++) {
+        if (now >= offsets[i]) index = i;
+        else break;
+    }
+
+    for (let i = 0; i < list.length; i++) {
+        list[i].style.transform = "";
+        list[i].style.opacity = "";
+    }
+
+    const width = list[index] ? list[index].offsetWidth : 0;
+    const entry = transitions[index];
+    const inTransition = entry && entry.ms > 0 && index > 0 && now < offsets[index] + entry.ms;
+
+    let eased = 1;
+    if (inTransition) {
+        const p = Math.max(0, Math.min(1, (now - offsets[index]) / entry.ms));
+        eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    }
+
+    const carousel = document.querySelector("[data-carousel]") as HTMLElement | null;
+    if (carousel) {
+        carousel.style.transition = "none";
+        const at =
+            inTransition && entry.kind === "push"
+                ? index - 1 + eased
+                : inTransition
+                  ? index - 1
+                  : index;
+        carousel.style.transform = "translateX(" + -at * width + "px)";
+    }
+
+    if (inTransition && entry.kind !== "push") {
+        const incoming = list[index];
+        if (entry.kind === "fade") {
+            incoming.style.transform = "translateX(" + -width + "px)";
+            incoming.style.opacity = String(eased);
+        } else {
+            incoming.style.transform = "translateX(" + -eased * width + "px)";
+        }
+    }
+    return index;
 }
 
 /**
