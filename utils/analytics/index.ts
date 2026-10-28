@@ -62,6 +62,29 @@ export interface AnalyticsSink {
 const sinks: AnalyticsSink[] = [];
 let superProperties: AnalyticsSuperProperties = {};
 
+/**
+ * Events captured before any sink was registered.
+ *
+ * Without this they were dropped in silence. `track()` iterates the sinks that
+ * exist at the moment it is called, and on a cold page load the vendor SDKs are
+ * registered a beat after the first screens mount — so anything emitted from a
+ * mount effect went nowhere. That silently cost the events most worth having:
+ * the ones that fire when a screen is opened directly, by deep link, hard
+ * refresh or a pasted URL, which is exactly how a funnel is entered.
+ *
+ * Verified on dev: `paywall_viewed` and `social_accounts_viewed` were absent on
+ * a cold load of their screens and present on a warm in-app navigation to the
+ * same screens.
+ *
+ * Buffering only ever happens while there are NO sinks, so this cannot grow
+ * once the app has booted — the cap is a guard against a host that registers
+ * none at all, not against ordinary traffic.
+ */
+const pending: { event: string; payload: Record<string, any> }[] = [];
+const MAX_PENDING = 50;
+/** Sinks that have already had the buffer replayed, so a re-register can't double-send. */
+const replayed = new Set<string>();
+
 /** One vendor throwing must never break another, nor the UI that emitted the event. */
 const safely = (sinkName: string, op: string, fn: () => void): void => {
     try {
@@ -83,10 +106,27 @@ export const registerSink = (sink: AnalyticsSink): void => {
     if (sink.setContext && Object.keys(superProperties).length > 0) {
         safely(sink.name, "setContext", () => sink.setContext!(getSuperProperties()));
     }
+
+    // Same principle one step further: events can also arrive before the sink.
+    // Replayed per sink rather than drained once, because a second vendor
+    // registering later was equally absent when these were captured.
+    //
+    // The payload is replayed as it was built, so the super-properties are the
+    // ones that were true at capture time. The vendor will stamp its own
+    // receipt time though, so a buffered event reads a beat late — a fraction
+    // of a second in practice, and far better than not existing.
+    if (pending.length > 0 && !replayed.has(sink.name)) {
+        replayed.add(sink.name);
+        for (const buffered of pending) {
+            safely(sink.name, "track", () => sink.track(buffered.event, buffered.payload));
+        }
+    }
 };
 
 export const clearSinks = (): void => {
     sinks.length = 0;
+    pending.length = 0;
+    replayed.clear();
 };
 
 /**
@@ -117,6 +157,17 @@ export function track<E extends AnalyticsEventName>(
     props: AnalyticsEventParams[E]
 ): void {
     const payload = { ...superProperties, ...props };
+
+    // Nothing to deliver to yet — hold it for the sinks that are still booting
+    // rather than discarding it. Oldest goes first if the cap is reached: a
+    // host that never registers a sink is misconfigured, and in that case the
+    // most recent events are the ones worth keeping.
+    if (sinks.length === 0) {
+        if (pending.length >= MAX_PENDING) pending.shift();
+        pending.push({ event, payload });
+        return;
+    }
+
     for (const sink of sinks) {
         safely(sink.name, "track", () => sink.track(event, payload));
     }
@@ -156,6 +207,10 @@ export const identify = (userId: string, traits: Record<string, any> = {}): void
  */
 export const reset = (): void => {
     superProperties = {};
+    // Anything still buffered belongs to the identity being dropped. Replaying
+    // it after a sign-out would attribute the previous user's events to the
+    // next one on the device, which is the whole thing reset() exists to stop.
+    pending.length = 0;
     for (const sink of sinks) {
         if (sink.reset) safely(sink.name, "reset", () => sink.reset!());
     }
