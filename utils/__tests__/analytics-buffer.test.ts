@@ -118,3 +118,42 @@ describe("analytics pre-sink buffer", () => {
         expect(captured[captured.length - 1].props).toMatchObject({ path: "/p59" });
     });
 });
+
+describe("reset", () => {
+    beforeEach(() => {
+        clearSinks();
+        reset();
+    });
+
+    it("keeps build-scoped context and drops identity-scoped context", () => {
+        setSuperProperties({
+            environment: "dev",
+            site: "brands",
+            platform: "web",
+            app_version: "5.1.0",
+            org_id: "o1",
+            brand_id: "b1",
+            plan_key: "team",
+            campaign: "spring",
+        });
+
+        reset();
+
+        const { sink, captured } = makeSink("posthog");
+        registerSink(sink);
+        track("screen_viewed", { path: "/pre-signin" });
+
+        // Equally true for whoever signs in next.
+        expect(captured[0].props).toMatchObject({
+            environment: "dev",
+            site: "brands",
+            platform: "web",
+            app_version: "5.1.0",
+        });
+        // Belongs to the identity that just signed out.
+        expect(captured[0].props.org_id).toBeUndefined();
+        expect(captured[0].props.brand_id).toBeUndefined();
+        expect(captured[0].props.plan_key).toBeUndefined();
+        expect(captured[0].props.campaign).toBeUndefined();
+    });
+});
