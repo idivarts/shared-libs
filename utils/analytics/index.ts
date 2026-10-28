@@ -205,8 +205,35 @@ export const identify = (userId: string, traits: Record<string, any> = {}): void
  * Drop the current identity and super-properties. Call on sign-out, otherwise
  * the next user on the device inherits the previous user's attribution.
  */
+/**
+ * Session context that describes the BUILD, not the person.
+ *
+ * reset() has to drop everything identity-scoped — org, brand, plan, campaign —
+ * or the next user on the device inherits it. These are not that. They are set
+ * once at bootstrap and are equally true for whoever signs in next.
+ *
+ * Clearing them cost real information: after a sign-out, every event up to the
+ * next reload lost `environment` and `site`. Verified on dev — a signup done
+ * straight after logging out produced signup_started, signup_email_submitted
+ * and signup_email_registered with no environment at all, which makes a dev
+ * row indistinguishable from a production one in exactly the funnel a release
+ * is judged on.
+ */
+const STATIC_CONTEXT_KEYS = [
+    "environment",
+    "site",
+    "platform",
+    "app_version",
+] as const satisfies readonly (keyof AnalyticsSuperProperties)[];
+
 export const reset = (): void => {
-    superProperties = {};
+    const retained: AnalyticsSuperProperties = {};
+    for (const key of STATIC_CONTEXT_KEYS) {
+        if (superProperties[key] !== undefined) {
+            (retained as Record<string, unknown>)[key] = superProperties[key];
+        }
+    }
+    superProperties = retained;
     // Anything still buffered belongs to the identity being dropped. Replaying
     // it after a sign-out would attribute the previous user's events to the
     // next one on the device, which is the whole thing reset() exists to stop.
