@@ -1,6 +1,8 @@
 import type {
     AnalyticsEventName,
     AnalyticsEventParams,
+    AnalyticsPersonProperties,
+    AnalyticsPersonPropertiesOnce,
     AnalyticsSuperProperties,
 } from "@/shared-constants/analytics-events";
 
@@ -37,6 +39,23 @@ export interface AnalyticsSink {
      * after some of it was already set still gets the whole picture.
      */
     setContext?: (props: AnalyticsSuperProperties) => void;
+    /**
+     * Write properties onto the PERSON rather than onto events.
+     *
+     * Separate from `setContext` because the two answer different questions and
+     * neither substitutes for the other: super-properties say what was true
+     * when an event fired, while person properties are what a vendor can
+     * filter and cohort PEOPLE by. Retention-by-plan needs the latter.
+     *
+     * `once` keys must be written only if currently absent (PostHog's
+     * `$set_once`). A vendor without that distinction should write `props`
+     * and ignore `once`, rather than overwrite a first-ever value on every
+     * call — a shifting "first plan" is worse than a missing one.
+     */
+    setPersonProperties?: (
+        props: AnalyticsPersonProperties,
+        once?: AnalyticsPersonPropertiesOnce
+    ) => void;
     reset?: () => void;
 }
 
@@ -102,6 +121,27 @@ export function track<E extends AnalyticsEventName>(
         safely(sink.name, "track", () => sink.track(event, payload));
     }
 }
+
+/**
+ * Write properties onto the current person.
+ *
+ * Sinks that have no notion of a person (Branch, Meta, Firebase) simply do not
+ * implement this, so a caller never needs to know which vendors can take it.
+ * Call it only once an identity exists — before `identify()` a vendor may
+ * attach these to an anonymous profile that is later merged, or discard them.
+ */
+export const setPersonProperties = (
+    props: AnalyticsPersonProperties,
+    once?: AnalyticsPersonPropertiesOnce
+): void => {
+    for (const sink of sinks) {
+        if (sink.setPersonProperties) {
+            safely(sink.name, "setPersonProperties", () =>
+                sink.setPersonProperties!(props, once)
+            );
+        }
+    }
+};
 
 /** Bind subsequent events to a user. Call when auth resolves. */
 export const identify = (userId: string, traits: Record<string, any> = {}): void => {
