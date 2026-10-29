@@ -238,6 +238,12 @@ export interface IContent {
     // See {@link IViralityScore}.
     viralityScore?: IViralityScore;
 
+    // Latest virality score for the DESIGN, written by the backend scorer
+    // (content_gen task "design_score" over the websocket). Same shape as
+    // `viralityScore`, different subject: a content can legitimately have both
+    // a script and a design, and they are judged separately.
+    designScore?: IViralityScore;
+
     createdAt: number; // Epoch timestamp of initial record creation
     updatedAt: number; // Epoch timestamp updated on every write to this document
 
