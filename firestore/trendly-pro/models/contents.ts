@@ -232,6 +232,12 @@ export interface IContent {
     // Performance metrics captured after the content goes live
     metrics?: ContentMetrics;
 
+    // Latest virality score for `script`, written by the backend scorer
+    // (POST /api/ai/content/score). Latest-only on purpose: scoring costs five
+    // model calls, so the panel reads this rather than re-scoring on open.
+    // See {@link IViralityScore}.
+    viralityScore?: IViralityScore;
+
     createdAt: number; // Epoch timestamp of initial record creation
     updatedAt: number; // Epoch timestamp updated on every write to this document
 
@@ -274,4 +280,67 @@ export interface ContentMetrics {
     reach?: number;
     saves?: number; // Saves/bookmarks — particularly relevant for Instagram content
     engagementRate?: number; // Computed: (likes + comments + saves) / reach * 100
+}
+
+// ── Virality score ─────────────────────────────────────────────────────────
+// Mirrors the backend `ViralityScore` in
+// internal/trendlyapis/ai/virality_score.go. The score is NOT a virality
+// prediction: pre-publication virality is dominated by channel size, not by
+// the content. It measures conformance to the craft that drives the metrics
+// the platforms demonstrably rank on. The UI carries that framing.
+
+/** One failed deterministic check from the script validator. */
+export interface IViralityProblem {
+    id: string; // Stable check id, e.g. "D7"
+    severity: "warn" | "cap" | "fatal";
+    message: string; // Phrased as an instruction, not a diagnostic
+}
+
+/** One rubric criterion, scored 0 (not met) / 1 (adequate) / 2 (exemplary). */
+export interface IViralityCriterion {
+    id: string; // e.g. "H3"
+    score: number;
+    note?: string; // Only present when the score is 0 or 1
+    /** True when a deterministic check decided this, not the judge. */
+    prefilled?: boolean;
+}
+
+/** One of the five weighted dimensions, rolled up to 0–100. */
+export interface IViralityDimension {
+    key: "hook" | "body" | "action" | "share" | "fit";
+    label: string;
+    weight: number; // Percent contribution to `overall`
+    score: number;  // 0–100
+    criteria: IViralityCriterion[];
+}
+
+/** A ceiling the deterministic checks imposed on `overall`. */
+export interface IViralityCap {
+    at: number;
+    reason: string;
+}
+
+/** A ranked, actionable repair for the weakest criteria. */
+export interface IViralityFix {
+    criterion: string;
+    dimension: string;
+    message: string;
+}
+
+export interface IViralityScore {
+    overall: number; // 0–100
+    /**
+     * Band for `overall`: Rework / Weak / Publishable / Strong / Exceptional.
+     * The band is what the UI leads with — it is markedly more stable between
+     * runs than the integer, which can move several points on a script that
+     * sits near a boundary.
+     */
+    band: string;
+    cap?: IViralityCap;
+    dimensions: IViralityDimension[];
+    fixes: IViralityFix[];
+    problems?: IViralityProblem[];
+    rubricVersion: string;
+    judgeModel: string;
+    scoredAt: number; // epoch ms
 }
