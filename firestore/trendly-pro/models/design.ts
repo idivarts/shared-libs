@@ -74,10 +74,25 @@ export interface IContentAudio {
     musicUrl?: string;
     musicTitle?: string;
     musicVolume?: number; // 0..1
+    /**
+     * @deprecated Ignored. A fade is applied to every bed at render, always —
+     * a bed that stops dead on the last frame sounds unfinished every time and
+     * nobody wants the other option. The switch this backed was implemented
+     * nowhere, so it was a control that lied.
+     */
     musicFade?: boolean;
     voiceoverId?: string;
     voiceoverUrl?: string;
     voiceoverVolume?: number; // 0..1
+    /**
+     * The clips' ACTUAL lengths, measured in the app once the content is open
+     * and written back. A generated length is only what was asked for, and a
+     * voiceover's length is not knowable from its text at all — so without
+     * these the backend cannot tell whether the voice overruns the video,
+     * which is the commonest way a render comes out wrong.
+     */
+    musicMs?: number;
+    voiceoverMs?: number;
     duckMusic?: boolean;
     captionSource?: string;
 }
