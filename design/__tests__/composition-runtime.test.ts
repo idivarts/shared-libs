@@ -7,6 +7,7 @@ import {
     measureComposition,
     singleDesignPassthrough,
     validateComposition,
+    measureOverlays,
     withDerivedOffsets,
     type Clip,
     type Composition,
@@ -395,19 +396,88 @@ describe("validateComposition", () => {
         ).toContain("tracks");
     });
 
-    it("says plainly that overlays and placed audio are not here yet", () => {
+    it("still says plainly that placed audio is not here yet", () => {
         const paths = fatalPaths({
             width: 1080,
             height: 1920,
             fps: 30,
             tracks: [
                 { kind: "video", clips: [{ id: "a", durationMs: 1000, source: design() }] },
-                { kind: "overlay", clips: [{ id: "o", durationMs: 100, source: design() }] },
                 { kind: "audio", clips: [{ id: "s", durationMs: 100, source: design() }] },
             ],
         });
-        expect(paths).toContain("tracks.overlay");
         expect(paths).toContain("tracks.audio");
+    });
+
+    it("accepts a transparent design on an overlay track", () => {
+        expect(
+            validateComposition({
+                width: 1080,
+                height: 1920,
+                fps: 30,
+                tracks: [
+                    { kind: "video", clips: [{ id: "a", durationMs: 4000, source: design() }] },
+                    {
+                        kind: "overlay",
+                        clips: [
+                            {
+                                id: "caption",
+                                startMs: 500,
+                                durationMs: 2000,
+                                source: { kind: "design", revisionId: "cap", transparent: true },
+                            },
+                        ],
+                    },
+                ],
+            })
+        ).toEqual([]);
+    });
+
+    it("refuses an overlay that is not a transparent design", () => {
+        const overlay = (clip: Clip) =>
+            fatalPaths({
+                width: 1080,
+                height: 1920,
+                fps: 30,
+                tracks: [
+                    { kind: "video", clips: [{ id: "a", durationMs: 4000, source: design() }] },
+                    { kind: "overlay", clips: [clip] },
+                ],
+            });
+
+        // An overlay IS a transparent design: that is what makes it free, since
+        // it inherits the brand's fonts, the palette and the editor.
+        expect(
+            overlay({ id: "c", durationMs: 1000, source: { kind: "image", url: "u" } })
+        ).toContain("tracks.overlay[0].clips[0].source");
+        expect(
+            overlay({
+                id: "c",
+                durationMs: 1000,
+                source: { kind: "design", revisionId: "r" },
+            })
+        ).toContain("tracks.overlay[0].clips[0].source.transparent");
+        expect(
+            overlay({
+                id: "c",
+                durationMs: 0,
+                source: { kind: "design", revisionId: "r", transparent: true },
+            })
+        ).toContain("tracks.overlay[0].clips[0].durationMs");
+    });
+
+    it("keeps a transparent design OFF the video track", () => {
+        expect(
+            fatalPaths(
+                comp([
+                    {
+                        id: "a",
+                        durationMs: 1000,
+                        source: { kind: "design", revisionId: "r", transparent: true },
+                    },
+                ])
+            )
+        ).toContain("tracks.video.clips[0].source.transparent");
     });
 
     it("rejects a bad size or frame rate", () => {
@@ -453,5 +523,73 @@ describe("singleDesignPassthrough, measured rather than authored", () => {
             ])
         );
         expect(source).toEqual({ kind: "design", revisionId: "revP" });
+    });
+});
+
+describe("measureOverlays", () => {
+    function withOverlays(clips: Clip[]): Composition {
+        return {
+            width: 1080,
+            height: 1920,
+            fps: 30,
+            tracks: [
+                { kind: "video", clips: [{ id: "v", durationMs: 10000, source: design() }] },
+                { kind: "overlay", clips },
+            ],
+        };
+    }
+
+    const transparent = (id: string): Clip["source"] => ({
+        kind: "design",
+        revisionId: id,
+        transparent: true,
+    });
+
+    // The one place startMs means what it says. A gap in the picture can only
+    // render as black, so the video track derives its offsets; a gap between
+    // captions is the ordinary case, so an overlay's start is authored.
+    it("honours an authored start rather than deriving one", () => {
+        const got = measureOverlays(
+            withOverlays([
+                { id: "b", startMs: 6000, durationMs: 1500, source: transparent("b") },
+                { id: "a", startMs: 1000, durationMs: 2000, source: transparent("a") },
+            ])
+        );
+        expect(got.map((o) => [o.clip.id, o.startMs, o.durationMs])).toEqual([
+            ["a", 1000, 2000],
+            ["b", 6000, 1500],
+        ]);
+    });
+
+    it("leaves gaps between overlays alone", () => {
+        const got = measureOverlays(
+            withOverlays([
+                { id: "a", startMs: 0, durationMs: 1000, source: transparent("a") },
+                { id: "b", startMs: 5000, durationMs: 1000, source: transparent("b") },
+            ])
+        );
+        // Nothing should have pulled b back to abut a.
+        expect(got[1].startMs).toBe(5000);
+    });
+
+    it("defaults a missing start to zero and a missing length to the default", () => {
+        const got = measureOverlays(
+            withOverlays([{ id: "a", durationMs: 0, source: transparent("a") }])
+        );
+        expect(got[0].startMs).toBe(0);
+        expect(got[0].durationMs).toBe(DEFAULT_CLIP_MS);
+    });
+
+    it("is empty when there is no overlay track", () => {
+        expect(measureOverlays(comp([{ id: "a", durationMs: 1000, source: design() }]))).toEqual([]);
+    });
+
+    // withDerivedOffsets restamps the VIDEO track only; restamping overlays
+    // would move every caption to the start of the timeline.
+    it("survives withDerivedOffsets with its start intact", () => {
+        const stamped = withDerivedOffsets(
+            withOverlays([{ id: "a", startMs: 4000, durationMs: 1000, source: transparent("a") }])
+        );
+        expect(measureOverlays(stamped)[0].startMs).toBe(4000);
     });
 });
