@@ -296,13 +296,15 @@ export function singleDesignPassthrough(composition: Composition): DesignClipSou
         if (t.kind !== "video" && (t.clips || []).length > 0) return null;
     }
 
-    const clips = video[0].clips || [];
-    if (clips.length !== 1) return null;
+    // Read the MEASURED transition, not the authored one, so this predicate
+    // cannot disagree with the arithmetic that will actually be rendered: a
+    // fade declared on the first clip has nothing behind it and normalizes to a
+    // cut, and a passthrough is about what plays, not about what was typed.
+    const measured = measureComposition(composition);
+    if (measured.clips.length !== 1) return null;
+    if (measured.clips[0].transition.ms > 0) return null;
 
-    const clip = clips[0];
-    if (clip.transitionIn && clip.transitionIn.kind !== "cut" && clip.transitionIn.ms > 0) return null;
-
-    const source = clip.source;
+    const source = measured.clips[0].clip.source;
     if (!source || source.kind !== "design") return null;
     if (source.sceneIndex !== undefined && source.sceneIndex !== null) return null;
     if (source.transparent) return null;

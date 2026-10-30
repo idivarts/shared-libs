@@ -435,3 +435,23 @@ describe("validateComposition", () => {
         expect(isRenderable(comp([{ id: "a", durationMs: 1000, source: design() }]))).toBe(true);
     });
 });
+
+describe("singleDesignPassthrough, measured rather than authored", () => {
+    // A fade on the first clip has nothing behind it, so measureComposition
+    // normalizes it to a cut. The predicate must agree, or an existing design
+    // with a stray transition would take the general path and pick up a second
+    // lossy generation for no reason.
+    it("still passes when the only clip declares a pointless fade", () => {
+        const source = singleDesignPassthrough(
+            comp([
+                {
+                    id: "a",
+                    durationMs: 4000,
+                    transitionIn: { kind: "fade", ms: 400 },
+                    source: design("revP"),
+                },
+            ])
+        );
+        expect(source).toEqual({ kind: "design", revisionId: "revP" });
+    });
+});
