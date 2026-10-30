@@ -239,6 +239,47 @@ export function measureComposition(composition: Composition): CompositionMeasure
     };
 }
 
+/** One overlay clip resolved onto the composition's clock. */
+export interface MeasuredOverlay {
+    clip: Clip;
+    /** Index within its own track. */
+    index: number;
+    startMs: number;
+    durationMs: number;
+}
+
+/**
+ * Resolve the overlay tracks.
+ *
+ * Overlays do NOT follow the video track's derived-offset rule, and the
+ * difference is deliberate rather than an inconsistency. A gap in the picture
+ * can only render as black, so the video track is a contiguous sequence with
+ * offsets derived from it. A gap in an overlay track is the ordinary case — a
+ * caption appears for three seconds and then does not — so an overlay's
+ * `startMs` is AUTHORED and absolute. This is the one place that field means
+ * what it says.
+ *
+ * Returned sorted by start, so the render graph composites them in the order
+ * they appear rather than in document order.
+ */
+export function measureOverlays(composition: Composition): MeasuredOverlay[] {
+    const out: MeasuredOverlay[] = [];
+    for (const track of tracksOfKind(composition, "overlay")) {
+        (track.clips || []).forEach((clip, index) => {
+            const durationMs = Math.round(Number(clip.durationMs));
+            const startMs = Math.round(Number(clip.startMs ?? 0));
+            out.push({
+                clip,
+                index,
+                startMs: Number.isFinite(startMs) && startMs > 0 ? startMs : 0,
+                durationMs: Number.isFinite(durationMs) && durationMs > 0 ? durationMs : DEFAULT_CLIP_MS,
+            });
+        });
+    }
+    out.sort((a, b) => a.startMs - b.startMs);
+    return out;
+}
+
 /** Which clip is on screen at `ms`. -1 when the composition is empty. */
 export function clipAt(measurement: CompositionMeasurement, ms: number): number {
     let idx = -1;
@@ -260,6 +301,9 @@ export function withDerivedOffsets(composition: Composition): Composition {
     return {
         ...composition,
         durationMs: m.totalMs,
+        // Only the video track's offsets are derived. An overlay's startMs is
+        // authored and absolute, so restamping it would move every caption to
+        // the start of the timeline.
         tracks: (composition.tracks || []).map((t) =>
             t.kind !== "video"
                 ? t
@@ -380,11 +424,30 @@ export function validateComposition(composition: Composition): CompositionProble
     if (video.length === 0) push("tracks", "A composition needs a video track.");
     if (video.length > 1) push("tracks", "A composition can only have one video track.");
 
-    for (const t of tracksOfKind(composition, "overlay")) {
-        if ((t.clips || []).length > 0) {
-            push("tracks.overlay", "Overlay tracks aren't supported yet.");
-        }
-    }
+    tracksOfKind(composition, "overlay").forEach((t, ti) => {
+        (t.clips || []).forEach((clip, i) => {
+            const at = `tracks.overlay[${ti}].clips[${i}]`;
+            if (!clip.id) push(`${at}.id`, "Every clip needs an id.");
+            if (!(clip.durationMs > 0)) push(`${at}.durationMs`, "An overlay needs a duration.");
+            if (clip.startMs !== undefined && clip.startMs < 0) {
+                push(`${at}.startMs`, "An overlay can't start before the video does.");
+            }
+            // An overlay IS a transparent design clip. That is not a limitation
+            // to lift later — it is what makes overlays free: they inherit the
+            // brand's fonts, the palette and the editor, and the renderer needs
+            // nothing it does not already have. A footage overlay would be a
+            // picture-in-picture, which is a different feature.
+            const source = clip.source;
+            if (!source || source.kind !== "design") {
+                push(`${at}.source`, "An overlay has to be a design — captions, a logo or an end card.");
+                return;
+            }
+            if (!source.revisionId) push(`${at}.source.revisionId`, "An overlay needs a design revision.");
+            if (!source.transparent) {
+                push(`${at}.source.transparent`, "An overlay design has to be captured transparently.");
+            }
+        });
+    });
     for (const t of tracksOfKind(composition, "audio")) {
         if ((t.clips || []).length > 0) {
             push("tracks.audio", "Placed audio clips aren't supported yet.");
@@ -417,7 +480,10 @@ export function validateComposition(composition: Composition): CompositionProble
                     push(`${at}.source.sceneIndex`, "A scene index can't be negative.");
                 }
                 if (source.transparent) {
-                    push(`${at}.source.transparent`, "Transparent design clips aren't supported yet.");
+                    push(
+                        `${at}.source.transparent`,
+                        "A transparent design belongs on an overlay track, not the video track."
+                    );
                 }
                 break;
             case "footage":
