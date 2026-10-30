@@ -44,6 +44,16 @@ export interface IMediaModel {
 
     minDurationS?: number;
     maxDurationS?: number;
+    /**
+     * The EXACT lengths this model accepts, when it accepts a set rather than
+     * a range.
+     *
+     * Veo takes 4, 6 or 8 seconds and refuses 5 with a 422 — bounds of 4–8
+     * cannot express that, so a composer deriving its chips from the range
+     * offered a value the provider would always reject. Absent means the range
+     * is the truth, which is the ordinary case.
+     */
+    durationsS?: number[];
     resolutions?: string[];
     aspectRatios?: string[];
 
