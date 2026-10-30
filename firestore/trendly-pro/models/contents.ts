@@ -4,6 +4,7 @@ import { ContentFormat } from "../constants/content-format";
 import { ExternalLink } from "../constants/external-link";
 import { Platform } from "../constants/platform";
 import { IComment } from "./comments";
+import { IContentCompositionRef } from "./composition";
 import { IContentAudio, IContentDesignRef } from "./design";
 import { IPublicShareRef } from "./share-links";
 
@@ -165,6 +166,12 @@ export interface IContent {
     source?: "ai" | "ai-image" | "upload" | "canva";
     // Pointer to the current HTML design revision + its captured render.
     designRef?: IContentDesignRef;
+    // Pointer to the current composition (timeline) revision, once a timeline
+    // has been authored. A composition WINS over designRef as the content's
+    // media: it is the thing the user arranged, and the design is one clip
+    // inside it. Absent on every content nobody has opened the timeline on,
+    // which still renders via designRef through a one-clip composition.
+    compositionRef?: IContentCompositionRef;
     // Generated music/voiceover attached to a video content (muxed at render).
     audio?: IContentAudio;
     // Canva deep-edit bridge references.
