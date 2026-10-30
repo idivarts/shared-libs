@@ -23,7 +23,19 @@
  *    that quotes a price has to say so.
  */
 
-export type MediaModelKind = "image" | "video" | "music" | "voice" | "stock";
+/**
+ * What a model makes. "stt" is speech-to-text — the odd one out, because it
+ * CONSUMES media rather than producing it, and it is in the registry for the
+ * same reason as the rest: the model id is a provider detail that changes
+ * without us, and footage ingest should not need a deploy to follow it.
+ */
+export type MediaModelKind =
+    | "image"
+    | "video"
+    | "music"
+    | "voice"
+    | "stt"
+    | "stock";
 
 export interface IMediaModel {
     id: string;
