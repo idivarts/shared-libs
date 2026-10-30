@@ -48,9 +48,14 @@ export interface IContentCompositionRef {
  *
  * The render fields are named exactly as `IContentDesignRevision`'s are, so the
  * app's existing revision watcher follows either kind without knowing which it
- * is looking at. Unlike a design revision, these are written ONLY by the render
- * worker — firestore.rules blocks a client from them, because a composition is
- * never captured on the device and a client that could write `renderStatus`
+ * is looking at.
+ *
+ * The DOCUMENT is client-writable — the timeline editor composes revisions
+ * directly, the same way the design editor writes an HTML one. The `render*`
+ * fields are the exception: firestore.rules refuses a client write that touches
+ * any of them, because a composition is only ever rendered on our own
+ * infrastructure after the wallet has been charged, and `renderUrl` is what the
+ * publish gate trusts as "this has been exported". A client able to write it
  * could mark a render done that never ran.
  */
 export interface IContentCompositionRevision {
