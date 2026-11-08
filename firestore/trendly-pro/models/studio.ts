@@ -341,6 +341,37 @@ export interface IAudioLane {
     trimOutMs?: number;
 }
 
+/**
+ * A music bed the director planned that nobody has applied yet.
+ *
+ * ── Why a plan's music waits instead of landing ─────────────────────────────
+ * Approving a storyboard must not spend money or overwrite sound on its own.
+ * Generating a bed is a metered call the user has not made, and a studio being
+ * approved onto may already have a bed the user chose — a second one, or a
+ * silent replacement, is worse than an offer. So the plan's intent is parked
+ * here and the sound panel offers it in one tap.
+ *
+ * ── Why it is not simply dropped ────────────────────────────────────────────
+ * It used to be, and the plan's music was the one part hardest to re-describe:
+ * "32 seconds, builds at 0:18" is a judgement about the edit, not a preference
+ * someone can retype from memory.
+ *
+ * `reuse` waits too, even though a library row costs nothing, because the
+ * reason to wait is the existing bed rather than the price.
+ */
+export interface IMusicRequest {
+    /** `generate` costs money when applied; `reuse` names a row already owned. */
+    approach: "generate" | "reuse";
+    /** For `generate` — a `mediaModels` document id, which IS the provider's model id. */
+    modelId?: string;
+    /** For `generate` — what the bed should be, including where it builds. */
+    prompt?: string;
+    /** For `reuse` — the library row to put on the music lane. */
+    mediaId?: string;
+    /** Set when the user declines, so it stops being offered without being lost. */
+    dismissed?: boolean;
+}
+
 export interface IStudioAudio {
     lanes: IAudioLane[];
     /**
@@ -351,6 +382,8 @@ export interface IStudioAudio {
      * deliberate exception, and it belongs on the cast member.
      */
     voiceId?: string;
+    /** What the director asked for, pending a tap. See `IMusicRequest`. */
+    musicRequest?: IMusicRequest;
 }
 
 // ────────────────────────────── The documents ──────────────────────────────
