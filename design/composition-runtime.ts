@@ -148,6 +148,68 @@ export interface Composition {
     tracks: Track[];
 }
 
+// ───────────────────────────────── Sound ───────────────────────────────────
+
+/**
+ * One piece of sound placed at an absolute point on the finished timeline.
+ *
+ * ⚠️ `startMs` IS ABSOLUTE, and it is the one field here that must not be
+ * authored by hand. Everything a user or planner touches anchors sound to a
+ * SCENE — `{ sceneId, offsetMs }` on a lane, `offsetMs` on a scene's narration
+ * — because reordering scenes is the commonest edit there is and an absolute
+ * start desynchronises the voice from the picture on the first drag. This type
+ * is the far end of that translation: the studio's scene anchors resolved
+ * against the measured timeline, moments before FFmpeg is told where to put
+ * them. Resolve it with `measureComposition` on the composition that is
+ * actually being rendered, never with a second measurement of the source
+ * document — two clocks that agree today are two clocks that can drift.
+ */
+export interface AudioPlacement {
+    url: string;
+    /** Absolute position on the finished timeline, in ms. */
+    startMs: number;
+    /** 0..1. Defaults to full. */
+    volume?: number;
+    /** Trim window into the source, in source time. */
+    trimInMs?: number;
+    trimOutMs?: number;
+    fadeInMs?: number;
+    /**
+     * Only applied when the length is known — a fade-out has to be anchored to
+     * an end, and guessing one cuts the sound off early. The length comes from
+     * the trim window, or from the media row's own duration.
+     */
+    fadeOutMs?: number;
+    /** The source's full length, when the media row knows it. */
+    durationMs?: number;
+}
+
+/**
+ * Everything the renderer needs to hear, for one render.
+ *
+ * `musicUrl`/`voiceoverUrl` are the content-level soundtrack the design and
+ * composition paths have always had: one bed, one voice, both starting at zero.
+ * `placements` is what a studio produces — narration anchored per scene, and
+ * any number of pieces — and the two coexist rather than one replacing the
+ * other, because a studio is not the only thing that renders.
+ */
+export interface CompositionAudio {
+    /** A bed, looped for the whole video and faded at both ends. */
+    musicUrl?: string;
+    musicVolume?: number;
+    /** A single voiceover starting at zero. Content-level audio only. */
+    voiceoverUrl?: string;
+    voiceoverVolume?: number;
+    /**
+     * Lower the bed while anything else is sounding. Default true: a bed at
+     * full level under a voice is the commonest reason a render sounds
+     * amateur.
+     */
+    duckMusic?: boolean;
+    /** Narration and sound effects, each at its own point on the timeline. */
+    placements?: AudioPlacement[];
+}
+
 /** One clip resolved onto the composition's clock. */
 export interface MeasuredClip {
     clip: Clip;

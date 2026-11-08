@@ -258,8 +258,15 @@ export function previewFidelity(kind: TransitionKind): "faithful" | "approximate
 //     Everything richer maps to a fade, and the conversion SAYS SO, so nobody
 //     approves a whip pan and publishes a dissolve.
 
-import type { Clip, Composition, CompositionTransition } from "./composition-runtime";
-import type { IStudio, IStudioScene } from "../firestore/trendly-pro/models/studio";
+import type {
+    AudioPlacement,
+    Clip,
+    Composition,
+    CompositionAudio,
+    CompositionTransition,
+} from "./composition-runtime";
+import { measureComposition } from "./composition-runtime";
+import type { IAudioLane, IStudio, IStudioScene } from "../firestore/trendly-pro/models/studio";
 import { effectiveSceneMs, orderedScenes } from "../firestore/trendly-pro/models/studio";
 
 /** The minimum a caller has to know about a piece of media to render it. */
@@ -271,6 +278,14 @@ export interface RenderableMedia {
 
 export interface StudioCompositionResult {
     composition: Composition;
+    /**
+     * The studio's sound, resolved onto the composition's own clock.
+     *
+     * Undefined means silence, which is NOT the same as "no audio field" — a
+     * studio with a bed whose media row has vanished returns undefined and a
+     * note, rather than a bed url that 404s mid-render.
+     */
+    audio?: CompositionAudio;
     /**
      * Why this studio cannot render as authored, in sentences meant for a
      * person. A non-empty list must BLOCK the render: every entry is something
@@ -324,6 +339,182 @@ export function toCompositionTransition(
     return {
         transition: { kind: "fade", ms },
         note: `The "${kind}" transition renders as a dissolve for now.`,
+    };
+}
+
+/**
+ * Every media id a studio's SOUND references.
+ *
+ * Separate from `sceneMediaIds`, which answers "what pictures does this scene
+ * place" and is what the scene's own refcount is derived from. Sound hangs off
+ * two different places — the document's lanes and each scene's narration — and
+ * a caller that only walked the layers would load the bed's row and not the
+ * voice's, which is how a paid-for voiceover renders as silence.
+ */
+export function studioAudioMediaIds(
+    // Structural rather than `Pick<IStudio, "audio">`: the render worker holds
+    // its studio as a bag of Firestore fields, and typing this to the model
+    // forced an `as never` at the call site — which switched off checking at
+    // exactly the boundary where these two field NAMES are load-bearing. Get
+    // `audio` or `narration` wrong and this returns nothing, no media is
+    // loaded, and the export goes silent again with no error to follow.
+    studio: { audio?: { lanes?: { mediaId?: string }[] } | null },
+    sceneMap: Record<string, { narration?: { mediaId?: string } | null }>
+): string[] {
+    const seen = new Set<string>();
+    for (const lane of studio.audio?.lanes ?? []) {
+        if (lane.mediaId) seen.add(lane.mediaId);
+    }
+    for (const scene of Object.values(sceneMap)) {
+        const id = scene.narration?.mediaId;
+        if (id) seen.add(id);
+    }
+    return [...seen];
+}
+
+/** An audio row, or nothing — a picture on an audio lane is not sound. */
+function audioAsset(
+    media: Record<string, RenderableMedia>,
+    mediaId?: string
+): RenderableMedia | undefined {
+    if (!mediaId) return undefined;
+    const asset = media[mediaId];
+    if (!asset?.url) return undefined;
+    if (asset.kind !== "audio") return undefined;
+    return asset;
+}
+
+/**
+ * Resolve a studio's sound against the timeline that is actually being
+ * rendered.
+ *
+ * `startOf` maps a scene id to where its clip begins, taken from
+ * `measureComposition` — see `AudioPlacement.startMs` for why it must come
+ * from there and not from `measureStudio`.
+ *
+ * ⚠️ A MISSING NARRATION BLOCKS, A MISSING LANE DOES NOT. The asymmetry is
+ * deliberate. A scene with `fitToNarration` has had its own length stretched to
+ * hold a spoken line, so a narration whose audio has gone is a picture timed
+ * around something the viewer will never hear — the export would be wrong, not
+ * merely quieter. A bed or an effect that has been archived leaves a video that
+ * is still the one the user authored, minus some sound, and refusing to publish
+ * over it would be the tool getting in the way.
+ */
+export function studioAudio(
+    studio: Pick<IStudio, "audio">,
+    sceneMap: Record<string, IStudioScene>,
+    media: Record<string, RenderableMedia>,
+    startOf: (sceneId: string) => number | undefined
+): { audio?: CompositionAudio; problems: string[]; notes: string[] } {
+    const problems: string[] = [];
+    const notes: string[] = [];
+    const placements: AudioPlacement[] = [];
+    // Deduped at the point of writing rather than by the caller: three archived
+    // lanes are one thing to tell the user, not the same sentence three times.
+    const say = (into: string[], line: string) => {
+        if (!into.includes(line)) into.push(line);
+    };
+
+    let musicUrl: string | undefined;
+    let musicVolume: number | undefined;
+    let duckMusic: boolean | undefined;
+    let extraBeds = 0;
+
+    const place = (
+        asset: RenderableMedia,
+        startMs: number,
+        lane?: Pick<IAudioLane, "volume" | "fadeInMs" | "fadeOutMs" | "trimInMs" | "trimOutMs">
+    ) => {
+        placements.push({
+            url: asset.url,
+            // Negative would make FFmpeg's adelay a no-op and silently move the
+            // sound to zero, so a line anchored before the timeline starts is
+            // pinned to the start instead.
+            startMs: Math.max(0, Math.round(startMs)),
+            volume: lane?.volume,
+            trimInMs: lane?.trimInMs,
+            trimOutMs: lane?.trimOutMs,
+            fadeInMs: lane?.fadeInMs,
+            fadeOutMs: lane?.fadeOutMs,
+            durationMs: asset.durationMs,
+        });
+    };
+
+    for (const lane of studio.audio?.lanes ?? []) {
+        const asset = audioAsset(media, lane.mediaId);
+        if (!asset) {
+            say(notes, "A piece of sound is missing from your library and will not be heard.");
+            continue;
+        }
+
+        if (lane.kind === "music") {
+            if (musicUrl) {
+                extraBeds++;
+                continue;
+            }
+            musicUrl = asset.url;
+            musicVolume = lane.volume;
+            // The UI's ducking switch lives on the music lane, so that is where
+            // the answer comes from.
+            duckMusic = lane.duckMusic;
+            continue;
+        }
+
+        // Voiceover and sfx are anchored to a scene; `fromStart` is the escape
+        // hatch for a lane that genuinely belongs to the whole document.
+        const sceneStart = lane.fromStart ? 0 : lane.sceneId ? startOf(lane.sceneId) : undefined;
+        if (sceneStart === undefined) {
+            say(notes, "A piece of sound points at a scene that is no longer there.");
+            continue;
+        }
+        place(asset, sceneStart + (lane.offsetMs ?? 0), lane);
+    }
+
+    if (extraBeds > 0) {
+        say(
+            notes,
+            extraBeds === 1
+                ? "Only the first music bed is used; the second one is ignored."
+                : `Only the first music bed is used; ${extraBeds} others are ignored.`
+        );
+    }
+
+    // Narration, scene by scene. An empty `mediaId` is not a missing file — it
+    // is a line nobody has generated yet, which is the ordinary state and must
+    // never block a render.
+    for (const scene of Object.values(sceneMap)) {
+        const narration = scene.narration;
+        if (!narration?.mediaId) continue;
+
+        const asset = audioAsset(media, narration.mediaId);
+        if (!asset) {
+            say(
+                problems,
+                "A scene's voiceover is missing from your library. Generate it again, " +
+                    "or clear the line, before exporting."
+            );
+            continue;
+        }
+        const start = startOf(scene.id);
+        if (start === undefined) continue;
+        place(asset, start + (narration.offsetMs ?? 0));
+    }
+
+    if (!musicUrl && placements.length === 0) {
+        return { audio: undefined, problems, notes };
+    }
+
+    placements.sort((a, b) => a.startMs - b.startMs);
+
+    return {
+        audio: {
+            musicUrl,
+            musicVolume,
+            duckMusic,
+            placements: placements.length ? placements : undefined,
+        },
+        problems,
+        notes,
     };
 }
 
@@ -419,14 +610,22 @@ export function studioToComposition(
         problems.push("There are no scenes to render yet.");
     }
 
-    return {
-        composition: {
-            width: studio.width,
-            height: studio.height,
-            fps: studio.fps || 30,
-            tracks: [{ kind: "video", clips }],
-        },
-        problems,
-        notes,
+    const composition: Composition = {
+        width: studio.width,
+        height: studio.height,
+        fps: studio.fps || 30,
+        tracks: [{ kind: "video", clips }],
     };
+
+    // Sound is resolved against THIS composition, measured. A clip's id is its
+    // scene's id, which is what lets a scene-anchored voiceover find the frame
+    // its picture starts on — through the same arithmetic the renderer will
+    // use, rather than a second opinion about it.
+    const starts = new Map<string, number>();
+    for (const m of measureComposition(composition).clips) starts.set(m.clip.id, m.startMs);
+    const sound = studioAudio(studio, sceneMap, media, (sceneId) => starts.get(sceneId));
+    for (const p of sound.problems) if (!problems.includes(p)) problems.push(p);
+    for (const n of sound.notes) if (!notes.includes(n)) notes.push(n);
+
+    return { composition, audio: sound.audio, problems, notes };
 }
