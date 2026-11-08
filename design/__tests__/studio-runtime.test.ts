@@ -4,12 +4,15 @@ import {
     previewFidelity,
     sceneHtmlRef,
     slotRect,
+    composeStackHtml,
+    stackIsComposable,
     studioAudio,
     studioAudioMediaIds,
     studioToComposition,
     toCompositionTransition,
     type RenderableMedia,
 } from "../studio-runtime";
+import { measureComposition } from "../composition-runtime";
 import type { IStudio, IStudioScene } from "../../firestore/trendly-pro/models/studio";
 
 const studio = (over: Partial<IStudio> = {}): IStudio => ({
@@ -66,15 +69,48 @@ describe("slot geometry", () => {
 });
 
 describe("transitions", () => {
-    it("maps a dissolve straight through and everything else to a fade, with a note", () => {
-        expect(toCompositionTransition("dissolve", 400).transition).toEqual({ kind: "fade", ms: 400 });
-        expect(toCompositionTransition("dissolve", 400).note).toBeUndefined();
+    it("draws each kind as itself rather than as a dissolve", () => {
+        // ALL SEVEN used to collapse to a plain cross-fade with a note
+        // apologising for it. `kind` is timing, `style` is what is drawn — and
+        // these are the names FFmpeg's xfade has had for years.
+        const style = (k: Parameters<typeof toCompositionTransition>[0]) =>
+            toCompositionTransition(k, 400).transition.style;
+        expect(style("dissolve")).toBe("fade");
+        expect(style("dip")).toBe("fadeblack");
+        expect(style("slide")).toBe("slideleft");
+        expect(style("wipe")).toBe("wiperight");
+        expect(style("blur-dissolve")).toBe("hblur");
+    });
 
-        const whip = toCompositionTransition("whip", 200);
-        expect(whip.transition.kind).toBe("fade");
-        // Said rather than substituted silently: otherwise a user approves a
-        // whip pan and publishes a cross-fade.
-        expect(whip.note).toContain("dissolve");
+    it("keeps the timing separate from the drawing", () => {
+        // A wipe and a dissolve overlap identically. If `kind` ever varied with
+        // the style, measureComposition's clamp would differ per transition and
+        // the timeline would depend on a cosmetic choice.
+        const wipe = toCompositionTransition("wipe", 400).transition;
+        const dissolve = toCompositionTransition("dissolve", 400).transition;
+        expect(wipe.kind).toBe(dissolve.kind);
+        expect(wipe.ms).toBe(dissolve.ms);
+        expect(wipe.style).not.toBe(dissolve.style);
+    });
+
+    it("notes ONLY the whip, which is the one still not itself", () => {
+        // A whip pan is directional motion blur and xfade has nothing that both
+        // travels and blurs. It renders as the slide — the honest half — and
+        // keeps its note. The other six no longer need one.
+        expect(toCompositionTransition("whip", 200).note).toContain("fast slide");
+        for (const k of ["dissolve", "dip", "slide", "wipe", "blur-dissolve"] as const) {
+            expect(toCompositionTransition(k, 400).note).toBeUndefined();
+        }
+    });
+
+    it("carries the style through the measurement", () => {
+        // measureComposition rebuilds each transition from scratch, and only
+        // knew about `kind` — which is how a wipe became a dissolve on the way
+        // to the renderer even once the mapping existed.
+        const s = studio({ sceneOrder: ["a", "b"] });
+        const b = scene("b", { transitionIn: { kind: "wipe", durationMs: 400 } });
+        const { composition } = studioToComposition(s, { a: scene("a"), b }, media);
+        expect(measureComposition(composition).clips[1].transition.style).toBe("wiperight");
     });
 
     it("treats a cut, and a zero-length transition, as no overlap at all", () => {
@@ -118,10 +154,85 @@ describe("studio to composition", () => {
         });
 
         const { problems, composition } = studioToComposition(s, { a: layered }, media);
-        // Publishing only the base layer would ship something the user never
-        // approved, so this blocks rather than degrades.
-        expect(problems.join(" ")).toContain("2 layers");
+        // A split screen of two stills is a LAYOUT, and Chromium draws layouts.
+        // It used to refuse every stack alike; it now renders as one composed
+        // design document.
+        expect(problems).toEqual([]);
+        expect(composition.tracks[0].clips).toHaveLength(1);
+        expect(composition.tracks[0].clips[0].source).toEqual({
+            kind: "design",
+            revisionId: "studio:st1:a",
+        });
+    });
+
+    it("still refuses a stack with VIDEO in it, and says which layer", () => {
+        // Footage is decoded by FFmpeg and never by Chromium — deliberately, so
+        // a composed document cannot contain it. The refusal is now about the
+        // one layer that cannot be drawn rather than about stacks in general.
+        const s = studio({ sceneOrder: ["a"] });
+        const withVideo = scene("a", {
+            layers: [
+                { id: "l1", kind: "media", slot: "full", mediaId: "m1" },
+                { id: "l2", kind: "media", slot: "pip-br", mediaId: "v1" },
+            ],
+        });
+        const { problems, composition } = studioToComposition(s, { a: withVideo }, media);
+        expect(problems.join(" ")).toContain("layer 2 is video");
         expect(composition.tracks[0].clips).toHaveLength(0);
+    });
+
+    it("refuses a stack whose media has been archived, naming the layer", () => {
+        const s = studio({ sceneOrder: ["a"] });
+        const gone = scene("a", {
+            layers: [
+                { id: "l1", kind: "media", slot: "full", mediaId: "m1" },
+                { id: "l2", kind: "media", slot: "pip-br", mediaId: "nope" },
+            ],
+        });
+        expect(studioToComposition(s, { a: gone }, media).problems.join(" ")).toContain(
+            "layer 2's media is missing"
+        );
+    });
+
+    it("composes a stack back-to-front, in array order", () => {
+        // The order the rail and the inspector show, so what the user dragged
+        // to the front is in front here too.
+        const html = composeStackHtml(
+            [
+                { id: "l1", kind: "media", slot: "full", mediaId: "m1" },
+                { id: "l2", kind: "html", slot: "lower-third", html: "<p>Caption</p>" },
+            ],
+            media,
+            1080,
+            1920
+        );
+        expect(html.indexOf("x.jpg")).toBeLessThan(html.indexOf("Caption"));
+        // Slot geometry in pixels of the canvas, from the same slotRect the
+        // preview uses — which is what makes the export match the preview.
+        expect(html).toContain("width:1080px;height:1920px");
+        expect(html).toContain("data-slide");
+    });
+
+    it("escapes a url rather than letting it close the attribute", () => {
+        const html = composeStackHtml(
+            [{ id: "l1", kind: "media", slot: "full", mediaId: "evil" }],
+            { evil: { url: 'https://x/a.jpg" onerror="alert(1)', kind: "image" } },
+            100,
+            100
+        );
+        expect(html).not.toContain('onerror="alert(1)"');
+        expect(html).toContain("&quot;");
+    });
+
+    it("says a composable stack is composable, and why one is not", () => {
+        expect(stackIsComposable([{ id: "l1", kind: "html", slot: "full", html: "<b/>" }], media)).toEqual({
+            ok: true,
+        });
+        const bad = stackIsComposable(
+            [{ id: "l1", kind: "media", slot: "full", mediaId: "v1" }],
+            media
+        );
+        expect(bad.ok).toBe(false);
     });
 
     it("refuses an empty scene and a scene whose media has gone", () => {

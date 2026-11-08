@@ -266,7 +266,12 @@ import type {
     CompositionTransition,
 } from "./composition-runtime";
 import { measureComposition } from "./composition-runtime";
-import type { IAudioLane, IStudio, IStudioScene } from "../firestore/trendly-pro/models/studio";
+import type {
+    IAudioLane,
+    IStudio,
+    IStudioLayer,
+    IStudioScene,
+} from "../firestore/trendly-pro/models/studio";
 import { effectiveSceneMs, orderedScenes } from "../firestore/trendly-pro/models/studio";
 
 /** The minimum a caller has to know about a piece of media to render it. */
@@ -322,7 +327,56 @@ export function parseSceneHtmlRef(
     return { studioId, sceneId };
 }
 
-/** Map the studio's seven transitions onto the two the renderer has. */
+/**
+ * What each studio transition is actually DRAWN as, by name.
+ *
+ * These are FFmpeg `xfade` transition names. Every one of the studio's seven
+ * kinds used to collapse to a plain cross-fade, with a note apologising for it
+ * — because `CompositionTransition` only knew `cut` and `fade`, and the
+ * renderer had `transition=fade` hardcoded. xfade has had forty of these for
+ * years; nothing needed inventing, only carrying through.
+ *
+ * ⚠️ WHIP IS THE ONE THAT IS STILL NOT ITSELF. A whip pan is directional motion
+ * blur, and xfade has no such transition — `hblur` blurs but does not travel,
+ * `slideleft` travels but does not blur. It is mapped to the slide, which is
+ * the honest half of it, and it keeps a note. The other six are now exact, so
+ * the note is about one transition instead of six.
+ *
+ * Only names present in FFmpeg 5.x are used: the worker's container installs
+ * Debian's ffmpeg, and `hlwind` and friends arrived later. The worker also
+ * probes its own build and falls back to `fade` for anything it does not
+ * recognise, so a newer or older image degrades rather than failing a render.
+ */
+export function xfadeStyleFor(kind: TransitionKind): { style: string; note?: string } {
+    switch (kind) {
+        case "dissolve":
+            return { style: "fade" };
+        case "dip":
+            // "Dip to black" — exactly what fadeblack does.
+            return { style: "fadeblack" };
+        case "slide":
+            return { style: "slideleft" };
+        case "wipe":
+            return { style: "wiperight" };
+        case "blur-dissolve":
+            return { style: "hblur" };
+        case "whip":
+            return {
+                style: "slideleft",
+                note: "A whip renders as a fast slide — the blur it needs isn't something the encoder can draw yet.",
+            };
+        default:
+            return { style: "fade" };
+    }
+}
+
+/**
+ * Map a studio transition onto the renderer's.
+ *
+ * `kind` decides TIMING — whether the clips overlap at all — and `style`
+ * decides what is drawn during the overlap. Keeping them apart is what lets a
+ * wipe be a wipe without a second opinion about how long it lasts.
+ */
 export function toCompositionTransition(
     kind: TransitionKind | undefined,
     ms: number
@@ -330,16 +384,8 @@ export function toCompositionTransition(
     if (!kind || kind === "cut" || !(ms > 0)) {
         return { transition: { kind: "cut", ms: 0 } };
     }
-    if (kind === "dissolve") {
-        return { transition: { kind: "fade", ms } };
-    }
-    // Everything else renders as a dissolve, and says so. A preview that
-    // substituted silently would have the user approve a whip pan and publish
-    // a cross-fade.
-    return {
-        transition: { kind: "fade", ms },
-        note: `The "${kind}" transition renders as a dissolve for now.`,
-    };
+    const { style, note } = xfadeStyleFor(kind);
+    return { transition: { kind: "fade", ms, style }, note };
 }
 
 /**
@@ -544,11 +590,19 @@ export function studioToComposition(
             return;
         }
         if (layers.length > 1) {
-            problems.push(
-                `Scene ${position} has ${layers.length} layers. Layered scenes can be previewed ` +
-                    `but not exported yet — flatten it to one layer to render.`
-            );
-            return;
+            // A stack of pictures and documents is a LAYOUT, and Chromium draws
+            // layouts — so it is composed into one document and rendered as a
+            // design. Only footage still refuses, because video is decoded by
+            // FFmpeg and never by the browser. See the section below.
+            const composable = stackIsComposable(layers, media);
+            if (!composable.ok) {
+                problems.push(
+                    `Scene ${position} can't be exported yet because ${composable.reason}. ` +
+                        `A split screen of stills or type over a still does export — ` +
+                        `it's video inside a stack that doesn't.`
+                );
+                return;
+            }
         }
 
         const durationMs = effectiveSceneMs(scene);
@@ -563,8 +617,18 @@ export function studioToComposition(
         );
         if (note && !notes.includes(note)) notes.push(note);
 
-        const layer = layers[0];
         const clip: Clip = { id: scene.id, durationMs, transitionIn: transition, source: { kind: "cut" } as never };
+
+        // A composed stack goes down the design path, exactly as a single html
+        // layer does: the worker's loader recognises the same synthetic ref and
+        // composes the scene's layers when there is more than one.
+        if (layers.length > 1) {
+            clip.source = { kind: "design", revisionId: sceneHtmlRef(studio.id, scene.id) };
+            clips.push(clip);
+            return;
+        }
+
+        const layer = layers[0];
 
         if (layer.kind === "html") {
             clip.source = {
@@ -628,4 +692,122 @@ export function studioToComposition(
     for (const n of sound.notes) if (!notes.includes(n)) notes.push(n);
 
     return { composition, audio: sound.audio, problems, notes };
+}
+
+// ─────────────────── Layer stacks: composing them to render ────────────────
+//
+// A composition clip is ONE full-frame source, which is why a layered scene
+// could be previewed and not exported: there was nowhere to put the second
+// layer. The refusal was right — rendering only the base layer would publish
+// something the user never approved — but it refused every stack, including the
+// ones that need nothing new to render at all.
+//
+// A split screen of two stills, or type over a still, is a LAYOUT. Chromium
+// already draws layouts, the design path already renders Chromium, and
+// `slotRect` already says where each layer goes. So a stack whose layers are
+// all pictures and documents is composed into one HTML document and rendered as
+// a design clip — the same path a single html layer takes.
+//
+// ⚠️ VIDEO IS THE EXCEPTION, AND STILL REFUSES. Footage is decoded by FFmpeg
+// and never by Chromium — deliberately, because a browser decoding video frame
+// by frame at render time is neither accurate nor fast. A stack containing a
+// video layer therefore still cannot export, and that refusal now says which
+// layer is the problem instead of refusing all stacks alike.
+
+/** Escape text for an HTML attribute or body. */
+function esc(s: string): string {
+    return s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+/**
+ * The `<body>` of one layer, positioned in its slot.
+ *
+ * An html layer is placed in an iframe-free wrapper: its own document body is
+ * injected inside a positioned div. That is a deliberate simplification over a
+ * real iframe — an iframe would isolate styles properly, and it would also need
+ * the renderer to wait for N nested documents to settle, which is the slowest
+ * and least predictable part of a Chromium render. A stack is at most a handful
+ * of layers authored by the same generator, so style collisions are a smaller
+ * risk than a render that times out.
+ */
+function layerHtml(
+    layer: IStudioLayer,
+    media: Record<string, RenderableMedia>,
+    width: number,
+    height: number
+): string {
+    const r = slotPixels(layer.slot, width, height, layer.rect);
+    const base =
+        `position:absolute;left:${r.left}px;top:${r.top}px;` +
+        `width:${r.width}px;height:${r.height}px;overflow:hidden;` +
+        (layer.opacity !== undefined && layer.opacity < 1 ? `opacity:${layer.opacity};` : "");
+
+    if (layer.kind === "html") {
+        // The layer's document, dropped in as-is. Its own <html>/<body> tags
+        // are harmless inside a div — browsers drop them — and stripping them
+        // with a regex would corrupt any document that mentions them in text.
+        return `<div style="${base}">${layer.html ?? ""}</div>`;
+    }
+
+    const asset = layer.mediaId ? media[layer.mediaId] : undefined;
+    const fit = layer.fit === "contain" ? "contain" : "cover";
+    return (
+        `<div style="${base}">` +
+        `<img src="${esc(asset?.url ?? "")}" ` +
+        `style="width:100%;height:100%;object-fit:${fit};display:block" />` +
+        `</div>`
+    );
+}
+
+/** Whether every layer in this stack can be drawn by Chromium. */
+export function stackIsComposable(
+    layers: IStudioLayer[],
+    media: Record<string, RenderableMedia>
+): { ok: true } | { ok: false; reason: string } {
+    for (let i = 0; i < layers.length; i++) {
+        const l = layers[i];
+        if (l.kind === "html") continue;
+        const asset = l.mediaId ? media[l.mediaId] : undefined;
+        if (!asset?.url) {
+            return { ok: false, reason: `layer ${i + 1}'s media is missing` };
+        }
+        if (asset.kind === "video") {
+            return { ok: false, reason: `layer ${i + 1} is video` };
+        }
+        if (asset.kind === "audio") {
+            return { ok: false, reason: `layer ${i + 1} is audio, which cannot be a picture` };
+        }
+    }
+    return { ok: true };
+}
+
+/**
+ * Compose a layer stack into one HTML document.
+ *
+ * Layers are drawn in array order, first at the back — the same order the rail
+ * and the inspector show them in, so what the user dragged to the front is in
+ * front here too.
+ */
+export function composeStackHtml(
+    layers: IStudioLayer[],
+    media: Record<string, RenderableMedia>,
+    width: number,
+    height: number
+): string {
+    const body = layers.map((l) => layerHtml(l, media, width, height)).join("");
+    // A fixed-size positioning context, because every slot is in pixels of the
+    // canvas. `data-slide` is what the existing renderer looks for.
+    return (
+        `<!doctype html><html><head><meta charset="utf-8"><style>` +
+        `html,body{margin:0;padding:0;background:#000}` +
+        `*{box-sizing:border-box}` +
+        `</style></head><body>` +
+        `<div data-slide style="position:relative;width:${width}px;height:${height}px;overflow:hidden">` +
+        body +
+        `</div></body></html>`
+    );
 }

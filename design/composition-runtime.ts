@@ -48,6 +48,22 @@ export interface CompositionTransition {
     kind: CompositionTransitionKind;
     /** Overlap with the previous clip in ms. Clamped — see measureComposition. */
     ms: number;
+    /**
+     * Which cross-fade the renderer should actually draw, as an FFmpeg `xfade`
+     * transition name.
+     *
+     * Separate from `kind` because the two answer different questions, and
+     * conflating them is what made every stylised transition come out as a
+     * dissolve. `kind` decides TIMING — whether two clips overlap at all, and
+     * `measureComposition` clamps the overlap from it. `style` decides only
+     * what is drawn during that overlap, which nothing about the timeline cares
+     * about. So a wipe and a dissolve are the same `kind` with different
+     * styles, and the arithmetic stays in one place.
+     *
+     * Absent means a plain cross-fade. A name the renderer's own FFmpeg does
+     * not know falls back to one, rather than failing the render.
+     */
+    style?: string;
 }
 
 /** A whole HTML design revision, or one scene of it, played in Chromium. */
@@ -275,7 +291,15 @@ export function measureComposition(composition: Composition): CompositionMeasure
             const half = Math.floor(Math.min(durations[i - 1], durations[i]) / 2);
             if (ms > half) ms = half;
         }
-        transitions.push({ kind: i === 0 ? "cut" : kind, ms });
+        // `style` is carried, not recomputed: this function owns timing and has
+        // no opinion on what is drawn. Dropping it here is how a wipe became a
+        // dissolve on the way to the renderer — the measurement rebuilt the
+        // transition from scratch and only knew about `kind`.
+        transitions.push({
+            kind: i === 0 ? "cut" : kind,
+            ms,
+            ...(declared?.style ? { style: declared.style } : {}),
+        });
     }
 
     const measured: MeasuredClip[] = [];
