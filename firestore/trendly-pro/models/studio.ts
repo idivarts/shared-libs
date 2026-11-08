@@ -250,6 +250,23 @@ export interface ISceneGeneration {
     error?: string;
 
     /**
+     * When the job was put on the studio queue, in epoch ms.
+     *
+     * It exists so a reader can tell a scene being worked on from one that was
+     * abandoned. Those used to look identical — `pending` with
+     * `status: "queued"` — so a run stranded hours ago was indistinguishable
+     * from one a worker picked up a second ago, and the UI could only either
+     * offer to redo work already in flight or leave dead scenes spinning
+     * forever. It did the second.
+     *
+     * The worker's ceiling is 900s. A queued generation older than that, with
+     * no outcome written, is stranded rather than slow. A queued generation
+     * with NO `queuedAt` at all predates the queue and is stranded by
+     * definition.
+     */
+    queuedAt?: number;
+
+    /**
      * This scene continues the previous one as one unbroken motion, and was
      * generated from its last frame.
      *
