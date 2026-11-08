@@ -435,6 +435,21 @@ export interface IStudioScene {
     /** Set while a generation is in flight, so the rail can show a placeholder. */
     pending?: boolean;
 
+    /**
+     * The run that created this scene, when one did.
+     *
+     * Stored on the SCENE rather than read back from `run.sceneIds`, because
+     * the rail draws scenes and needs to group them without loading every run
+     * a studio has ever had. It also makes a scene self-describing about where
+     * it came from — "these six are one batch the AI planned, and that one you
+     * added yourself" is a distinction the rail could not otherwise draw, and
+     * without it six generated scenes look exactly like six unrelated ones.
+     *
+     * Absent on a scene a person added by hand, which is the whole point:
+     * absence means "mine", not "unknown".
+     */
+    runId?: string;
+
     createdAt: number;
     updatedAt?: number;
 }
