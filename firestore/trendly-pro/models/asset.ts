@@ -26,6 +26,68 @@ export type AssetSource = "brand" | "upload" | "stock" | "generated";
 
 export type AssetIngestStatus = "pending" | "done" | "failed";
 
+/**
+ * Where a piece of media is in its life.
+ *
+ * ⚠️ `undefined` MEANS READY. There are rows in production older than this
+ * field, and treating a missing status as "not finished uploading" would hide a
+ * brand's entire history behind a sweep. Use `isMediaPickable` rather than
+ * comparing to "ready" by hand.
+ *
+ * `pending` exists because a pre-signed upload is filed BEFORE its bytes exist:
+ * the backend hands out a URL and never sees the transfer, so the row goes in at
+ * hand-out and the app confirms it once its PUT returns.
+ */
+export type MediaStatus = "pending" | "ready" | "archived" | "failed";
+
+/** What produced a piece of media. */
+export type MediaOriginKind =
+    | "upload"
+    | "generated"
+    | "render"
+    | "frame"
+    | "stock"
+    | "hosted";
+
+/**
+ * What produced this, in the terms of whatever produced it.
+ *
+ * It is the first thing a person asks of anything in the library ("where did
+ * this come from?") and the first thing the AI needs in order to reuse it ("the
+ * still I made of the founder"), which is why it is structured rather than a
+ * label.
+ */
+export interface IMediaOrigin {
+    kind: MediaOriginKind;
+
+    /** The generator: "elevenlabs", "veo-3.1-fast-generate-001". */
+    provider?: string;
+    model?: string;
+    /**
+     * What it was asked for. The important one for search: a generated clip has
+     * no filename anybody chose, so the prompt is the only description
+     * attached to it.
+     */
+    prompt?: string;
+    jobId?: string;
+
+    /** The design or composition revision a render came from. */
+    revisionId?: string;
+    contentId?: string;
+    studioId?: string;
+    sceneId?: string;
+
+    /**
+     * A frame cut out of other media: which media, and how far into it. This
+     * is what makes a chain legible weeks later — the start frame of beat 3
+     * reads as "media X at 7,920ms" rather than as an anonymous PNG.
+     */
+    sourceMediaId?: string;
+    atMs?: number;
+
+    at?: number;
+}
+
 /** One word of a transcript, and when it was said. */
 export interface ITranscriptWord {
     text: string;
@@ -149,4 +211,77 @@ export interface IAsset {
      * edit one has to create a real asset first.
      */
     derived?: boolean;
+
+    // ── Bytes and lifecycle ─────────────────────────────────────────────────
+    // Added when media became a COLLECTION rather than a convenience: every
+    // byte that leaves for S3 gets a row whether anything uses it or not, so
+    // there is a history to pick from, a reference count that makes deletion
+    // safe, and a per-brand byte total that is real on the day storage is ever
+    // charged for.
+    //
+    // All of these are written by the BACKEND ONLY — the collection is not
+    // client-writable. A client able to set `sizeBytes` or `refCount` could
+    // under-report its storage or strand media that something still uses.
+
+    /** Where the bytes actually are. The URL is a CDN address and cannot be
+     * used to measure, re-read or remove an object. */
+    s3Bucket?: string;
+    s3Key?: string;
+    /** Read back from S3 with a HEAD, never taken from the uploader. */
+    sizeBytes?: number;
+
+    /** See MediaStatus: absent means ready. */
+    status?: MediaStatus;
+
+    /**
+     * How many scenes, layers and published contents point at this.
+     *
+     * What makes "archive, never hard-delete" enforceable: media with a live
+     * reference cannot be put away, and media with none can.
+     */
+    refCount?: number;
+
+    origin?: IMediaOrigin;
+    /** The media this was derived from — the clip a frame was cut out of. */
+    sourceMediaId?: string;
+    archivedAt?: number;
+}
+
+/**
+ * Whether media can be placed in a scene.
+ *
+ * ⚠️ Use this instead of `status === "ready"`. A row with no status predates the
+ * registry and IS pickable; a strict comparison hides every asset a brand had
+ * before the collection shipped.
+ */
+export function isMediaPickable(a: Pick<IAsset, "status">): boolean {
+    return a.status === undefined || a.status === "ready";
+}
+
+/** A human-readable size, for the storage figure on settings. */
+export function formatMediaBytes(bytes: number): string {
+    if (!bytes || bytes < 0) return "0 MB";
+    const mb = bytes / (1024 * 1024);
+    if (mb < 1) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    if (mb < 1024) return `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
+    return `${(mb / 1024).toFixed(1)} GB`;
+}
+
+/**
+ * The per-brand storage rollup — `brands/{brandId}/aggregates/mediaUsage`.
+ *
+ * Maintained with atomic increments as media is filed and archived, rather than
+ * computed on demand: the alternative is walking every row every time anyone
+ * opens a settings screen.
+ *
+ * ⚠️ `bytesTotal` does NOT fall when media is archived. Archived bytes still
+ * occupy the bucket; only `countVisible` drops. A figure that fell when a user
+ * hid something would under-report what is stored, which is the one direction a
+ * billable number must never be wrong in.
+ */
+export interface IBrandMediaUsage {
+    bytesTotal: number;
+    countVisible: number;
+    bytesByKind?: Partial<Record<AssetKind, number>>;
+    updatedAt?: number;
 }
